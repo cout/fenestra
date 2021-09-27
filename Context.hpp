@@ -1,0 +1,262 @@
+#pragma once
+
+#include "libretro.h"
+
+#include "Frontend.hpp"
+#include "Core.hpp"
+#include "Saveram.hpp"
+#include "Saveram.hpp"
+#include "Savefile.hpp"
+
+#include <cstdarg>
+#include <cstdlib>
+#include <fstream>
+#include <memory>
+#include <string>
+#include <filesystem>
+#include <map>
+
+namespace fenestra {
+
+class Context {
+public:
+  Context(Frontend & frontend, Core & core, Config const & config)
+    : frontend_(frontend)
+    , core_(core)
+    , config_(config)
+  {
+    current_ = this;
+    std::cout << "calling retro_set_environment" << std::endl;
+    core.retro_set_environment(environment);
+    core.retro_set_video_refresh(video_refresh);
+    core.retro_set_audio_sample(audio_sample);
+    core.retro_set_audio_sample_batch(audio_sample_batch);
+    core.retro_set_input_poll(input_poll);
+    core.retro_set_input_state(input_state);
+    core.retro_init();
+    core_initialized_ = true;
+  }
+
+  ~Context() {
+    if (game_loaded_) {
+      unload_game();
+    }
+    if (core_initialized_) {
+      core_.retro_deinit();
+    }
+  }
+
+  static Context * current() { return current_; }
+
+  auto & frontend() { return frontend_; }
+  auto & core() { return core_; }
+  auto const & config() const { return config_; }
+
+  auto system_info() {
+    struct retro_system_info system_info;
+    core_.retro_get_system_info(&system_info);
+    return system_info;
+  }
+
+  auto av_info() {
+    struct retro_system_av_info av_info;
+    core_.retro_get_system_av_info(&av_info);
+    return av_info;
+  }
+
+  void load_game(std::string filename) {
+    retro_game_info info = { filename.c_str(), nullptr, 0, "" };
+    std::string str;
+
+    if (!system_info().need_fullpath) {
+      std::ifstream file(filename.data());
+      std::stringstream buf;
+      buf << file.rdbuf();
+      str = buf.str();
+
+      info.data = str.data();
+      info.size = str.length();
+    }
+
+    if (!core_.retro_load_game(&info)) {
+      throw std::runtime_error("retro_load_game failed");
+    }
+
+    auto save_filename = std::filesystem::path(config_.save_directory()) /
+                         std::filesystem::path(filename).filename();
+    save_filename.replace_extension(".srm");
+
+    std::cout << "save filename: " << save_filename.native() << std::endl;
+
+    saveram_ = std::make_unique<Saveram>(core_);
+    savefile_ = std::make_unique<Savefile>(save_filename.native(), saveram_->size());
+
+    std::copy(savefile_->begin(), savefile_->end(), saveram_->begin());
+
+    game_loaded_ = true;
+  }
+
+  void init() {
+    auto av = av_info();
+    frontend_.init(av);
+  }
+
+  void unload_game() {
+    if (game_loaded_) {
+      sync_savefile();
+      core_.retro_unload_game();
+      game_loaded_ = false;
+    }
+  }
+
+  void run_core() {
+    core_.retro_run();
+  }
+
+  void sync_savefile() {
+    savefile_->sync_if_changed(saveram_->data(), saveram_->size());
+  }
+
+private:
+  static void log(enum retro_log_level level, const char *fmt, ...) {
+    try {
+      std::va_list ap;
+      va_start(ap, fmt);
+      Context::current()->frontend().logger().log_libretro(level, fmt, ap);
+      va_end(ap);
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+  }
+
+  static bool environment(unsigned int cmd, void * data) {
+    try {
+      auto * current = Context::current();
+
+      switch (cmd) {
+        case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
+        {
+          auto * cb = static_cast<retro_log_callback *>(data);
+          cb->log = Context::log;
+          return true;
+        }
+
+        case RETRO_ENVIRONMENT_GET_CAN_DUPE:
+          *static_cast<bool *>(data) = true;
+          return true;
+
+        case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+          return current->frontend().video_set_pixel_format(*static_cast<retro_pixel_format *>(data));
+
+        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+          *static_cast<char const * *>(data) = current->config().system_directory();
+          return true;
+
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+          *static_cast<char const * *>(data) = current->config().save_directory();
+          return true;
+
+        case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL: // 8
+        case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: // 11
+        case RETRO_ENVIRONMENT_GET_VARIABLE: // 15
+        case RETRO_ENVIRONMENT_SET_VARIABLES: // 16
+        case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE: // 17
+        case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO: // 34
+        case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO: // 35
+        case RETRO_ENVIRONMENT_SET_GEOMETRY: // 37
+        case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION: // 52
+        case RETRO_ENVIRONMENT_SET_MEMORY_MAPS: // 36 (experimental)
+        case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS: // 42 (experimental)
+        case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE: // 47 (experimental)
+          // TODO
+          return false;
+
+        default:
+          warn_unknown_environment(cmd);
+          return false;
+      }
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+    return false;
+  }
+
+  static void warn_unknown_environment(unsigned int cmd) {
+    if (!warned_unknown_environment_[cmd]) {
+      std::cout << "Uknown environment " << cmd << std::endl;
+      warned_unknown_environment_[cmd] = true;
+    }
+  }
+
+  static void video_refresh(void const * data, unsigned int width, unsigned int height, std::size_t pitch) {
+    try {
+      Context::current()->frontend().video_refresh(data, width, height, pitch);
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+  }
+
+  static void input_poll(void) {
+    try {
+      Context::current()->frontend().poll_input();
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+  }
+
+  static std::int16_t input_state(unsigned int port, unsigned int device, unsigned int index, unsigned int id) {
+    try {
+      return Context::current()->frontend().input_state(port, device, index, id);
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+  }
+
+  static void audio_sample(std::int16_t left, std::int16_t right) {
+    try {
+      return Context::current()->frontend().audio_sample(left, right);
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+  }
+
+  static std::size_t audio_sample_batch(const std::int16_t * data, std::size_t frames) {
+    try {
+      return Context::current()->frontend().audio_sample_batch(data, frames);
+    } catch(std::exception const & ex) {
+      std::cout << "ERROR: " << ex.what() << std::endl;
+    } catch(...) {
+      std::cout << "Unexpected error" << std::endl;
+    }
+    return 0;
+  }
+
+private:
+  static inline Context * current_ = 0;
+
+  Frontend & frontend_;
+  Core & core_;
+  Config const & config_;
+
+  std::unique_ptr<Saveram> saveram_;
+  std::unique_ptr<Savefile> savefile_;
+
+  bool core_initialized_ = false;
+  bool game_loaded_ = false;
+
+  static inline std::map<unsigned int, bool> warned_unknown_environment_;
+};
+
+}
