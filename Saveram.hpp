@@ -10,10 +10,10 @@ namespace fenestra {
 class Saveram {
 public:
   Saveram(Core & core) {
-    size_ = core.retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    size_ = core.get_memory_size(RETRO_MEMORY_SAVE_RAM);
 
     if (size_ > 0) {
-      data_ = static_cast<std::uint8_t *>(core.retro_get_memory_data(RETRO_MEMORY_SAVE_RAM));
+      data_ = static_cast<std::uint8_t *>(core.get_memory_data(RETRO_MEMORY_SAVE_RAM));
     }
   }
 

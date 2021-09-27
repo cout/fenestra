@@ -100,8 +100,8 @@ private:
     unsigned int bytes;
     std::from_chars(s_bytes.data(), s_bytes.data() + s_bytes.size(), bytes, 16);
 
-    auto size = core_.retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
-    auto const * data = static_cast<uint8_t *>(core_.retro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
+    auto size = core_.get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
+    auto const * data = static_cast<uint8_t *>(core_.get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
 
     auto const max_bytes = 1024;
 

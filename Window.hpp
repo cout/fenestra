@@ -158,7 +158,7 @@ private:
 
       case GLFW_KEY_R:
         if (reset_requested_ && now - reset_requested_time_ < Seconds(1)) {
-          core_.retro_reset();
+          core_.reset();
           reset_requested_ = false;
         } else {
           std::cout << "Reset requested, press R within 1s to confirm" << std::endl;

@@ -27,13 +27,13 @@ public:
   {
     current_ = this;
     std::cout << "calling retro_set_environment" << std::endl;
-    core.retro_set_environment(environment);
-    core.retro_set_video_refresh(video_refresh);
-    core.retro_set_audio_sample(audio_sample);
-    core.retro_set_audio_sample_batch(audio_sample_batch);
-    core.retro_set_input_poll(input_poll);
-    core.retro_set_input_state(input_state);
-    core.retro_init();
+    core.set_environment(environment);
+    core.set_video_refresh(video_refresh);
+    core.set_audio_sample(audio_sample);
+    core.set_audio_sample_batch(audio_sample_batch);
+    core.set_input_poll(input_poll);
+    core.set_input_state(input_state);
+    core.init();
     core_initialized_ = true;
   }
 
@@ -42,7 +42,7 @@ public:
       unload_game();
     }
     if (core_initialized_) {
-      core_.retro_deinit();
+      core_.deinit();
     }
   }
 
@@ -54,13 +54,13 @@ public:
 
   auto system_info() {
     struct retro_system_info system_info;
-    core_.retro_get_system_info(&system_info);
+    core_.get_system_info(&system_info);
     return system_info;
   }
 
   auto av_info() {
     struct retro_system_av_info av_info;
-    core_.retro_get_system_av_info(&av_info);
+    core_.get_system_av_info(&av_info);
     return av_info;
   }
 
@@ -78,7 +78,7 @@ public:
       info.size = str.length();
     }
 
-    if (!core_.retro_load_game(&info)) {
+    if (!core_.load_game(&info)) {
       throw std::runtime_error("retro_load_game failed");
     }
 
@@ -104,13 +104,13 @@ public:
   void unload_game() {
     if (game_loaded_) {
       sync_savefile();
-      core_.retro_unload_game();
+      core_.unload_game();
       game_loaded_ = false;
     }
   }
 
   void run_core() {
-    core_.retro_run();
+    core_.run();
   }
 
   void sync_savefile() {
