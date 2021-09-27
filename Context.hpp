@@ -26,7 +26,6 @@ public:
     , config_(config)
   {
     current_ = this;
-    std::cout << "calling retro_set_environment" << std::endl;
     core.set_environment(environment);
     core.set_video_refresh(video_refresh);
     core.set_audio_sample(audio_sample);
@@ -85,8 +84,6 @@ public:
     auto save_filename = std::filesystem::path(config_.save_directory()) /
                          std::filesystem::path(filename).filename();
     save_filename.replace_extension(".srm");
-
-    std::cout << "save filename: " << save_filename.native() << std::endl;
 
     saveram_ = std::make_unique<Saveram>(core_);
     savefile_ = std::make_unique<Savefile>(save_filename.native(), saveram_->size());
