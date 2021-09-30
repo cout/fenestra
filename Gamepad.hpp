@@ -1,43 +1,12 @@
 #pragma once
 
+#include "Config.hpp"
+
 #include <vector>
 
 #include <GLFW/glfw3.h>
 
 namespace fenestra {
-
-struct Button_Binding {
-  unsigned int button;
-  unsigned int retro_button;
-};
-
-struct Axis_Binding {
-  unsigned int axis;
-  float threshold;
-  unsigned int retro_button;
-};
-
-// Button bindings for 8bitdo SN30+
-inline std::vector<Button_Binding> button_bindings = {
-  { 0, RETRO_DEVICE_ID_JOYPAD_B },
-  { 1, RETRO_DEVICE_ID_JOYPAD_A },
-  { 2, RETRO_DEVICE_ID_JOYPAD_Y },
-  { 3, RETRO_DEVICE_ID_JOYPAD_X },
-  { 4, RETRO_DEVICE_ID_JOYPAD_L },
-  { 5, RETRO_DEVICE_ID_JOYPAD_R },
-  { 6, RETRO_DEVICE_ID_JOYPAD_SELECT },
-  { 7, RETRO_DEVICE_ID_JOYPAD_START },
-  { 11, RETRO_DEVICE_ID_JOYPAD_UP },
-  { 12, RETRO_DEVICE_ID_JOYPAD_RIGHT },
-  { 13, RETRO_DEVICE_ID_JOYPAD_DOWN },
-  { 14, RETRO_DEVICE_ID_JOYPAD_LEFT },
-};
-
-// Axis bindings for 8bitdo SN30+
-inline std::vector<Axis_Binding> axis_bindings = {
-  { 4, +1, RETRO_DEVICE_ID_JOYPAD_L2 },
-  { 5, +1, RETRO_DEVICE_ID_JOYPAD_R2 },
-};
 
 class InputState {
 public:
@@ -50,8 +19,9 @@ private:
 
 class Gamepad {
 public:
-  Gamepad(unsigned int joystick = 0)
-    : joystick_(joystick)
+  Gamepad(Config const & config, unsigned int joystick = 0)
+    : config_(config)
+    , joystick_(joystick)
   {
   }
 
@@ -61,12 +31,12 @@ public:
     GLFWgamepadstate state;
 
     if (glfwGetGamepadState(joystick_, &state)) {
-      for (auto const & binding : button_bindings) {
+      for (auto const & binding : config_.button_bindings()) {
         auto pressed = state.buttons[binding.button];
         state_.pressed()[binding.retro_button] = pressed;
       }
 
-      for (auto const & binding : axis_bindings) {
+      for (auto const & binding : config_.axis_bindings()) {
         auto pos = state.axes[binding.axis];
         auto thresh = binding.threshold;
         auto pressed = thresh > 0 ? pos >= thresh : pos <= thresh;
@@ -80,7 +50,8 @@ public:
   }
 
 private:
-unsigned int joystick_;
+  Config const & config_;
+  unsigned int joystick_;
   InputState state_;
 };
 

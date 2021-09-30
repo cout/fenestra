@@ -20,7 +20,7 @@ public:
     : config_(config)
     , core_(core)
     , window_(title, core, config_)
-    , gamepad_()
+    , gamepad_(config_)
   {
   }
 
