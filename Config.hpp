@@ -14,6 +14,7 @@ public:
   bool glfinish() const { return false; }
   bool oml_sync() const { return false; }
   bool nv_delay_before_swap() const { return false; }
+  float scale_factor() const { return 6.0; }
 
   Milliseconds frame_delay() const { return Milliseconds(8); }
 

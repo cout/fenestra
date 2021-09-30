@@ -36,7 +36,7 @@ public:
   auto & logger() { return logger_; }
 
   void init(retro_system_av_info const & av) {
-    Geometry geom(av.geometry, scale_);
+    Geometry geom(av.geometry, config_.scale_factor());
     window_.init(geom);
 
     for (auto const & plugin : plugins_) {
@@ -109,9 +109,6 @@ private:
   Logger logger_;
 
   std::vector<std::shared_ptr<Plugin>> plugins_;
-
-  // Config
-  float scale_ = 6;
 };
 
 }
