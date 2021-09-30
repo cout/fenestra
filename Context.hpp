@@ -91,6 +91,8 @@ public:
     std::copy(savefile_->begin(), savefile_->end(), saveram_->begin());
 
     game_loaded_ = true;
+
+    frontend_.game_loaded();
   }
 
   void init() {
@@ -103,6 +105,7 @@ public:
       sync_savefile();
       core_.unload_game();
       game_loaded_ = false;
+      frontend_.game_unloaded();
     }
   }
 

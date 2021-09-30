@@ -4,7 +4,6 @@
 #include "Clock.hpp"
 #include "Context.hpp"
 #include "Perf.hpp"
-#include "Netcmds.hpp"
 
 #include <GL/gl.h>
 
@@ -12,11 +11,10 @@ namespace fenestra {
 
 class Loop {
 public:
-  Loop(Config const & config, Frontend & frontend, Context & ctx, Netcmds & netcmds)
+  Loop(Config const & config, Frontend & frontend, Context & ctx)
     : config_(config)
     , frontend_(frontend)
     , ctx_(ctx)
-    , netcmds_(netcmds)
     , perf_()
   {
   }
@@ -38,13 +36,6 @@ public:
         frontend_.window().poll_events();
       } catch(...) {
         std::cout << "error polling window events" << std::endl;
-      }
-
-      // TODO: mark read netcmds
-      try {
-        netcmds_.poll();
-      } catch(...) {
-        std::cout << "error polling network" << std::endl;
       }
 
       try {
@@ -89,7 +80,6 @@ private:
   Config const & config_;
   Frontend & frontend_;
   Context & ctx_;
-  Netcmds & netcmds_;
   Perf perf_;
 };
 

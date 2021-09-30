@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Plugin.hpp"
+
 #include "libretro.h"
 
 #include <sys/types.h>
@@ -17,12 +19,21 @@
 
 namespace fenestra {
 
-class Netcmds {
+class Netcmds
+  : public Plugin
+{
 public:
-  Netcmds(Core & core, Config const & config)
-    : core_(core)
-    , port_(config.network_command_port())
+  Netcmds(Config const & config)
+    : port_(config.network_command_port())
   {
+  }
+
+  virtual void game_loaded(Core & core) {
+    core_ = &core;
+    this->start();
+  }
+
+  void start() {
     if (port_ > 0) {
       if ((sock_ = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         throw std::runtime_error("socket failed");
@@ -43,6 +54,10 @@ public:
         throw std::runtime_error("fcntl failed");
       }
     }
+  }
+
+  virtual void pre_frame_delay() override {
+    poll();
   }
 
   void poll() {
@@ -100,8 +115,8 @@ private:
     unsigned int bytes;
     std::from_chars(s_bytes.data(), s_bytes.data() + s_bytes.size(), bytes, 16);
 
-    auto size = core_.get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
-    auto const * data = static_cast<uint8_t *>(core_.get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
+    auto size = core_->get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
+    auto const * data = static_cast<uint8_t *>(core_->get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
 
     auto const max_bytes = 1024;
 
@@ -131,7 +146,7 @@ private:
   }
 
 private:
-  Core & core_;
+  Core * core_;
   int port_ = 0;
   int sock_ = -1;
   std::vector<std::string_view> vec_;

@@ -6,7 +6,6 @@
 #include "Window.hpp"
 #include "Gamepad.hpp"
 #include "Geometry.hpp"
-#include "Netcmds.hpp"
 #include "Plugin.hpp"
 
 #include <string>
@@ -19,6 +18,7 @@ class Frontend {
 public:
   Frontend(std::string const & title, Core & core, Config const & config)
     : config_(config)
+    , core_(core)
     , window_(title, core, config_)
     , gamepad_()
   {
@@ -48,6 +48,18 @@ public:
   void log_libretro(enum retro_log_level level, char const * fmt, va_list ap) {
     for (auto const & plugin : plugins_) {
       plugin->log_libretro(level, fmt, ap);
+    }
+  }
+
+  void game_loaded() {
+    for (auto const & plugin : plugins_) {
+      plugin->game_loaded(core_);
+    }
+  }
+
+  void game_unloaded() {
+    for (auto const & plugin : plugins_) {
+      plugin->game_unloaded(core_);
     }
   }
 
@@ -107,6 +119,7 @@ public:
 
 private:
   Config const & config_;
+  Core & core_;
   Window window_;
   Gamepad gamepad_;
 

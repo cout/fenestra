@@ -31,13 +31,12 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Audio>();
   frontend.add_plugin<Video>();
   frontend.add_plugin<Capture>();
+  frontend.add_plugin<Netcmds>();
 
   Context ctx(frontend, core, config);
   ctx.load_game(argv[2]);
   ctx.init();
 
-  Netcmds netcmds(core, config);
-
-  Loop loop(config, frontend, ctx, netcmds);
+  Loop loop(config, frontend, ctx);
   loop.run();
 }

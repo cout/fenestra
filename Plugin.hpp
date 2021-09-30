@@ -23,6 +23,9 @@ public:
   virtual void pre_frame_delay() { }
 
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) { }
+
+  virtual void game_loaded(Core const & core) { }
+  virtual void game_unloaded(Core const & core) { }
 };
 
 }
