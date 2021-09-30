@@ -119,7 +119,7 @@ private:
     try {
       std::va_list ap;
       va_start(ap, fmt);
-      Context::current()->frontend().logger().log_libretro(level, fmt, ap);
+      Context::current()->frontend().log_libretro(level, fmt, ap);
       va_end(ap);
     } catch(std::exception const & ex) {
       std::cout << "ERROR: " << ex.what() << std::endl;

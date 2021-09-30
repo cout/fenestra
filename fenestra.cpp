@@ -6,6 +6,7 @@
 #include "Loop.hpp"
 
 // Plugins
+#include "Logger.hpp"
 #include "Audio.hpp"
 #include "Video.hpp"
 #include "Capture.hpp"
@@ -26,6 +27,7 @@ int main(int argc, char *argv[]) {
   Config config;
   Frontend frontend("Fenestra", core, config);
 
+  frontend.add_plugin<Logger>();
   frontend.add_plugin<Audio>();
   frontend.add_plugin<Video>();
   frontend.add_plugin<Capture>();

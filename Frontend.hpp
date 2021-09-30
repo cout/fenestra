@@ -5,7 +5,6 @@
 #include "Config.hpp"
 #include "Window.hpp"
 #include "Gamepad.hpp"
-#include "Logger.hpp"
 #include "Geometry.hpp"
 #include "Netcmds.hpp"
 #include "Plugin.hpp"
@@ -22,7 +21,6 @@ public:
     : config_(config)
     , window_(title, core, config_)
     , gamepad_()
-    , logger_()
   {
   }
 
@@ -33,7 +31,6 @@ public:
 
   auto & window() { return window_; }
   auto & gamepad() { return gamepad_; }
-  auto & logger() { return logger_; }
 
   void init(retro_system_av_info const & av) {
     Geometry geom(av.geometry, config_.scale_factor());
@@ -45,6 +42,12 @@ public:
 
     for (auto const & plugin : plugins_) {
       plugin->set_sample_rate(av.timing.sample_rate);
+    }
+  }
+
+  void log_libretro(enum retro_log_level level, char const * fmt, va_list ap) {
+    for (auto const & plugin : plugins_) {
+      plugin->log_libretro(level, fmt, ap);
     }
   }
 
@@ -106,7 +109,6 @@ private:
   Config const & config_;
   Window window_;
   Gamepad gamepad_;
-  Logger logger_;
 
   std::vector<std::shared_ptr<Plugin>> plugins_;
 };

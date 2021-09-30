@@ -21,6 +21,8 @@ public:
   virtual void video_render() { }
 
   virtual void pre_frame_delay() { }
+
+  virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) { }
 };
 
 }
