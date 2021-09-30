@@ -5,7 +5,6 @@
 #include "Config.hpp"
 #include "Window.hpp"
 #include "Gamepad.hpp"
-#include "Video.hpp"
 #include "Capture.hpp"
 #include "Logger.hpp"
 #include "Geometry.hpp"
@@ -24,7 +23,6 @@ public:
     : config_(config)
     , window_(title, core, config_)
     , gamepad_()
-    , video_()
     , capture_()
     , logger_()
   {
@@ -40,15 +38,17 @@ public:
 
   auto & window() { return window_; }
   auto & gamepad() { return gamepad_; }
-  auto & video() { return video_; }
   auto & capture() { return capture_; }
   auto & logger() { return logger_; }
 
   void init(retro_system_av_info const & av) {
     Geometry geom(av.geometry, scale_);
     window_.init(geom);
-    video_.configure(geom);
     capture_.configure(geom);
+
+    for (auto const & plugin : plugins_) {
+      plugin->set_geometry(geom);
+    }
 
     for (auto const & plugin : plugins_) {
       plugin->set_sample_rate(av.timing.sample_rate);
@@ -56,13 +56,28 @@ public:
   }
 
   bool video_set_pixel_format(retro_pixel_format format) {
-    return video().set_pixel_format(format) && capture().set_pixel_format(format);
+    for (auto const & plugin : plugins_) {
+      plugin->set_pixel_format(format);
+    }
+
+    capture().set_pixel_format(format);
+
+    return true;
   }
 
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     if (data) {
-      video().refresh(data, width, height, pitch);
+      for (auto const & plugin : plugins_) {
+        plugin->video_refresh(data, width, height, pitch);
+      }
+
       capture().refresh(data, width, height, pitch);
+    }
+  }
+
+  void video_render() {
+    for (auto const & plugin : plugins_) {
+      plugin->video_render();
     }
   }
 
@@ -96,7 +111,6 @@ private:
   Config const & config_;
   Window window_;
   Gamepad gamepad_;
-  Video video_;
   Capture capture_;
   Logger logger_;
 

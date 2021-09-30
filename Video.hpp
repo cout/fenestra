@@ -1,8 +1,9 @@
 #pragma once
 
-#include "libretro.h"
-
 #include "Geometry.hpp"
+#include "Plugin.hpp"
+
+#include "libretro.h"
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -13,8 +14,10 @@
 
 namespace fenestra {
 
-class Video {
-public:
+class Video
+  : public Plugin
+{
+private:
   struct Pixel_Format {
     GLuint format = GL_RGB;
     GLuint type = GL_UNSIGNED_SHORT_5_5_5_1;
@@ -27,6 +30,10 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 16 } },
   };
 
+public:
+  Video(Config const & config) {
+  }
+
   ~Video()
   {
     if (tex_id_) {
@@ -34,17 +41,15 @@ public:
     }
   }
 
-  bool set_pixel_format(retro_pixel_format format) {
+  virtual void set_pixel_format(retro_pixel_format format) override {
     if (tex_id_) {
       throw std::runtime_error("Tried to change pixel format after initialization.");
     }
 
     pixel_format_ = pixel_formats.at(format);
-
-    return true;
   }
 
-  void configure(Geometry const & geom) {
+  virtual void set_geometry(Geometry const & geom) override {
     glViewport(0, 0, geom.scaled_width(), geom.scaled_height());
 
     glEnable(GL_TEXTURE_2D);
@@ -74,7 +79,7 @@ public:
     tex_h_ = geom.max_height();
   }
 
-  void refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
+  virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) override {
     glBindTexture(GL_TEXTURE_2D, tex_id_);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / (pixel_format_.bpp / CHAR_BIT));
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, pixel_format_.format, pixel_format_.type, data);
@@ -84,7 +89,7 @@ public:
     render_h_ = height;
   }
 
-  void render() {
+  virtual void video_render() override {
     glBindTexture(GL_TEXTURE_2D, tex_id_);
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -102,11 +107,11 @@ public:
   }
 
 private:
-  GLuint tex_id_;
-  GLint tex_w_;
-  GLint tex_h_;
-  GLfloat render_w_;
-  GLfloat render_h_;
+  GLuint tex_id_ = 0;
+  GLint tex_w_ = 0;
+  GLint tex_h_ = 0;
+  GLfloat render_w_ = 0;
+  GLfloat render_h_ = 0;
 
   Pixel_Format pixel_format_;
 };

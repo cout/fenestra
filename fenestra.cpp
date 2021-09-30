@@ -7,6 +7,7 @@
 
 // Plugins
 #include "Audio.hpp"
+#include "Video.hpp"
 
 #include <iostream>
 
@@ -25,6 +26,7 @@ int main(int argc, char *argv[]) {
   Frontend frontend("Fenestra", core, config);
 
   frontend.add_plugin<Audio>();
+  frontend.add_plugin<Video>();
 
   Context ctx(frontend, core, config);
   ctx.load_game(argv[2]);

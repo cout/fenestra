@@ -65,7 +65,7 @@ public:
 
       try {
         perf_.mark_video_render();
-        frontend_.video().render();
+        frontend_.video_render();
       } catch(...) {
         std::cout << "error rendering video" << std::endl;
       }
