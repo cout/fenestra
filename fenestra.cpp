@@ -8,6 +8,7 @@
 // Plugins
 #include "Audio.hpp"
 #include "Video.hpp"
+#include "Capture.hpp"
 
 #include <iostream>
 
@@ -27,6 +28,7 @@ int main(int argc, char *argv[]) {
 
   frontend.add_plugin<Audio>();
   frontend.add_plugin<Video>();
+  frontend.add_plugin<Capture>();
 
   Context ctx(frontend, core, config);
   ctx.load_game(argv[2]);

@@ -5,7 +5,6 @@
 #include "Config.hpp"
 #include "Window.hpp"
 #include "Gamepad.hpp"
-#include "Capture.hpp"
 #include "Logger.hpp"
 #include "Geometry.hpp"
 #include "Netcmds.hpp"
@@ -23,12 +22,8 @@ public:
     : config_(config)
     , window_(title, core, config_)
     , gamepad_()
-    , capture_()
     , logger_()
   {
-    if (config.v4l2_device() != "") {
-      capture_.open(config.v4l2_device());
-    }
   }
 
   template<typename T>
@@ -38,13 +33,11 @@ public:
 
   auto & window() { return window_; }
   auto & gamepad() { return gamepad_; }
-  auto & capture() { return capture_; }
   auto & logger() { return logger_; }
 
   void init(retro_system_av_info const & av) {
     Geometry geom(av.geometry, scale_);
     window_.init(geom);
-    capture_.configure(geom);
 
     for (auto const & plugin : plugins_) {
       plugin->set_geometry(geom);
@@ -60,9 +53,13 @@ public:
       plugin->set_pixel_format(format);
     }
 
-    capture().set_pixel_format(format);
-
     return true;
+  }
+
+  void pre_frame_delay() {
+    for (auto const & plugin : plugins_) {
+      plugin->pre_frame_delay();
+    }
   }
 
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
@@ -70,8 +67,6 @@ public:
       for (auto const & plugin : plugins_) {
         plugin->video_refresh(data, width, height, pitch);
       }
-
-      capture().refresh(data, width, height, pitch);
     }
   }
 
@@ -111,7 +106,6 @@ private:
   Config const & config_;
   Window window_;
   Gamepad gamepad_;
-  Capture capture_;
   Logger logger_;
 
   std::vector<std::shared_ptr<Plugin>> plugins_;

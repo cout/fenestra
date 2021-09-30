@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Plugin.hpp"
+
 #include "libretro.h"
 
 #include "Geometry.hpp"
@@ -20,7 +22,9 @@
 
 namespace fenestra {
 
-class Capture {
+class Capture
+  : public Plugin
+{
 public:
   struct Pixel_Format {
     std::uint32_t v4l2_pix_fmt;
@@ -31,7 +35,10 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { V4L2_PIX_FMT_RGB565, 16 } },
   };
 
-  Capture() {
+  Capture(Config const & config) {
+    if (config.v4l2_device() != "") {
+      open(config.v4l2_device());
+    }
   }
 
   void open(std::string const & filename) {
@@ -53,18 +60,17 @@ public:
     }
   }
 
-  ~Capture() {
+  virtual ~Capture() override {
     if (fd_ >= 0) {
       ::close(fd_);
     }
   }
 
-  bool set_pixel_format(retro_pixel_format format) {
+  virtual void set_pixel_format(retro_pixel_format format) override {
     pixel_format_ = pixel_formats.at(format);
-    return true;
   }
 
-  void configure(Geometry const & geom) {
+  virtual void set_geometry(Geometry const & geom) override {
     if (fd_ < 0) {
       return;
     }
@@ -79,7 +85,7 @@ public:
     set_format(format_);
   }
 
-  void refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
+  virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     auto Bpp = pixel_format_.bpp / CHAR_BIT;
     buf_.clear();
     auto it = std::back_inserter(buf_);
@@ -90,7 +96,7 @@ public:
     }
   }
 
-  void render() {
+  virtual void pre_frame_delay() {
     if (fd_ < 0) {
       return;
     }
