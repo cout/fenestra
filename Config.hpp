@@ -3,6 +3,7 @@
 #include "Clock.hpp"
 
 #include <string_view>
+#include <string>
 
 namespace fenestra {
 
@@ -24,6 +25,8 @@ public:
   int audio_suggested_latency() const { return 128; }
 
   int network_command_port() const { return 55355; }
+
+  std::string v4l2_device() const { return "/dev/video3"; }
 };
 
 }

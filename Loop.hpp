@@ -30,6 +30,9 @@ public:
         std::cout << "error syncing savefile" << std::endl;
       }
 
+      // TODO: mark capture
+      frontend_.capture().render();
+
       try {
         perf_.mark_poll_window_events();
         frontend_.window().poll_events();
