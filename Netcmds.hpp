@@ -28,6 +28,8 @@ public:
   {
   }
 
+  virtual std::string_view name() const { return "Netcmds"; }
+
   virtual void game_loaded(Core & core) {
     core_ = &core;
     this->start();

@@ -25,6 +25,8 @@ public:
   {
   }
 
+  virtual std::string_view name() const { return "Gamepad"; }
+
   auto const & state() const { return state_; }
 
   void poll_input() {
