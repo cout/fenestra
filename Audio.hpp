@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Plugin.hpp"
+
 #include <portaudiocpp/PortAudioCpp.hxx>
 #include <portaudio.h>
 
@@ -8,7 +10,9 @@
 
 namespace fenestra {
 
-class Audio {
+class Audio
+  : public Plugin
+{
 public:
   Audio(Config const & config)
     : config_(config)
@@ -19,7 +23,7 @@ public:
     stream_.stop();
   }
 
-  void init(int sample_rate) {
+  virtual void set_sample_rate(int sample_rate) override {
     auto & system = portaudio::System::instance();
     auto & host_api = this->host_api(system, config_.audio_api());
     auto & device = this->device(host_api, config_.audio_device());
@@ -38,7 +42,7 @@ public:
     std::cout << "### sample rate " << sample_rate << std::endl;
   }
 
-  size_t write(const void * buf, unsigned int frames) {
+  virtual void write_audio_sample(const void * buf, std::size_t frames) override {
     if (stream_.isStopped()) {
       stream_.start();
     }
@@ -47,10 +51,8 @@ public:
 
     try {
       stream_.write(buf, frames);
-      return frames;
     } catch(std::exception const & ex) {
       std::cout << "ERROR: " << ex.what() << std::endl;
-      return 0;
     }
   }
 

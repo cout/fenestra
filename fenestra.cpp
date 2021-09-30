@@ -5,6 +5,9 @@
 #include "Netcmds.hpp"
 #include "Loop.hpp"
 
+// Plugins
+#include "Audio.hpp"
+
 #include <iostream>
 
 int main(int argc, char *argv[]) {
@@ -20,6 +23,8 @@ int main(int argc, char *argv[]) {
 
   Config config;
   Frontend frontend("Fenestra", core, config);
+
+  frontend.add_plugin<Audio>();
 
   Context ctx(frontend, core, config);
   ctx.load_game(argv[2]);

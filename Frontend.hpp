@@ -7,12 +7,14 @@
 #include "Gamepad.hpp"
 #include "Video.hpp"
 #include "Capture.hpp"
-#include "Audio.hpp"
 #include "Logger.hpp"
 #include "Geometry.hpp"
 #include "Netcmds.hpp"
+#include "Plugin.hpp"
 
 #include <string>
+#include <vector>
+#include <memory>
 
 namespace fenestra {
 
@@ -24,7 +26,6 @@ public:
     , gamepad_()
     , video_()
     , capture_()
-    , audio_(config)
     , logger_()
   {
     if (config.v4l2_device() != "") {
@@ -32,11 +33,15 @@ public:
     }
   }
 
+  template<typename T>
+  void add_plugin() {
+    plugins_.emplace_back(std::make_shared<T>(config_));
+  }
+
   auto & window() { return window_; }
   auto & gamepad() { return gamepad_; }
   auto & video() { return video_; }
   auto & capture() { return capture_; }
-  auto & audio() { return audio_; }
   auto & logger() { return logger_; }
 
   void init(retro_system_av_info const & av) {
@@ -44,7 +49,10 @@ public:
     window_.init(geom);
     video_.configure(geom);
     capture_.configure(geom);
-    audio_.init(av.timing.sample_rate);
+
+    for (auto const & plugin : plugins_) {
+      plugin->set_sample_rate(av.timing.sample_rate);
+    }
   }
 
   bool video_set_pixel_format(retro_pixel_format format) {
@@ -72,11 +80,16 @@ public:
 
   void audio_sample(std::int16_t left, std::int16_t right) {
     std::int16_t buf[2] = { left, right };
-    audio().write(buf, 1);
+    for (auto const & plugin : plugins_) {
+      plugin->write_audio_sample(buf, 1);
+    }
   }
 
   std::size_t audio_sample_batch(const std::int16_t * data, std::size_t frames) {
-    return audio().write(data, frames);
+    for (auto const & plugin : plugins_) {
+      plugin->write_audio_sample(data, frames);
+    }
+    return frames;
   }
 
 private:
@@ -85,8 +98,9 @@ private:
   Gamepad gamepad_;
   Video video_;
   Capture capture_;
-  Audio audio_;
   Logger logger_;
+
+  std::vector<std::shared_ptr<Plugin>> plugins_;
 
   // Config
   float scale_ = 6;
