@@ -127,7 +127,6 @@ public:
       pc.reset();
     }
     last_dump_ = now;
-    last_frame_ = Nanoseconds::zero();
     frames_ = 0;
   }
 
