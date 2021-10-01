@@ -47,7 +47,7 @@ public:
   }
 
   auto avg_ms() const {
-    Milliseconds avg_ms = total_ / count_;
+    Milliseconds avg_ms = count_ > 0 ? total_ / count_ : Milliseconds::zero();
     return avg_ms.count();
   }
 
@@ -135,7 +135,7 @@ public:
 
   void dump(Timestamp now) {
     auto delta = now - start_;
-    auto fps = frames_ / Seconds(delta).count();
+    auto fps = delta > Seconds::zero() ? frames_ / Seconds(delta).count() : 0;
 
     std::cout << "FPS: " << fps << std::endl;
     for (auto const & pc : perf_counters_) {
@@ -158,6 +158,10 @@ public:
     auto id = perf_counters_.size();
     perf_counters_.emplace_back(name);
     return id;
+  }
+
+  auto & get_counter(PerfID id) {
+    return perf_counters_[id];
   }
 
 private:
