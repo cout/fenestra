@@ -113,7 +113,7 @@ public:
   }
 
   void dump(Timestamp now) {
-    auto delta = now - start_;
+    auto delta = now - last_dump_;
     auto fps = delta > Seconds::zero() ? frames_ / Seconds(delta).count() : 0;
 
     std::cout << "FPS: " << fps << std::endl;
@@ -126,7 +126,7 @@ public:
     for (auto & pc : perf_counters_) {
       pc.reset();
     }
-    start_ = now;
+    last_dump_ = now;
     last_frame_ = Nanoseconds::zero();
     frames_ = 0;
   }
@@ -144,7 +144,7 @@ public:
 private:
   std::vector<Perfcounter> perf_counters_;
 
-  Timestamp start_ = Nanoseconds::zero();
+  Timestamp last_dump_ = Nanoseconds::zero();
   Timestamp last_frame_ = Nanoseconds::zero();
 
   std::uint64_t frames_ = 0;
