@@ -37,6 +37,6 @@ int main(int argc, char *argv[]) {
   ctx.load_game(argv[2]);
   ctx.init();
 
-  Loop loop(config, frontend, ctx);
+  Loop loop(frontend, ctx);
   loop.run();
 }

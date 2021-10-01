@@ -11,9 +11,8 @@ namespace fenestra {
 
 class Loop {
 public:
-  Loop(Config const & config, Frontend & frontend, Context & ctx)
-    : config_(config)
-    , frontend_(frontend)
+  Loop(Frontend & frontend, Context & ctx)
+    : frontend_(frontend)
     , ctx_(ctx)
     , perf_()
   {
@@ -72,7 +71,6 @@ public:
   }
 
 private:
-  Config const & config_;
   Frontend & frontend_;
   Context & ctx_;
   Perf perf_;
