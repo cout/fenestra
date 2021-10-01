@@ -5,8 +5,6 @@
 #include "Context.hpp"
 #include "Perf.hpp"
 
-#include <GL/gl.h>
-
 namespace fenestra {
 
 class Loop {
