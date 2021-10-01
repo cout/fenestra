@@ -14,6 +14,7 @@ public:
   Perfcounter(std::string_view name)
     : name_(name)
   {
+    reset();
   }
 
   auto const & name() const { return name_; }
@@ -24,6 +25,14 @@ public:
     best_ = std::min(best_, obs);
     worst_ = std::max(worst_, obs);
     ++count_;
+  }
+
+  void reset() {
+    last_ = Nanoseconds::zero();
+    total_ = Nanoseconds::zero();
+    best_ = Nanoseconds(99999999999999); // TODO
+    worst_ = Nanoseconds::zero();
+    count_ = 0;
   }
 
   auto last() const { return last_; }
@@ -55,11 +64,11 @@ public:
 private:
   std::string name_;
 
-  Nanoseconds last_ = Nanoseconds::zero();
-  Nanoseconds total_ = Nanoseconds::zero();
-  Nanoseconds best_ = Nanoseconds(999999999); // TODO
-  Nanoseconds worst_ = Nanoseconds::zero();
-  std::size_t count_ = 0;
+  Nanoseconds last_;
+  Nanoseconds total_;
+  Nanoseconds best_;
+  Nanoseconds worst_;
+  std::size_t count_;
 };
 
 std::ostream & operator<<(std::ostream & out, Perfcounter const & pc) {
@@ -69,21 +78,7 @@ std::ostream & operator<<(std::ostream & out, Perfcounter const & pc) {
 
 class Perf {
 public:
-  Perf(Timestamp now = Clock::gettime(CLOCK_MONOTONIC))
-    : start_(Clock::gettime(CLOCK_MONOTONIC))
-    , sync_savefile_("Sync savefile")
-    , poll_window_events_("Poll window events")
-    , frame_delay_("Frame delay")
-    , core_run_("Core run")
-    , video_render_("Video render")
-    , window_refresh_("Window refresh")
-    , glfinish_("Glfinish")
-    , last_frame_(start_)
-  {
-  }
-
-  ~Perf() {
-  }
+  using PerfID = std::size_t;
 
   auto mark() {
     auto now = Clock::gettime(CLOCK_MONOTONIC);
@@ -98,45 +93,9 @@ public:
     return now;
   }
 
-  auto mark_sync_savefile() {
+  auto mark_start(PerfID id) {
     auto now = mark();
-    current_ = &sync_savefile_;
-    return now;
-  }
-
-  auto mark_frame_delay() {
-    auto now = mark();
-    current_ = &frame_delay_;
-    return now;
-  }
-
-  auto mark_poll_window_events() {
-    auto now = mark();
-    current_ = &poll_window_events_;
-    return now;
-  }
-
-  auto mark_core_run() {
-    auto now = mark();
-    current_ = &core_run_;
-    return now;
-  }
-
-  auto mark_video_render() {
-    auto now = mark();
-    current_ = &video_render_;
-    return now;
-  }
-
-  auto mark_window_refresh() {
-    auto now = mark();
-    current_ = &window_refresh_;
-    return now;
-  }
-
-  auto mark_glfinish() {
-    auto now = mark();
-    current_ = &glfinish_;
+    current_ = &perf_counters_[id];
     return now;
   }
 
@@ -169,13 +128,9 @@ public:
   }
 
   void dump_last() {
-    std::cout << sync_savefile_.name() << ": " << sync_savefile_.last_ms() << std::endl;
-    std::cout << poll_window_events_.name() << ": " << poll_window_events_.last_ms() << std::endl;
-    std::cout << frame_delay_.name() << ": " << frame_delay_.last_ms() << std::endl;
-    std::cout << core_run_.name() << ": " << core_run_.last_ms() << std::endl;
-    std::cout << video_render_.name() << ": " << video_render_.last_ms() << std::endl;
-    std::cout << window_refresh_.name() << ": " << window_refresh_.last_ms() << std::endl;
-    std::cout << glfinish_.name() << ": " << glfinish_.last_ms() << std::endl;
+    for (auto const & pc : perf_counters_) {
+      std::cout << pc.name() << ": " << pc.last_ms() << std::endl;
+    }
   }
 
   void dump(Timestamp now) {
@@ -183,35 +138,36 @@ public:
     auto fps = frames_ / Seconds(delta).count();
 
     std::cout << "FPS: " << fps << std::endl;
-    std::cout << sync_savefile_.name() << ": " << sync_savefile_ << std::endl;
-    std::cout << poll_window_events_.name() << ": " << poll_window_events_ << std::endl;
-    std::cout << frame_delay_.name() << ": " << frame_delay_ << std::endl;
-    std::cout << core_run_.name() << ": " << core_run_ << std::endl;
-    std::cout << video_render_.name() << ": " << video_render_ << std::endl;
-    std::cout << window_refresh_.name() << ": " << window_refresh_ << std::endl;
-    std::cout << glfinish_.name() << ": " << glfinish_ << std::endl;
+    for (auto const & pc : perf_counters_) {
+      std::cout << pc.name() << ": " << pc << std::endl;
+    }
   }
 
   void reset(Timestamp now) {
-    auto frame = frame_;
-    *this = Perf(now);
-    frame_ = frame;
+    for (auto & pc : perf_counters_) {
+      pc.reset();
+    }
+    start_ = now;
+    last_ = Nanoseconds::zero();
+    last_frame_ = Nanoseconds::zero();
+    current_ = nullptr;
+    frames_ = 0;
+  }
+
+  PerfID add_counter(std::string name) {
+    auto id = perf_counters_.size();
+    perf_counters_.emplace_back(name);
+    return id;
   }
 
 private:
   Timestamp start_;
 
-  Perfcounter sync_savefile_;
-  Perfcounter poll_window_events_;
-  Perfcounter frame_delay_;
-  Perfcounter core_run_;
-  Perfcounter video_render_;
-  Perfcounter window_refresh_;
-  Perfcounter glfinish_;
+  std::vector<Perfcounter> perf_counters_;
 
   Timestamp last_ = Nanoseconds::zero();
   Timestamp last_frame_ = Nanoseconds::zero();
-  Perfcounter * current_ = 0;
+  Perfcounter * current_ = nullptr;
 
   std::uint64_t frames_ = 0;
   std::uint64_t frame_ = 0;
