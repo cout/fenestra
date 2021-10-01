@@ -4,11 +4,20 @@
 
 #include <iostream>
 #include <algorithm>
+#include <string_view>
+#include <string>
 
 namespace fenestra {
 
 class Perfcounter {
 public:
+  Perfcounter(std::string_view name)
+    : name_(name)
+  {
+  }
+
+  auto const & name() const { return name_; }
+
   void record(Nanoseconds obs) {
     last_ = obs;
     total_ += obs;
@@ -44,6 +53,8 @@ public:
   }
 
 private:
+  std::string name_;
+
   Nanoseconds last_ = Nanoseconds::zero();
   Nanoseconds total_ = Nanoseconds::zero();
   Nanoseconds best_ = Nanoseconds(999999999); // TODO
@@ -60,6 +71,13 @@ class Perf {
 public:
   Perf(Timestamp now = Clock::gettime(CLOCK_MONOTONIC))
     : start_(Clock::gettime(CLOCK_MONOTONIC))
+    , sync_savefile_("Sync savefile")
+    , poll_window_events_("Poll window events")
+    , frame_delay_("Frame delay")
+    , core_run_("Core run")
+    , video_render_("Video render")
+    , window_refresh_("Window refresh")
+    , glfinish_("Glfinish")
     , last_frame_(start_)
   {
   }
@@ -151,13 +169,13 @@ public:
   }
 
   void dump_last() {
-    std::cout << "Sync savefile: " << sync_savefile_.last_ms() << std::endl;
-    std::cout << "Poll window events: " << poll_window_events_.last_ms() << std::endl;
-    std::cout << "Frame delay: " << frame_delay_.last_ms() << std::endl;
-    std::cout << "Core run: " << core_run_.last_ms() << std::endl;
-    std::cout << "Video render: " << video_render_.last_ms() << std::endl;
-    std::cout << "Window refresh: " << window_refresh_.last_ms() << std::endl;
-    std::cout << "Glfinish: " << glfinish_.last_ms() << std::endl;
+    std::cout << sync_savefile_.name() << ": " << sync_savefile_.last_ms() << std::endl;
+    std::cout << poll_window_events_.name() << ": " << poll_window_events_.last_ms() << std::endl;
+    std::cout << frame_delay_.name() << ": " << frame_delay_.last_ms() << std::endl;
+    std::cout << core_run_.name() << ": " << core_run_.last_ms() << std::endl;
+    std::cout << video_render_.name() << ": " << video_render_.last_ms() << std::endl;
+    std::cout << window_refresh_.name() << ": " << window_refresh_.last_ms() << std::endl;
+    std::cout << glfinish_.name() << ": " << glfinish_.last_ms() << std::endl;
   }
 
   void dump(Timestamp now) {
@@ -165,13 +183,13 @@ public:
     auto fps = frames_ / Seconds(delta).count();
 
     std::cout << "FPS: " << fps << std::endl;
-    std::cout << "Sync savefile: " << sync_savefile_ << std::endl;
-    std::cout << "Poll window events: " << poll_window_events_ << std::endl;
-    std::cout << "Frame delay: " << frame_delay_ << std::endl;
-    std::cout << "Core run: " << core_run_ << std::endl;
-    std::cout << "Video render: " << video_render_ << std::endl;
-    std::cout << "Window refresh: " << window_refresh_ << std::endl;
-    std::cout << "Glfinish: " << glfinish_ << std::endl;
+    std::cout << sync_savefile_.name() << ": " << sync_savefile_ << std::endl;
+    std::cout << poll_window_events_.name() << ": " << poll_window_events_ << std::endl;
+    std::cout << frame_delay_.name() << ": " << frame_delay_ << std::endl;
+    std::cout << core_run_.name() << ": " << core_run_ << std::endl;
+    std::cout << video_render_.name() << ": " << video_render_ << std::endl;
+    std::cout << window_refresh_.name() << ": " << window_refresh_ << std::endl;
+    std::cout << glfinish_.name() << ": " << glfinish_ << std::endl;
   }
 
   void reset(Timestamp now) {
