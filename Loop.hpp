@@ -38,26 +38,23 @@ public:
   }
 
   void run() {
-    auto sync_savefile_key = probe_names_.emplace(0, "Sync savefile").first->first;
-    auto pre_frame_delay_key = probe_names_.emplace(1, "Pre frame delay").first->first;
-    auto poll_window_events_key = probe_names_.emplace(2, "Poll window events").first->first;
-    auto frame_delay_key = probe_names_.emplace(3, "Frame delay").first->first;
-    auto core_run_key = probe_names_.emplace(4, "Core run").first->first;
-    auto video_render_key = probe_names_.emplace(5, "Video render").first->first;
-    auto window_refresh_key = probe_names_.emplace(6, "Window refresh").first->first;
-    auto glfinish_key = probe_names_.emplace(7, "Glfinish").first->first;
-    auto loop_done_key = probe_names_.emplace(8, "Loop done").first->first;
+    auto perf_metrics_key = probe_names_.emplace(0, "Perf metrics").first->first;
+    auto sync_savefile_key = probe_names_.emplace(1, "Sync savefile").first->first;
+    auto pre_frame_delay_key = probe_names_.emplace(2, "Pre frame delay").first->first;
+    auto poll_window_events_key = probe_names_.emplace(3, "Poll window events").first->first;
+    auto frame_delay_key = probe_names_.emplace(4, "Frame delay").first->first;
+    auto core_run_key = probe_names_.emplace(5, "Core run").first->first;
+    auto video_render_key = probe_names_.emplace(6, "Video render").first->first;
+    auto window_refresh_key = probe_names_.emplace(7, "Window refresh").first->first;
+    auto glfinish_key = probe_names_.emplace(8, "Glfinish").first->first;
 
     std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id;
 
     for (auto const & [ key, name ] : probe_names_) {
-      if (key != loop_done_key) {
-        probe_key_to_counter_id[key] = perf_.add_counter(name);
-      }
+      probe_key_to_counter_id[key] = perf_.add_counter(name);
     }
 
     Probe probe;
-    Timestamp loop_start_time = Clock::gettime(CLOCK_MONOTONIC);
 
     while (!frontend_.window().done()) {
       step(probe, sync_savefile_key,      [&] { ctx_.sync_savefile();             });
@@ -69,8 +66,7 @@ public:
       step(probe, window_refresh_key,     [&] { frontend_.window().refresh();     });
       step(probe, glfinish_key,           [&] { frontend_.window().glfinish();    });
 
-      Timestamp loop_start_time = Clock::gettime(CLOCK_MONOTONIC);
-      probe.mark(loop_done_key, 0, loop_start_time);
+      auto perf_metrics_time = Clock::gettime(CLOCK_MONOTONIC);
 
       Perf::PerfID next_id;
       Timestamp last_timestamp;
@@ -86,9 +82,10 @@ public:
         last_timestamp = stamp.time;
       }
 
-      perf_.loop_done(loop_start_time);
+      perf_.loop_done(perf_metrics_time);
 
       probe.clear();
+      probe.mark(perf_metrics_key, 0, perf_metrics_time);
     }
   }
 
