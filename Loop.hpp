@@ -19,8 +19,35 @@ public:
   {
   }
 
+  template <typename Fn>
+  auto step(Perf::PerfID id, Fn && fn) {
+    return std::make_pair(id, std::forward<Fn>(fn));
+  }
+
+  template <typename Step>
+  void run_step(Step && step) {
+    try {
+      perf_.mark_start(step.first);
+      std::forward<typename Step::second_type>(step.second)();
+    } catch(...) {
+      std::cout << "error during " << perf_.get_counter(step.first).name() << std::endl;
+    }
+  }
+
+  template <typename ... Steps>
+  void run_steps(Steps && ... steps) {
+    (run_step(std::forward<Steps>(steps)), ...);
+  }
+
+  void run_core() {
+    if (!frontend_.window().paused()) {
+      ctx_.run_core();
+    }
+  }
+
   void run() {
     auto sync_savefile_id = perf_.add_counter("Sync savefile");
+    auto pre_frame_delay_id = perf_.add_counter("Pre-frame-delay");
     auto poll_window_events_id = perf_.add_counter("Poll window events");
     auto frame_delay_id = perf_.add_counter("Frame delay");
     auto core_run_id = perf_.add_counter("Core run");
@@ -29,56 +56,16 @@ public:
     auto glfinish_id = perf_.add_counter("Glfinish");
 
     while (!frontend_.window().done()) {
-      try {
-        perf_.mark_start(sync_savefile_id);
-        ctx_.sync_savefile();
-      } catch(...) {
-        std::cout << "error syncing savefile" << std::endl;
-      }
-
-      // TODO: mark
-      frontend_.pre_frame_delay();
-
-      try {
-        perf_.mark_start(poll_window_events_id);
-        frontend_.window().poll_events();
-      } catch(...) {
-        std::cout << "error polling window events" << std::endl;
-      }
-
-      try {
-        perf_.mark_start(frame_delay_id);
-        frontend_.window().frame_delay();
-      } catch(...) {
-        std::cout << "error in frame delay" << std::endl;
-      }
-
-      try {
-        perf_.mark_start(core_run_id);
-        if (!frontend_.window().paused()) {
-          ctx_.run_core();
-        }
-      } catch(...) {
-        std::cout << "error running core" << std::endl;
-      }
-
-      try {
-        perf_.mark_start(video_render_id);
-        frontend_.video_render();
-      } catch(...) {
-        std::cout << "error rendering video" << std::endl;
-      }
-
-      try {
-        perf_.mark_start(window_refresh_id);
-        frontend_.window().refresh();
-
-        perf_.mark_start(glfinish_id);
-        frontend_.window().glfinish();
-
-      } catch(...) {
-        std::cout << "error refreshing window" << std::endl;
-      }
+      run_steps(
+          step( sync_savefile_id,      [&] { ctx_.sync_savefile();             } ),
+          step( pre_frame_delay_id,    [&] { frontend_.pre_frame_delay();      } ),
+          step( poll_window_events_id, [&] { frontend_.window().poll_events(); } ),
+          step( frame_delay_id,        [&] { frontend_.window().frame_delay(); } ),
+          step( core_run_id,           [&] { run_core();                       } ),
+          step( video_render_id,       [&] { frontend_.video_render();         } ),
+          step( window_refresh_id,     [&] { frontend_.window().refresh();     } ),
+          step( glfinish_id,           [&] { frontend_.window().glfinish();    } )
+          );
 
       perf_.mark_loop_done();
     }
