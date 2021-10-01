@@ -37,6 +37,22 @@ public:
     }
   }
 
+  void record_probe(Probe const & probe) {
+    Perf::PerfID next_id;
+    Timestamp last_timestamp;
+
+    for (auto const & stamp : probe) {
+      if (last_timestamp != Timestamp()) {
+        auto delta = stamp.time - last_timestamp;
+        auto & counter = perf_.get_counter(next_id);
+        counter.record(delta);
+      }
+
+      next_id = probe_key_to_counter_id_[stamp.key];
+      last_timestamp = stamp.time;
+    }
+  }
+
   void run() {
     auto perf_metrics_key = probe_names_.emplace(0, "Perf metrics").first->first;
     auto sync_savefile_key = probe_names_.emplace(1, "Sync savefile").first->first;
@@ -48,10 +64,8 @@ public:
     auto window_refresh_key = probe_names_.emplace(7, "Window refresh").first->first;
     auto glfinish_key = probe_names_.emplace(8, "Glfinish").first->first;
 
-    std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id;
-
     for (auto const & [ key, name ] : probe_names_) {
-      probe_key_to_counter_id[key] = perf_.add_counter(name);
+      probe_key_to_counter_id_[key] = perf_.add_counter(name);
     }
 
     Probe probe;
@@ -68,19 +82,7 @@ public:
 
       auto perf_metrics_time = Clock::gettime(CLOCK_MONOTONIC);
 
-      Perf::PerfID next_id;
-      Timestamp last_timestamp;
-
-      for (auto const & stamp : probe) {
-        if (last_timestamp != Timestamp()) {
-          auto delta = stamp.time - last_timestamp;
-          auto & counter = perf_.get_counter(next_id);
-          counter.record(delta);
-        }
-
-        next_id = probe_key_to_counter_id[stamp.key];
-        last_timestamp = stamp.time;
-      }
+      record_probe(probe);
 
       perf_.loop_done(perf_metrics_time);
 
@@ -93,6 +95,7 @@ private:
   Frontend & frontend_;
   Context & ctx_;
   std::map<Probe::Key, std::string> probe_names_;
+  std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id_;
   Perf perf_;
 };
 
