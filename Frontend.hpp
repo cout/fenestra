@@ -7,6 +7,7 @@
 #include "Gamepad.hpp"
 #include "Geometry.hpp"
 #include "Plugin.hpp"
+#include "Perf.hpp"
 
 #include <string>
 #include <vector>

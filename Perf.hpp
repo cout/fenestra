@@ -80,27 +80,7 @@ class Perf {
 public:
   using PerfID = std::size_t;
 
-  auto mark() {
-    auto now = Clock::gettime(CLOCK_MONOTONIC);
-
-    if (current_ && last_.nanos_ != Nanoseconds::zero()) {
-      auto delta = now - last_;
-      current_->record(delta);
-    }
-
-    last_ = now;
-
-    return now;
-  }
-
-  auto mark_start(PerfID id) {
-    auto now = mark();
-    current_ = &perf_counters_[id];
-    return now;
-  }
-
-  auto mark_loop_done() {
-    auto now = mark();
+  auto loop_done(Timestamp now) {
     auto last_frame_time = now - last_frame_;
 
     ++frames_;

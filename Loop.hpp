@@ -4,6 +4,10 @@
 #include "Clock.hpp"
 #include "Context.hpp"
 #include "Perf.hpp"
+#include "Probe.hpp"
+
+#include <utility>
+#include <map>
 
 namespace fenestra {
 
@@ -17,23 +21,14 @@ public:
   }
 
   template <typename Fn>
-  auto step(Perf::PerfID id, Fn && fn) {
-    return std::make_pair(id, std::forward<Fn>(fn));
-  }
-
-  template <typename Step>
-  void run_step(Step && step) {
+  void step(Probe & probe, Probe::Key key, Fn && fn) {
     try {
-      perf_.mark_start(step.first);
-      std::forward<typename Step::second_type>(step.second)();
+      auto now = Clock::gettime(CLOCK_MONOTONIC);
+      probe.mark(key, 0, now);
+      std::forward<Fn>(fn)();
     } catch(...) {
-      std::cout << "error during " << perf_.get_counter(step.first).name() << std::endl;
+      std::cout << "error during " << probe_names_[key] << std::endl;
     }
-  }
-
-  template <typename ... Steps>
-  void run_steps(Steps && ... steps) {
-    (run_step(std::forward<Steps>(steps)), ...);
   }
 
   void run_core() {
@@ -43,34 +38,64 @@ public:
   }
 
   void run() {
-    auto sync_savefile_id = perf_.add_counter("Sync savefile");
-    auto pre_frame_delay_id = perf_.add_counter("Pre-frame-delay");
-    auto poll_window_events_id = perf_.add_counter("Poll window events");
-    auto frame_delay_id = perf_.add_counter("Frame delay");
-    auto core_run_id = perf_.add_counter("Core run");
-    auto video_render_id = perf_.add_counter("Video render");
-    auto window_refresh_id = perf_.add_counter("Window refresh");
-    auto glfinish_id = perf_.add_counter("Glfinish");
+    auto sync_savefile_key = probe_names_.emplace(0, "Sync savefile").first->first;
+    auto pre_frame_delay_key = probe_names_.emplace(1, "Pre frame delay").first->first;
+    auto poll_window_events_key = probe_names_.emplace(2, "Poll window events").first->first;
+    auto frame_delay_key = probe_names_.emplace(3, "Frame delay").first->first;
+    auto core_run_key = probe_names_.emplace(4, "Core run").first->first;
+    auto video_render_key = probe_names_.emplace(5, "Video render").first->first;
+    auto window_refresh_key = probe_names_.emplace(6, "Window refresh").first->first;
+    auto glfinish_key = probe_names_.emplace(7, "Glfinish").first->first;
+    auto loop_done_key = probe_names_.emplace(8, "Loop done").first->first;
+
+    std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id;
+
+    for (auto const & [ key, name ] : probe_names_) {
+      if (key != loop_done_key) {
+        probe_key_to_counter_id[key] = perf_.add_counter(name);
+      }
+    }
+
+    Probe probe;
+    Timestamp loop_start_time = Clock::gettime(CLOCK_MONOTONIC);
 
     while (!frontend_.window().done()) {
-      run_steps(
-          step( sync_savefile_id,      [&] { ctx_.sync_savefile();             } ),
-          step( pre_frame_delay_id,    [&] { frontend_.pre_frame_delay();      } ),
-          step( poll_window_events_id, [&] { frontend_.window().poll_events(); } ),
-          step( frame_delay_id,        [&] { frontend_.window().frame_delay(); } ),
-          step( core_run_id,           [&] { run_core();                       } ),
-          step( video_render_id,       [&] { frontend_.video_render();         } ),
-          step( window_refresh_id,     [&] { frontend_.window().refresh();     } ),
-          step( glfinish_id,           [&] { frontend_.window().glfinish();    } )
-          );
+      step(probe, sync_savefile_key,      [&] { ctx_.sync_savefile();             });
+      step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
+      step(probe, poll_window_events_key, [&] { frontend_.window().poll_events(); });
+      step(probe, frame_delay_key,        [&] { frontend_.window().frame_delay(); });
+      step(probe, core_run_key,           [&] { run_core();                       });
+      step(probe, video_render_key,       [&] { frontend_.video_render();         });
+      step(probe, window_refresh_key,     [&] { frontend_.window().refresh();     });
+      step(probe, glfinish_key,           [&] { frontend_.window().glfinish();    });
 
-      perf_.mark_loop_done();
+      Timestamp loop_start_time = Clock::gettime(CLOCK_MONOTONIC);
+      probe.mark(loop_done_key, 0, loop_start_time);
+
+      Perf::PerfID next_id;
+      Timestamp last_timestamp;
+
+      for (auto const & stamp : probe) {
+        if (last_timestamp != Timestamp()) {
+          auto delta = stamp.time - last_timestamp;
+          auto & counter = perf_.get_counter(next_id);
+          counter.record(delta);
+        }
+
+        next_id = probe_key_to_counter_id[stamp.key];
+        last_timestamp = stamp.time;
+      }
+
+      perf_.loop_done(loop_start_time);
+
+      probe.clear();
     }
   }
 
 private:
   Frontend & frontend_;
   Context & ctx_;
+  std::map<Probe::Key, std::string> probe_names_;
   Perf perf_;
 };
 
