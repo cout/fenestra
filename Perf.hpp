@@ -101,7 +101,6 @@ public:
       reset(now);
     }
 
-    current_ = 0;
     last_frame_ = now;
 
     return now;
@@ -128,9 +127,7 @@ public:
       pc.reset();
     }
     start_ = now;
-    last_ = Nanoseconds::zero();
     last_frame_ = Nanoseconds::zero();
-    current_ = nullptr;
     frames_ = 0;
   }
 
@@ -145,13 +142,10 @@ public:
   }
 
 private:
-  Timestamp start_;
-
   std::vector<Perfcounter> perf_counters_;
 
-  Timestamp last_ = Nanoseconds::zero();
+  Timestamp start_ = Nanoseconds::zero();
   Timestamp last_frame_ = Nanoseconds::zero();
-  Perfcounter * current_ = nullptr;
 
   std::uint64_t frames_ = 0;
   std::uint64_t frame_ = 0;
