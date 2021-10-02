@@ -46,6 +46,8 @@ public:
     , window_(title, core, config_)
     , gamepad_(config_)
     , perf_(perf)
+    , video_refresh_key_(perf_.probe_key("Video refresh"))
+    , audio_sample_key_(perf_.probe_key("Audio sample"))
   {
   }
 
@@ -106,13 +108,15 @@ public:
   }
 
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
+    probe_.mark(video_refresh_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (data) {
       for (auto const & plugin : plugins_) {
-        probe_.mark(plugin.probe_key(), Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
+        probe_.mark(plugin.probe_key(), Probe::START, 2, Clock::gettime(CLOCK_MONOTONIC));
         plugin->video_refresh(data, width, height, pitch);
-        probe_.mark(plugin.probe_key(), Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
+        probe_.mark(plugin.probe_key(), Probe::END, 2, Clock::gettime(CLOCK_MONOTONIC));
       }
     }
+    probe_.mark(video_refresh_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
   }
 
   void video_render() {
@@ -134,16 +138,20 @@ public:
   }
 
   void audio_sample(std::int16_t left, std::int16_t right) {
+    probe_.mark(audio_sample_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     std::int16_t buf[2] = { left, right };
     for (auto const & plugin : plugins_) {
       plugin->write_audio_sample(buf, 1);
     }
+    probe_.mark(audio_sample_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
   }
 
   std::size_t audio_sample_batch(const std::int16_t * data, std::size_t frames) {
+    probe_.mark(audio_sample_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     for (auto const & plugin : plugins_) {
       plugin->write_audio_sample(data, frames);
     }
+    probe_.mark(audio_sample_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     return frames;
   }
 
@@ -155,6 +163,8 @@ private:
   Probe probe_;
   Perf & perf_;
 
+  Probe::Key video_refresh_key_;
+  Probe::Key audio_sample_key_;
   std::vector<PluginSlot> plugins_;
 };
 
