@@ -198,6 +198,9 @@ public:
         case Probe::DELTA:
         case Probe::START: {
           auto delta = stamp.time - last_stamp.time;
+          // TODO: Include parent counters in the counter name,
+          // otherwise we will count all probe samples with the same
+          // key/depth as the same (e.g. audio sample and video refresh)
           auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
           counter.record(frame_, delta);
           break;
