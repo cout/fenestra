@@ -13,10 +13,10 @@ namespace fenestra {
 
 class Loop {
 public:
-  Loop(Frontend & frontend, Context & ctx)
+  Loop(Frontend & frontend, Context & ctx, Perf & perf)
     : frontend_(frontend)
     , ctx_(ctx)
-    , perf_()
+    , perf_(perf)
   {
   }
 
@@ -31,7 +31,7 @@ public:
     }
   }
 
-  void run_core() {
+  void run_core(Probe & probe) {
     if (!frontend_.window().paused()) {
       ctx_.run_core();
     }
@@ -75,7 +75,7 @@ public:
       step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
       step(probe, poll_window_events_key, [&] { frontend_.window().poll_events(); });
       step(probe, frame_delay_key,        [&] { frontend_.window().frame_delay(); });
-      step(probe, core_run_key,           [&] { run_core();                       });
+      step(probe, core_run_key,           [&] { run_core(probe);                  });
       step(probe, video_render_key,       [&] { frontend_.video_render();         });
       step(probe, window_refresh_key,     [&] { frontend_.window().refresh();     });
       step(probe, glfinish_key,           [&] { frontend_.window().glfinish();    });
@@ -95,7 +95,7 @@ private:
   Frontend & frontend_;
   Context & ctx_;
   std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id_;
-  Perf perf_;
+  Perf & perf_;
 };
 
 }

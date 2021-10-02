@@ -25,7 +25,8 @@ int main(int argc, char *argv[]) {
   Core core(argv[1]);
 
   Config config;
-  Frontend frontend("Fenestra", core, config);
+  Perf perf;
+  Frontend frontend("Fenestra", core, config, perf);
 
   frontend.add_plugin<Logger>();
   frontend.add_plugin<Audio>();
@@ -37,6 +38,6 @@ int main(int argc, char *argv[]) {
   ctx.load_game(argv[2]);
   ctx.init();
 
-  Loop loop(frontend, ctx);
+  Loop loop(frontend, ctx, perf);
   loop.run();
 }

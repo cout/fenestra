@@ -8,6 +8,7 @@
 #include "Geometry.hpp"
 #include "Plugin.hpp"
 #include "Perf.hpp"
+#include "Probe.hpp"
 
 #include <string>
 #include <vector>
@@ -17,13 +18,16 @@ namespace fenestra {
 
 class Frontend {
 public:
-  Frontend(std::string const & title, Core & core, Config const & config)
+  Frontend(std::string const & title, Core & core, Config const & config, Perf & perf)
     : config_(config)
     , core_(core)
     , window_(title, core, config_)
     , gamepad_(config_)
+    , perf_(perf)
   {
   }
+
+  Probe const & probe() const { return probe_; }
 
   template<typename T>
   void add_plugin() {
@@ -123,6 +127,8 @@ private:
   Core & core_;
   Window window_;
   Gamepad gamepad_;
+  Probe probe_;
+  Perf & perf_;
 
   std::vector<std::shared_ptr<Plugin>> plugins_;
 };
