@@ -33,7 +33,9 @@ public:
 
   void run_core(Probe & probe) {
     if (!frontend_.window().paused()) {
+      frontend_.probe().clear();
       ctx_.run_core();
+      probe.append(frontend_.probe());
     }
   }
 

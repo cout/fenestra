@@ -50,6 +50,7 @@ public:
   }
 
   Probe const & probe() const { return probe_; }
+  Probe & probe() { return probe_; }
 
   template<typename T>
   void add_plugin() {

@@ -42,6 +42,12 @@ public:
   auto begin() const { return stamps_.begin(); }
   auto end() const { return stamps_.end(); }
 
+  void append(Probe & probe) {
+    for (auto const & stamp : probe) {
+      stamps_.emplace_back(stamp);
+    }
+  }
+
 private:
   std::vector<Stamp> stamps_;
 };
