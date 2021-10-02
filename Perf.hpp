@@ -176,9 +176,21 @@ public:
     for (auto const & stamp : probe) {
       if (stamp.time == Timestamp()) continue;
 
-      auto delta = stamp.time - last_stamp.time;
-      auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
-      counter.record(frame_, delta);
+      switch (last_stamp.type) {
+        case Probe::DELTA:
+        case Probe::START: {
+          auto delta = stamp.time - last_stamp.time;
+          auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
+          counter.record(frame_, delta);
+          break;
+        }
+
+        case Probe::END:
+        case Probe::FINAL:
+        case Probe::INVALID_:
+          break;
+      }
+
       last_stamp = stamp;
     }
   }
