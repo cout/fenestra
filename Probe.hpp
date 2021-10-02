@@ -10,9 +10,12 @@ class Probe {
 public:
   using Key = std::uint32_t;
   using Depth = std::uint32_t;
-  enum Type { DELTA, START, END };
+  enum Type { DELTA, START, END, INVALID_ };
 
   struct Stamp {
+    Stamp() {
+    }
+
     Stamp(Key key, Type type, Depth depth, Timestamp time)
       : key(key)
       , type(type)
@@ -21,10 +24,10 @@ public:
     {
     }
 
-    Key key;
-    Type type;
-    Depth depth;
-    Timestamp time;
+    Key key = 0;
+    Type type = INVALID_;
+    Depth depth = 0;
+    Timestamp time = Nanoseconds::zero();
   };
 
   void mark(Key key, Depth depth, Timestamp time) {

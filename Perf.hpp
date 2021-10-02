@@ -171,25 +171,21 @@ public:
   }
 
   void record_probe(Timestamp now, Probe const & probe) {
-    Probe::Key next_key;
-    Probe::Depth next_depth;
-    Timestamp last_timestamp;
+    Probe::Stamp last_stamp;
 
     for (auto const & stamp : probe) {
-      if (last_timestamp != Timestamp()) {
-        auto delta = stamp.time - last_timestamp;
-        auto & counter = get_counter(probe_name(next_key), next_depth);
+      if (last_stamp.time != Timestamp()) {
+        auto delta = stamp.time - last_stamp.time;
+        auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
         counter.record(frame_, delta);
       }
 
-      next_key = stamp.key;
-      next_depth = stamp.depth;
-      last_timestamp = stamp.time;
+      last_stamp = stamp;
     }
 
-    if (last_timestamp != Timestamp()) {
-      auto delta = now - last_timestamp;
-      auto & counter = get_counter(probe_name(next_key), next_depth);
+    if (last_stamp.time != Timestamp()) {
+      auto delta = now - last_stamp.time;
+      auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
       counter.record(frame_, delta);
     }
   }
