@@ -173,8 +173,20 @@ public:
   void record_probe(Probe const & probe) {
     Probe::Stamp last_stamp;
 
+    stamps_.clear();
+
     for (auto const & stamp : probe) {
       if (stamp.time == Timestamp()) continue;
+
+      if (stamp.depth > last_stamp.depth) {
+        stamps_.push_back(last_stamp);
+        last_stamp = Probe::Stamp();
+
+      } else if (stamp.depth < last_stamp.depth) {
+        // TODO: Check for empty before popping
+        last_stamp = stamps_.back();
+        stamps_.pop_back();
+      }
 
       switch (last_stamp.type) {
         case Probe::DELTA:
@@ -200,6 +212,8 @@ private:
   std::map<Probe::Key, std::string> probe_names_;
   std::vector<Perfcounter> perf_counters_;
   std::unordered_map<std::string, std::size_t> perf_counter_name_to_idx_;
+
+  std::vector<Probe::Stamp> stamps_;
 
   Timestamp last_dump_ = Nanoseconds::zero();
   Timestamp last_frame_ = Nanoseconds::zero();
