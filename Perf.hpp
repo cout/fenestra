@@ -15,13 +15,15 @@ namespace fenestra {
 
 class Perfcounter {
 public:
-  Perfcounter(std::string_view name)
+  Perfcounter(std::string_view name, Probe::Depth depth)
     : name_(name)
+    , depth_(depth)
   {
     reset();
   }
 
   auto const & name() const { return name_; }
+  auto depth() const { return depth_; }
 
   void record(std::uint64_t frame, Nanoseconds obs) {
     last_frame_ = frame;
@@ -69,6 +71,7 @@ public:
 
 private:
   std::string name_;
+  Probe::Depth depth_;
 
   std::uint64_t last_frame_;
   Nanoseconds last_;
@@ -116,7 +119,7 @@ public:
   void dump_last() {
     for (auto const & pc : perf_counters_) {
       if (pc.last_frame() == frame_) {
-        std::cout << pc.name() << ": " << pc.last_ms() << std::endl;
+        std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc.last_ms() << std::endl;
       }
     }
   }
@@ -127,7 +130,7 @@ public:
 
     std::cout << "FPS: " << fps << std::endl;
     for (auto const & pc : perf_counters_) {
-      std::cout << pc.name() << ": " << pc << std::endl;
+      std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc << std::endl;
     }
   }
 
@@ -154,14 +157,14 @@ public:
     return probe_names_.at(key);
   }
 
-  auto & get_counter(std::string name) {
+  auto & get_counter(std::string name, Probe::Depth depth) {
     auto it = perf_counter_name_to_idx_.find(name);
     if (it != perf_counter_name_to_idx_.end()) {
       auto idx = it->second;
       return perf_counters_[idx];
     } else {
       auto idx = perf_counters_.size();
-      perf_counters_.emplace_back(name);
+      perf_counters_.emplace_back(name, depth);
       perf_counter_name_to_idx_.emplace(name, idx);
       return perf_counters_[idx];
     }
@@ -169,16 +172,18 @@ public:
 
   void record_probe(Probe const & probe) {
     Probe::Key next_key;
+    Probe::Depth next_depth;
     Timestamp last_timestamp;
 
     for (auto const & stamp : probe) {
       if (last_timestamp != Timestamp()) {
         auto delta = stamp.time - last_timestamp;
-        auto & counter = get_counter(probe_name(next_key));
+        auto & counter = get_counter(probe_name(next_key), next_depth);
         counter.record(frame_, delta);
       }
 
       next_key = stamp.key;
+      next_depth = stamp.depth;
       last_timestamp = stamp.time;
     }
   }
