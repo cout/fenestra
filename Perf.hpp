@@ -130,7 +130,9 @@ public:
 
     std::cout << "FPS: " << fps << std::endl;
     for (auto const & pc : perf_counters_) {
-      std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc << std::endl;
+      if (pc.count() > 0) {
+        std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc << std::endl;
+      }
     }
   }
 
