@@ -176,6 +176,10 @@ public:
     stamps_.clear();
 
     for (auto const & stamp : probe) {
+      // Fetch the counter now so they will be printed in the right
+      // order
+      get_counter(probe_name(stamp.key), stamp.depth);
+
       if (stamp.time == Timestamp()) continue;
 
       if (stamp.depth > last_stamp.depth) {
