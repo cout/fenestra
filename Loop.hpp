@@ -52,6 +52,11 @@ public:
 
     Probe probe;
 
+    // Make sure this is always the first probe, otherwise we will show
+    // the timing for the previous perf_record as if it were the one
+    // that happened in this loop iteration.
+    probe.mark(perf_metrics_key, 0, Clock::gettime(CLOCK_MONOTONIC));
+
     while (!frontend_.window().done()) {
       step(probe, sync_savefile_key,      [&] { ctx_.sync_savefile();             });
       step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
