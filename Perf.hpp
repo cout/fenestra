@@ -1,11 +1,14 @@
 #pragma once
 
 #include "Clock.hpp"
+#include "Probe.hpp"
 
 #include <iostream>
 #include <algorithm>
 #include <string_view>
 #include <string>
+#include <map>
+#include <vector>
 
 namespace fenestra {
 
@@ -130,6 +133,25 @@ public:
     frames_ = 0;
   }
 
+  Probe::Key probe_key(std::string const & name) {
+    auto it = probe_keys_.find(name);
+    if (it == probe_keys_.end()) {
+      auto key = probe_keys_.size();
+      bool inserted;
+      std::tie(it, inserted) = probe_keys_.emplace(name, key);
+      probe_names_.emplace(key, name);
+    }
+    return it->second;
+  }
+
+  std::string const & probe_name(Probe::Key key) {
+    return probe_names_.at(key);
+  }
+
+  auto const & probe_names() {
+    return probe_names_;
+  }
+
   PerfID add_counter(std::string name) {
     auto id = perf_counters_.size();
     perf_counters_.emplace_back(name);
@@ -141,6 +163,8 @@ public:
   }
 
 private:
+  std::map<std::string, Probe::Key> probe_keys_;
+  std::map<Probe::Key, std::string> probe_names_;
   std::vector<Perfcounter> perf_counters_;
 
   Timestamp last_dump_ = Nanoseconds::zero();

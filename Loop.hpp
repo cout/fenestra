@@ -27,7 +27,7 @@ public:
       probe.mark(key, 0, now);
       std::forward<Fn>(fn)();
     } catch(...) {
-      std::cout << "error during " << probe_names_[key] << std::endl;
+      std::cout << "error during " << perf_.probe_name(key) << std::endl;
     }
   }
 
@@ -54,17 +54,17 @@ public:
   }
 
   void run() {
-    auto perf_metrics_key = probe_names_.emplace(0, "Perf metrics").first->first;
-    auto sync_savefile_key = probe_names_.emplace(1, "Sync savefile").first->first;
-    auto pre_frame_delay_key = probe_names_.emplace(2, "Pre frame delay").first->first;
-    auto poll_window_events_key = probe_names_.emplace(3, "Poll window events").first->first;
-    auto frame_delay_key = probe_names_.emplace(4, "Frame delay").first->first;
-    auto core_run_key = probe_names_.emplace(5, "Core run").first->first;
-    auto video_render_key = probe_names_.emplace(6, "Video render").first->first;
-    auto window_refresh_key = probe_names_.emplace(7, "Window refresh").first->first;
-    auto glfinish_key = probe_names_.emplace(8, "Glfinish").first->first;
+    auto perf_metrics_key = perf_.probe_key("Perf metrics");
+    auto sync_savefile_key = perf_.probe_key("Sync savefile");
+    auto pre_frame_delay_key = perf_.probe_key("Pre frame delay");
+    auto poll_window_events_key = perf_.probe_key("Poll window events");
+    auto frame_delay_key = perf_.probe_key("Frame delay");
+    auto core_run_key = perf_.probe_key("Core run");
+    auto video_render_key = perf_.probe_key("Video render");
+    auto window_refresh_key = perf_.probe_key("Window refresh");
+    auto glfinish_key = perf_.probe_key("Glfinish");
 
-    for (auto const & [ key, name ] : probe_names_) {
+    for (auto const & [ key, name ] : perf_.probe_names()) {
       probe_key_to_counter_id_[key] = perf_.add_counter(name);
     }
 
@@ -94,7 +94,6 @@ public:
 private:
   Frontend & frontend_;
   Context & ctx_;
-  std::map<Probe::Key, std::string> probe_names_;
   std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id_;
   Perf perf_;
 };
