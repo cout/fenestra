@@ -38,17 +38,17 @@ public:
   }
 
   void record_probe(Probe const & probe) {
-    Perf::PerfID next_id;
+    Probe::Key next_key;
     Timestamp last_timestamp;
 
     for (auto const & stamp : probe) {
       if (last_timestamp != Timestamp()) {
         auto delta = stamp.time - last_timestamp;
-        auto & counter = perf_.get_counter(next_id);
+        auto & counter = perf_.get_counter(perf_.probe_name(next_key));
         counter.record(delta);
       }
 
-      next_id = probe_key_to_counter_id_[stamp.key];
+      next_key = stamp.key;
       last_timestamp = stamp.time;
     }
   }
@@ -63,10 +63,6 @@ public:
     auto video_render_key = perf_.probe_key("Video render");
     auto window_refresh_key = perf_.probe_key("Window refresh");
     auto glfinish_key = perf_.probe_key("Glfinish");
-
-    for (auto const & [ key, name ] : perf_.probe_names()) {
-      probe_key_to_counter_id_[key] = perf_.add_counter(name);
-    }
 
     Probe probe;
 
@@ -94,7 +90,6 @@ public:
 private:
   Frontend & frontend_;
   Context & ctx_;
-  std::map<Probe::Key, Perf::PerfID> probe_key_to_counter_id_;
   Perf & perf_;
 };
 

@@ -8,6 +8,7 @@
 #include <string_view>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace fenestra {
@@ -148,24 +149,24 @@ public:
     return probe_names_.at(key);
   }
 
-  auto const & probe_names() {
-    return probe_names_;
-  }
-
-  PerfID add_counter(std::string name) {
-    auto id = perf_counters_.size();
-    perf_counters_.emplace_back(name);
-    return id;
-  }
-
-  auto & get_counter(PerfID id) {
-    return perf_counters_[id];
+  auto & get_counter(std::string name) {
+    auto it = perf_counter_name_to_idx_.find(name);
+    if (it != perf_counter_name_to_idx_.end()) {
+      auto idx = it->second;
+      return perf_counters_[idx];
+    } else {
+      auto idx = perf_counters_.size();
+      perf_counters_.emplace_back(name);
+      perf_counter_name_to_idx_.emplace(name, idx);
+      return perf_counters_[idx];
+    }
   }
 
 private:
   std::map<std::string, Probe::Key> probe_keys_;
   std::map<Probe::Key, std::string> probe_names_;
   std::vector<Perfcounter> perf_counters_;
+  std::unordered_map<std::string, std::size_t> perf_counter_name_to_idx_;
 
   Timestamp last_dump_ = Nanoseconds::zero();
   Timestamp last_frame_ = Nanoseconds::zero();
