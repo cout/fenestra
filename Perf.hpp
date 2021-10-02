@@ -174,12 +174,11 @@ public:
     Probe::Stamp last_stamp;
 
     for (auto const & stamp : probe) {
-      if (last_stamp.time != Timestamp()) {
-        auto delta = stamp.time - last_stamp.time;
-        auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
-        counter.record(frame_, delta);
-      }
+      if (stamp.time == Timestamp()) continue;
 
+      auto delta = stamp.time - last_stamp.time;
+      auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
+      counter.record(frame_, delta);
       last_stamp = stamp;
     }
   }
