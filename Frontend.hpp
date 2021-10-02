@@ -9,12 +9,34 @@
 #include "Plugin.hpp"
 #include "Perf.hpp"
 #include "Probe.hpp"
+#include "Clock.hpp"
 
 #include <string>
 #include <vector>
 #include <memory>
 
 namespace fenestra {
+
+class PluginSlot {
+public:
+  PluginSlot(Perf & perf, std::shared_ptr<Plugin> plugin)
+    : plugin_(plugin)
+    , probe_key_(perf.probe_key(std::string(plugin->name())))
+  {
+  }
+
+  Plugin * operator->() { return plugin_.get(); }
+  Plugin & operator*() { return *plugin_; }
+
+  Plugin * operator->() const { return plugin_.get(); }
+  Plugin & operator*() const { return *plugin_; }
+
+  Probe::Key probe_key() const { return probe_key_; }
+
+private:
+  std::shared_ptr<Plugin> plugin_;
+  Probe::Key probe_key_;
+};
 
 class Frontend {
 public:
@@ -31,7 +53,7 @@ public:
 
   template<typename T>
   void add_plugin() {
-    plugins_.emplace_back(std::make_shared<T>(config_));
+    plugins_.emplace_back(perf_, std::make_shared<T>(config_));
   }
 
   auto & window() { return window_; }
@@ -85,7 +107,9 @@ public:
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     if (data) {
       for (auto const & plugin : plugins_) {
+        probe_.mark(plugin.probe_key(), Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
         plugin->video_refresh(data, width, height, pitch);
+        probe_.mark(plugin.probe_key(), Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
       }
     }
   }
@@ -130,7 +154,7 @@ private:
   Probe probe_;
   Perf & perf_;
 
-  std::vector<std::shared_ptr<Plugin>> plugins_;
+  std::vector<PluginSlot> plugins_;
 };
 
 }
