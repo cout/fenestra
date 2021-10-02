@@ -23,7 +23,8 @@ public:
 
   auto const & name() const { return name_; }
 
-  void record(Nanoseconds obs) {
+  void record(std::uint64_t frame, Nanoseconds obs) {
+    last_frame_ = frame;
     last_ = obs;
     total_ += obs;
     best_ = std::min(best_, obs);
@@ -39,6 +40,7 @@ public:
     count_ = 0;
   }
 
+  auto last_frame() const { return last_frame_; }
   auto last() const { return last_; }
   auto total() const { return total_; }
   auto best() const { return best_; }
@@ -68,6 +70,7 @@ public:
 private:
   std::string name_;
 
+  std::uint64_t last_frame_;
   Nanoseconds last_;
   Nanoseconds total_;
   Nanoseconds best_;
@@ -88,7 +91,6 @@ public:
     auto last_frame_time = now - last_frame_;
 
     ++frames_;
-    ++frame_;
 
     if (last_frame_time > Nanoseconds(20'000'000)) {
       std::cout << std::endl;
@@ -105,6 +107,7 @@ public:
       reset(now);
     }
 
+    ++frame_;
     last_frame_ = now;
 
     return now;
@@ -112,7 +115,9 @@ public:
 
   void dump_last() {
     for (auto const & pc : perf_counters_) {
-      std::cout << pc.name() << ": " << pc.last_ms() << std::endl;
+      if (pc.last_frame() == frame_) {
+        std::cout << pc.name() << ": " << pc.last_ms() << std::endl;
+      }
     }
   }
 
@@ -159,6 +164,22 @@ public:
       perf_counters_.emplace_back(name);
       perf_counter_name_to_idx_.emplace(name, idx);
       return perf_counters_[idx];
+    }
+  }
+
+  void record_probe(Probe const & probe) {
+    Probe::Key next_key;
+    Timestamp last_timestamp;
+
+    for (auto const & stamp : probe) {
+      if (last_timestamp != Timestamp()) {
+        auto delta = stamp.time - last_timestamp;
+        auto & counter = get_counter(probe_name(next_key));
+        counter.record(frame_, delta);
+      }
+
+      next_key = stamp.key;
+      last_timestamp = stamp.time;
     }
   }
 

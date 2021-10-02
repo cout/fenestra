@@ -39,22 +39,6 @@ public:
     }
   }
 
-  void record_probe(Probe const & probe) {
-    Probe::Key next_key;
-    Timestamp last_timestamp;
-
-    for (auto const & stamp : probe) {
-      if (last_timestamp != Timestamp()) {
-        auto delta = stamp.time - last_timestamp;
-        auto & counter = perf_.get_counter(perf_.probe_name(next_key));
-        counter.record(delta);
-      }
-
-      next_key = stamp.key;
-      last_timestamp = stamp.time;
-    }
-  }
-
   void run() {
     auto perf_metrics_key = perf_.probe_key("Perf metrics");
     auto sync_savefile_key = perf_.probe_key("Sync savefile");
@@ -80,7 +64,7 @@ public:
 
       auto perf_metrics_time = Clock::gettime(CLOCK_MONOTONIC);
 
-      record_probe(probe);
+      perf_.record_probe(probe);
 
       perf_.loop_done(perf_metrics_time);
 
