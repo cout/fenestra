@@ -64,7 +64,7 @@ public:
 
       auto perf_metrics_time = Clock::gettime(CLOCK_MONOTONIC);
 
-      perf_.record_probe(probe);
+      perf_.record_probe(perf_metrics_time, probe);
 
       perf_.loop_done(perf_metrics_time);
 
