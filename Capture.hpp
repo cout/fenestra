@@ -90,11 +90,13 @@ public:
   virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     auto Bpp = pixel_format_.bpp / CHAR_BIT;
     buf_.clear();
-    auto it = std::back_inserter(buf_);
+    auto size = width * height * Bpp;
+    buf_.resize(size);
     for (std::size_t i = 0; i < height; ++i) {
       auto start = static_cast<char const *>(data) + i * pitch;
       auto end = start + width * Bpp;
-      it = std::copy(start, end, it);
+      auto dest = buf_.data() + height * i;
+      std::copy(start, end, dest);
     }
   }
 
@@ -126,7 +128,9 @@ private:
 private:
   Pixel_Format pixel_format_;
   int fd_ = -1;
-  std::vector<char> buf_;
+
+  using Buffer = std::vector<char>;
+  Buffer buf_;
 
   v4l2_capability cap_;
   v4l2_format format_;
