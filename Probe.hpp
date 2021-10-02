@@ -10,7 +10,7 @@ class Probe {
 public:
   using Key = std::uint32_t;
   using Depth = std::uint32_t;
-  enum Type { DELTA, START, END, INVALID_ };
+  enum Type { DELTA, START, END, FINAL, INVALID_ };
 
   struct Stamp {
     Stamp() {

@@ -40,6 +40,7 @@ public:
   }
 
   void run() {
+    auto final_key = perf_.probe_key("---");
     auto perf_metrics_key = perf_.probe_key("Perf metrics");
     auto sync_savefile_key = perf_.probe_key("Sync savefile");
     auto pre_frame_delay_key = perf_.probe_key("Pre frame delay");
@@ -67,14 +68,12 @@ public:
       step(probe, window_refresh_key,     [&] { frontend_.window().refresh();     });
       step(probe, glfinish_key,           [&] { frontend_.window().glfinish();    });
 
-      auto perf_metrics_time = Clock::gettime(CLOCK_MONOTONIC);
-
-      perf_.record_probe(perf_metrics_time, probe);
-
-      perf_.loop_done(perf_metrics_time);
-
+      auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
+      probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);
+      perf_.record_probe(probe);
+      perf_.loop_done(perf_metrics_start_time);
       probe.clear();
-      probe.mark(perf_metrics_key, 0, perf_metrics_time);
+      probe.mark(perf_metrics_key, 0, perf_metrics_start_time);
     }
   }
 

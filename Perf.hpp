@@ -170,7 +170,7 @@ public:
     }
   }
 
-  void record_probe(Timestamp now, Probe const & probe) {
+  void record_probe(Probe const & probe) {
     Probe::Stamp last_stamp;
 
     for (auto const & stamp : probe) {
@@ -181,12 +181,6 @@ public:
       }
 
       last_stamp = stamp;
-    }
-
-    if (last_stamp.time != Timestamp()) {
-      auto delta = now - last_stamp.time;
-      auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
-      counter.record(frame_, delta);
     }
   }
 
