@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   Core core(argv[1]);
 
-  Config config;
+  Config config("fenestra.cfg");
   Perf perf;
   Frontend frontend("Fenestra", core, config, perf);
 

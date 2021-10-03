@@ -24,6 +24,7 @@ Requirements
 * GLFW
 * libepoxy
 * portaudiocpp
+* jsoncpp
 
 Building
 --------
@@ -37,7 +38,10 @@ make
 Configuring
 -----------
 
-For now, fenestra is configured by editing `Config.hpp` and recompiling.
+Fenestra can be configured by editing `fenestra.cfg`.
+
+Button/axies bindings are (for now) configured at compile-time in
+`Config.hpp`.
 
 Usage
 -----
