@@ -54,9 +54,9 @@ public:
     return last_ms.count();
   }
 
-  auto avg_ms() const {
-    Milliseconds avg_ms = count_ > 0 ? total_ / count_ : Milliseconds::zero();
-    return avg_ms.count();
+  auto total_ms() const {
+    Milliseconds total_ms = total_;
+    return total_ms.count();
   }
 
   auto best_ms() const {
@@ -80,11 +80,6 @@ private:
   Nanoseconds worst_;
   std::size_t count_;
 };
-
-std::ostream & operator<<(std::ostream & out, Perfcounter const & pc) {
-  out << "avg=" << pc.avg_ms() << ", best=" << pc.best_ms() << ", worst=" << pc.worst_ms();
-  return out;
-}
 
 class Perf {
 public:
@@ -131,7 +126,11 @@ public:
     std::cout << "FPS: " << fps << std::endl;
     for (auto const & pc : perf_counters_) {
       if (pc.count() > 0) {
-        std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc << std::endl;
+        std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": "
+                  << "avg=" << pc.total_ms() / frames_
+                  << ", best=" << pc.best_ms()
+                  << ", worst=" << pc.worst_ms()
+                  << std::endl;
       }
     }
   }
