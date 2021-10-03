@@ -4,6 +4,8 @@
 #include "Probe.hpp"
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <algorithm>
 #include <string_view>
 #include <string>
@@ -119,27 +121,34 @@ public:
   }
 
   void dump_last() {
+    std::stringstream strm;
+    strm << std::fixed << std::setprecision(3);
     for (auto const & pc : perf_counters_) {
       if (pc.last_frame() == frame_) {
-        std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc.last_ms() << std::endl;
+        strm << std::string(2*pc.depth(), ' ') << pc.name() << ": " << pc.last_ms() << std::endl;
       }
     }
+    std::cout << strm.str();
   }
 
   void dump(Timestamp now) {
     auto delta = now - last_dump_;
     auto fps = delta > Seconds::zero() ? frames_ / Seconds(delta).count() : 0;
 
-    std::cout << "FPS: " << fps << std::endl;
+    std::stringstream strm;
+    strm << std::fixed << std::setprecision(2);
+    strm << "FPS: " << fps << std::endl;
+    strm << std::setprecision(3);
     for (auto const & pc : perf_counters_) {
       if (pc.count() > 0) {
-        std::cout << std::string(2*pc.depth(), ' ') << pc.name() << ": "
-                  << "avg=" << pc.total_ms() / frames_
-                  << ", best=" << pc.best_ms()
-                  << ", worst=" << pc.worst_ms()
-                  << std::endl;
+        strm << std::string(2*pc.depth(), ' ') << pc.name() << ": "
+             << "avg=" << pc.total_ms() / frames_
+             << ", best=" << pc.best_ms()
+             << ", worst=" << pc.worst_ms()
+             << std::endl;
       }
     }
+    std::cout << strm.str();
   }
 
   void reset(Timestamp now) {
