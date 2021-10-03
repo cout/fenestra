@@ -90,7 +90,14 @@ public:
 
     ++frames_;
 
-    if (last_frame_time > Nanoseconds(20'000'000)) {
+    // We consider this frame slow if it is more than 3.3ms longer than
+    // expected (TODO and we assume a hard-coded 60fps).  But if the
+    // previous frame finished ahead of schedule, then it might just be
+    // that this frame was longer because we have to re-sync.
+    bool slow_frame = last_frame_time > Nanoseconds(20'000'000)
+      && prev_last_frame_time_ > Nanoseconds(16'700'000);
+
+    if (slow_frame) {
       std::cout << std::endl;
       std::cout << "!!!!!!!!!!!!!! LAST FRAME TOOK TOO LONG !!!!!!!!!!!!!!!!!" << std::endl;
       Milliseconds last_frame_time_ms = last_frame_time;
@@ -228,6 +235,8 @@ private:
 
   std::uint64_t frames_ = 0;
   std::uint64_t frame_ = 0;
+
+  Nanoseconds prev_last_frame_time_ = Nanoseconds::zero();
 };
 
 }
