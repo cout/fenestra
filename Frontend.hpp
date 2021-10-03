@@ -56,7 +56,13 @@ public:
 
   template<typename T>
   void add_plugin() {
-    plugins_.emplace_back(perf_, std::make_shared<T>(config_));
+    auto plugin = std::make_shared<T>(config_);
+
+    plugins_.emplace_back(perf_, plugin);
+
+    if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
+      video_refresh_plugins_.emplace_back(perf_, plugin);
+    }
   }
 
   auto & window() { return window_; }
@@ -110,7 +116,7 @@ public:
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     probe_.mark(video_refresh_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (data) {
-      for (auto const & plugin : plugins_) {
+      for (auto const & plugin : video_refresh_plugins_) {
         probe_.mark(plugin.probe_key(), Probe::START, 2, Clock::gettime(CLOCK_MONOTONIC));
         plugin->video_refresh(data, width, height, pitch);
         probe_.mark(plugin.probe_key(), Probe::END, 2, Clock::gettime(CLOCK_MONOTONIC));
@@ -166,6 +172,7 @@ private:
   Probe::Key video_refresh_key_;
   Probe::Key audio_sample_key_;
   std::vector<PluginSlot> plugins_;
+  std::vector<PluginSlot> video_refresh_plugins_;
 };
 
 }
