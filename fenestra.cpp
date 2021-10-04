@@ -7,7 +7,7 @@
 
 // Plugins
 #include "Logger.hpp"
-#include "Audio.hpp"
+#include "Portaudio.hpp"
 #include "Video.hpp"
 #include "Capture.hpp"
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   Frontend frontend("Fenestra", core, config, perf);
 
   frontend.add_plugin<Logger>("logger");
-  frontend.add_plugin<Audio>("audio");
+  frontend.add_plugin<Portaudio>("portaudio");
   frontend.add_plugin<Video>("video");
   frontend.add_plugin<Capture>("capture");
   frontend.add_plugin<Netcmds>("netcmds");

@@ -10,16 +10,16 @@
 
 namespace fenestra {
 
-class Audio
+class Portaudio
   : public Plugin
 {
 public:
-  Audio(Config const & config)
+  Portaudio(Config const & config)
     : config_(config)
   {
   }
 
-  ~Audio() {
+  ~Portaudio() {
     stream_.stop();
   }
 
