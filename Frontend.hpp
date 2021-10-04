@@ -19,9 +19,9 @@ namespace fenestra {
 
 class PluginSlot {
 public:
-  PluginSlot(Perf & perf, std::shared_ptr<Plugin> plugin)
+  PluginSlot(Perf & perf, std::shared_ptr<Plugin> plugin, std::string const & name)
     : plugin_(plugin)
-    , probe_key_(perf.probe_key(std::string(plugin->name())))
+    , probe_key_(perf.probe_key(name))
   {
   }
 
@@ -55,22 +55,21 @@ public:
   Probe & probe() { return probe_; }
 
   template<typename T>
-  void add_plugin() {
-    auto plugin = std::make_shared<T>(config_);
-
-    std::string name(plugin->name());
+  void add_plugin(std::string const & name) {
     if (config_.plugins().find(name) == config_.plugins().end()) {
       return;
     }
 
-    plugins_.emplace_back(perf_, plugin);
+    auto plugin = std::make_shared<T>(config_);
+
+    plugins_.emplace_back(perf_, plugin, name);
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
-      video_refresh_plugins_.emplace_back(perf_, plugin);
+      video_refresh_plugins_.emplace_back(perf_, plugin, name);
     }
 
     if (!std::is_same_v<decltype(&T::write_audio_sample), decltype(&Plugin::write_audio_sample)>) {
-      audio_sample_plugins_.emplace_back(perf_, plugin);
+      audio_sample_plugins_.emplace_back(perf_, plugin, name);
     }
   }
 

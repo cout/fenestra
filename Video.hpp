@@ -41,8 +41,6 @@ public:
     }
   }
 
-  virtual std::string_view name() const { return "Video"; }
-
   virtual void set_pixel_format(retro_pixel_format format) override {
     if (tex_id_) {
       throw std::runtime_error("Tried to change pixel format after initialization.");

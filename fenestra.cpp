@@ -28,11 +28,11 @@ int main(int argc, char *argv[]) {
   Perf perf;
   Frontend frontend("Fenestra", core, config, perf);
 
-  frontend.add_plugin<Logger>();
-  frontend.add_plugin<Audio>();
-  frontend.add_plugin<Video>();
-  frontend.add_plugin<Capture>();
-  frontend.add_plugin<Netcmds>();
+  frontend.add_plugin<Logger>("Logger");
+  frontend.add_plugin<Audio>("Audio");
+  frontend.add_plugin<Video>("Video");
+  frontend.add_plugin<Capture>("Capture");
+  frontend.add_plugin<Netcmds>("Netcmds");
 
   Context ctx(frontend, core, config);
   ctx.load_game(argv[2]);

@@ -13,8 +13,6 @@ class Plugin {
 public:
   virtual ~Plugin() { }
 
-  virtual std::string_view name() const = 0;
-
   virtual void set_sample_rate(int sample_rate) { }
   virtual void write_audio_sample(void const * buf, std::size_t frames) { }
 

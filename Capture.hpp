@@ -41,8 +41,6 @@ public:
     }
   }
 
-  virtual std::string_view name() const { return "Capture"; }
-
   void open(std::string const & filename) {
     if ((fd_ = ::open(filename.c_str(), O_RDWR | O_NONBLOCK)) < 0) {
       throw std::runtime_error(std::string("open failed for ") + filename + ": " + std::strerror(errno));

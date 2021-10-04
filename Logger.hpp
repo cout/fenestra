@@ -16,8 +16,6 @@ public:
   Logger(Config const & config) {
   }
 
-  virtual std::string_view name() const { return "Logger"; }
-
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) override {
     char buffer[4096] = {0};
 

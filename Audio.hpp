@@ -23,8 +23,6 @@ public:
     stream_.stop();
   }
 
-  virtual std::string_view name() const { return "Audio"; }
-
   virtual void set_sample_rate(int sample_rate) override {
     auto & system = portaudio::System::instance();
     auto & host_api = this->host_api(system, config_.audio_api());
