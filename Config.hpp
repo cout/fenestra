@@ -38,24 +38,24 @@ public:
     std::ifstream file(filename);
     file >> v;
 
-    vsync_ = v["vsync"].asBool();
-    adaptive_vsync_ = v["adaptive_vsync"].asBool();
-    glfinish_ = v["glfinish"].asBool();
-    oml_sync_ = v["oml_sync"].asBool();
-    nv_delay_before_swap_ = v["nv_delay_before_swap"].asBool();
-    scale_factor_ = v["scale_factor"].asFloat();
+    set(vsync_, v, "vsync");
+    set(adaptive_vsync_, v, "adaptive_vsync");
+    set(glfinish_, v, "glfinish");
+    set(oml_sync_, v, "oml_sync");
+    set(nv_delay_before_swap_, v, "nv_delay_before_swap");
+    set(scale_factor_, v, "scale_factor");
 
-    frame_delay_ = Milliseconds(v["frame_delay"].asDouble());
-    system_directory_ = v["system_directory"].asString();
-    save_directory_ = v["save_directory"].asString();
+    set(frame_delay_, v, "frame_delay");
+    set(system_directory_, v, "system_directory");
+    set(save_directory_, v, "save_directory");
 
-    audio_api_ = v["audio_api"].asString();
-    audio_device_ = v["audio_device"].asString();
-    audio_suggested_latency_ = v["audio_suggested_latency"].asInt();
+    set(audio_api_, v, "audio_api");
+    set(audio_device_, v, "audio_device");
+    set(audio_suggested_latency_, v, "audio_suggested_latency");
 
-    network_command_port_ = v["network_command_port"].asInt();
+    set(network_command_port_, v, "network_command_port");
 
-    v4l2_device_ = v["v4l2_device"].asString();
+    set(v4l2_device_, v, "v4l2_device");
   }
 
   bool vsync() const { return vsync_; }
@@ -80,6 +80,39 @@ public:
 
   auto const & button_bindings() const { return button_bindings_; }
   auto const & axis_bindings() const { return axis_bindings_; }
+
+private:
+  template <typename T>
+  void set(T & dest, Json::Value const & v, std::string_view name) {
+    auto src = v.find(name.data(), name.data() + name.size());
+    if (src) {
+      assign(dest, *src);
+    }
+  }
+
+  void assign(bool & dest, Json::Value const & src) {
+    dest = src.asBool();
+  }
+
+  void assign(int & dest, Json::Value const & src) {
+    dest = src.asInt();
+  }
+
+  void assign(float & dest, Json::Value const & src) {
+    dest = src.asFloat();
+  }
+
+  void assign(double & dest, Json::Value const & src) {
+    dest = src.asDouble();
+  }
+
+  void assign(std::string & dest, Json::Value const & src) {
+    dest = src.asString();
+  }
+
+  void assign(Milliseconds & dest, Json::Value const & src) {
+    dest = Milliseconds(src.asDouble());
+  }
 
 private:
   bool vsync_ = true;
