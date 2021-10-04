@@ -1,12 +1,16 @@
 #pragma once
 
 #include "Plugin.hpp"
+#include "Config.hpp"
 
 #include <portaudiocpp/PortAudioCpp.hxx>
 #include <portaudio.h>
 
 #include <stdexcept>
 #include <sstream>
+#include <iostream>
+#include <map>
+#include <vector>
 
 namespace fenestra {
 
@@ -20,7 +24,21 @@ public:
   }
 
   ~Portaudio() {
-    stream_.stop();
+  }
+
+  std::map<std::string, std::vector<std::string>> list_devices() const {
+    auto & system = portaudio::System::instance();
+    std::map<std::string, std::vector<std::string>> devices;
+
+    for (auto host_api_it = system.hostApisBegin(); host_api_it != system.hostApisEnd(); ++host_api_it) {
+      std::vector<std::string> host_api_devices;
+      for (auto it = host_api_it->devicesBegin(); it != host_api_it->devicesEnd(); ++it) {
+        host_api_devices.push_back(it->name());
+      }
+      devices.emplace(host_api_it->name(), host_api_devices);
+    }
+
+    return devices;
   }
 
   virtual void set_sample_rate(int sample_rate) override {

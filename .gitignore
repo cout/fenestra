@@ -1,3 +1,5 @@
 *.o
 *.d
 fenestra
+tools/list-portaudio-devices
+core

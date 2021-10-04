@@ -1,13 +1,15 @@
 #pragma once
 
-#include "Geometry.hpp"
-
 #include "libretro.h"
 
 #include <cstddef>
+#include <cstdarg>
 #include <string_view>
 
 namespace fenestra {
+
+class Geometry;
+class Core;
 
 class Plugin {
 public:
