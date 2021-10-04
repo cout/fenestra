@@ -9,6 +9,7 @@
 #include <string_view>
 #include <string>
 #include <vector>
+#include <set>
 #include <fstream>
 
 namespace fenestra {
@@ -38,6 +39,8 @@ public:
     std::ifstream file(filename);
     file >> v;
 
+    set(plugins_, v, "plugins");
+
     set(vsync_, v, "vsync");
     set(adaptive_vsync_, v, "adaptive_vsync");
     set(glfinish_, v, "glfinish");
@@ -57,6 +60,8 @@ public:
 
     set(v4l2_device_, v, "v4l2_device");
   }
+
+  auto const & plugins() const { return plugins_; }
 
   bool vsync() const { return vsync_; }
   bool adaptive_vsync() const { return adaptive_vsync_; }
@@ -90,6 +95,28 @@ private:
     }
   }
 
+  template <typename T>
+  void assign(std::vector<T> & dest, Json::Value const & src) {
+    std::vector<T> result;
+    for (auto v : src) {
+      T tmp;
+      assign(tmp, v);
+      result.push_back(tmp);
+    }
+    dest = result;
+  }
+
+  template <typename T>
+  void assign(std::set<T> & dest, Json::Value const & src) {
+    std::set<T> result;
+    for (auto v : src) {
+      T tmp;
+      assign(tmp, v);
+      result.insert(tmp);
+    }
+    dest = result;
+  }
+
   void assign(bool & dest, Json::Value const & src) {
     dest = src.asBool();
   }
@@ -115,6 +142,8 @@ private:
   }
 
 private:
+  std::set<std::string> plugins_ { "Logger", "Audio", "Video", "Capture", "Netcmds" };
+
   bool vsync_ = true;
   bool adaptive_vsync_ = false;
   bool glfinish_ = false;

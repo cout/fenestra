@@ -58,6 +58,11 @@ public:
   void add_plugin() {
     auto plugin = std::make_shared<T>(config_);
 
+    std::string name(plugin->name());
+    if (config_.plugins().find(name) == config_.plugins().end()) {
+      return;
+    }
+
     plugins_.emplace_back(perf_, plugin);
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
