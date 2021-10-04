@@ -37,6 +37,25 @@ public:
     Json::Value v;
     std::ifstream file(filename);
     file >> v;
+
+    vsync_ = v["vsync"].asBool();
+    adaptive_vsync_ = v["adaptive_vsync"].asBool();
+    glfinish_ = v["glfinish"].asBool();
+    oml_sync_ = v["oml_sync"].asBool();
+    nv_delay_before_swap_ = v["nv_delay_before_swap"].asBool();
+    scale_factor_ = v["scale_factor"].asFloat();
+
+    frame_delay_ = Milliseconds(v["frame_delay"].asDouble());
+    system_directory_ = v["system_directory"].asString();
+    save_directory_ = v["save_directory"].asString();
+
+    audio_api_ = v["audio_api"].asString();
+    audio_device_ = v["audio_device"].asString();
+    audio_suggested_latency_ = v["audio_suggested_latency"].asInt();
+
+    network_command_port_ = v["network_command_port"].asInt();
+
+    v4l2_device_ = v["v4l2_device"].asString();
   }
 
   bool vsync() const { return vsync_; }
@@ -75,7 +94,7 @@ private:
   std::string save_directory_ = ".";
 
   std::string audio_api_ = "ALSA";
-  std::string_view audio_device_ = "pipewire";
+  std::string audio_device_ = "pipewire";
   int audio_suggested_latency_ = 128;
 
   int network_command_port_ = 55355;
