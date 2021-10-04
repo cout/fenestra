@@ -38,16 +38,12 @@ public:
     portaudio::DirectionSpecificStreamParameters out_params(device, 2, portaudio::INT16, true, suggested_latency, nullptr);
     portaudio::StreamParameters params(in_params, out_params, sample_rate, 0, paNoFlag);
     stream_.open(params);
-
-    std::cout << "### sample rate " << sample_rate << std::endl;
   }
 
   virtual void write_audio_sample(void const * buf, std::size_t frames) override {
     if (stream_.isStopped()) {
       stream_.start();
     }
-
-    // std::cout << "Input latency: " << stream_.inputLatency() << "; output latency: " << stream_.outputLatency() << std::endl;
 
     try {
       stream_.write(buf, frames);
