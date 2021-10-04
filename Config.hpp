@@ -142,7 +142,7 @@ private:
   }
 
 private:
-  std::set<std::string> plugins_ { "Logger", "Audio", "Video", "Capture", "Netcmds" };
+  std::set<std::string> plugins_ { "logger", "audio", "video", "capture", "netcmds" };
 
   bool vsync_ = true;
   bool adaptive_vsync_ = false;
