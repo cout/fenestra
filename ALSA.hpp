@@ -28,7 +28,9 @@ public:
     int err;
 
     std::string audio_device(config_.audio_device().data());
-    if ((err = snd_pcm_open(&pcm, audio_device.c_str(), SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+    int flags = 0;
+    if (config_.audio_nonblock()) flags |= SND_PCM_NONBLOCK;
+    if ((err = snd_pcm_open(&pcm, audio_device.c_str(), SND_PCM_STREAM_PLAYBACK, flags)) < 0) {
       std::stringstream strm;
       strm << "snd_pcm_open failed: " << snd_strerror(err);
       throw std::runtime_error(strm.str());
