@@ -8,6 +8,7 @@
 // Plugins
 #include "Logger.hpp"
 #include "Portaudio.hpp"
+#include "ALSA.hpp"
 #include "Video.hpp"
 #include "Capture.hpp"
 
@@ -30,6 +31,7 @@ int main(int argc, char *argv[]) {
 
   frontend.add_plugin<Logger>("logger");
   frontend.add_plugin<Portaudio>("portaudio");
+  frontend.add_plugin<ALSA>("alsa");
   frontend.add_plugin<Video>("video");
   frontend.add_plugin<Capture>("capture");
   frontend.add_plugin<Netcmds>("netcmds");

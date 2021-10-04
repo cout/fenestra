@@ -1,5 +1,5 @@
 CXXFLAGS += -Wall -g -MMD -MP -std=c++17
-LDFLAGS += -ldl -lGL -lGLX -lglfw -lepoxy -lportaudiocpp -lportaudio
+LDFLAGS += -ldl -lGL -lGLX -lglfw -lepoxy -lportaudiocpp -lportaudio -lasound
 
 CXXFLAGS += $(shell pkg-config --cflags jsoncpp)
 LDFLAGS += $(shell pkg-config --libs jsoncpp)

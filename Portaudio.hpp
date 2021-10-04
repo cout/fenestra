@@ -42,7 +42,7 @@ public:
     std::cout << "### sample rate " << sample_rate << std::endl;
   }
 
-  virtual void write_audio_sample(const void * buf, std::size_t frames) override {
+  virtual void write_audio_sample(void const * buf, std::size_t frames) override {
     if (stream_.isStopped()) {
       stream_.start();
     }

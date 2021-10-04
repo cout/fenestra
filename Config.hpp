@@ -79,6 +79,8 @@ public:
   std::string_view audio_device() const { return audio_device_; }
   int audio_suggested_latency() const { return audio_suggested_latency_; }
 
+  std::string_view alsa_device() const { return alsa_device_; }
+
   int network_command_port() const { return network_command_port_; }
 
   std::string v4l2_device() const { return v4l2_device_; }
@@ -158,6 +160,8 @@ private:
   std::string audio_api_ = "ALSA";
   std::string audio_device_ = "pipewire";
   int audio_suggested_latency_ = 128;
+
+  std::string alsa_device_ = "default";
 
   int network_command_port_ = 55355;
 
