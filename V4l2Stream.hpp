@@ -22,7 +22,7 @@
 
 namespace fenestra {
 
-class Capture
+class V4l2Stream
   : public Plugin
 {
 public:
@@ -35,7 +35,7 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { V4L2_PIX_FMT_RGB565, 16 } },
   };
 
-  Capture(Config const & config) {
+  V4l2Stream(Config const & config) {
     if (config.v4l2_device() != "") {
       open(config.v4l2_device());
     }
@@ -60,7 +60,7 @@ public:
     }
   }
 
-  virtual ~Capture() override {
+  virtual ~V4l2Stream() override {
     if (fd_ >= 0) {
       ::close(fd_);
     }

@@ -10,7 +10,7 @@
 #include "Portaudio.hpp"
 #include "ALSA.hpp"
 #include "Video.hpp"
-#include "Capture.hpp"
+#include "V4l2Stream.hpp"
 
 #include <iostream>
 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Portaudio>("portaudio");
   frontend.add_plugin<ALSA>("alsa");
   frontend.add_plugin<Video>("video");
-  frontend.add_plugin<Capture>("capture");
+  frontend.add_plugin<V4l2Stream>("v4l2stream");
   frontend.add_plugin<Netcmds>("netcmds");
 
   Context ctx(frontend, core, config);
