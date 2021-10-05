@@ -1,4 +1,4 @@
-CXXFLAGS += -Wall -g -MMD -MP -std=c++17 -O2
+CXXFLAGS += -Wall -g -MMD -MP -std=c++17 -Og
 LDFLAGS += -ldl -lGL -lGLX -lglfw -lepoxy -lportaudiocpp -lasound
 
 # CXXFLAGS += $(shell pkg-config gstreamer-1.0 --cflags)
