@@ -60,6 +60,7 @@ public:
     set(network_command_port_, v, "network_command_port");
 
     set(v4l2_device_, v, "v4l2_device");
+    set(gstreamer_sink_pipeline_, v, "gstreamer_sink_pipeline");
   }
 
   auto const & plugins() const { return plugins_; }
@@ -146,7 +147,7 @@ private:
   }
 
 private:
-  std::set<std::string> plugins_ { "logger", "portaudio", "video", "v4l2stream", "netcmds" };
+  std::set<std::string> plugins_ { "logger", "portaudio", "video", "v4l2stream", "gstreamer", "netcmds" };
 
   bool vsync_ = true;
   bool adaptive_vsync_ = false;
@@ -166,9 +167,9 @@ private:
 
   int network_command_port_ = 55355;
 
-  std::string v4l2_device_ = "/dev/video3";
+  std::string v4l2_device_ = "";
 
-  // E.g.: v4lsink device=/dev/video3
+  // E.g.: v4l2sink device=/dev/video3
   std::string gstreamer_sink_pipeline_ = "";
 
   // Button bindings for 8bitdo SN30+
