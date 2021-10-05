@@ -90,11 +90,11 @@ public:
     buf_.clear();
     auto size = width * height * Bpp;
     buf_.resize(size);
+    auto dest = buf_.data();
     for (std::size_t i = 0; i < height; ++i) {
       auto start = static_cast<char const *>(data) + i * pitch;
       auto end = start + width * Bpp;
-      auto dest = buf_.data() + height * i;
-      std::copy(start, end, dest);
+      dest = std::copy(start, end, dest);
     }
   }
 
@@ -116,11 +116,22 @@ private:
   }
 
   void set_format(v4l2_format const & format) {
-    std::cout << "Before: " << format.fmt.pix.bytesperline << std::endl;
+    std::cout << "Before: " << to_string(format.fmt.pix) << std::endl;
     if (ioctl(fd_, VIDIOC_S_FMT, &format) < 0) {
       throw std::runtime_error("ioctl failed (VIDIOC_S_FMT)");
     }
-    std::cout << "After: " << format.fmt.pix.bytesperline << std::endl;
+    std::cout << "After: " << to_string(format.fmt.pix) << std::endl;
+  }
+
+  std::string to_string(v4l2_pix_format const & pix) {
+    std::stringstream strm;
+    strm << "width=" << pix.width << ",height=" << pix.height <<
+      ",pixelformat=" << pix.pixelformat << ",field=" << pix.field <<
+      ",bytesperline=" << pix.bytesperline << ",sizeimage=" <<
+      pix.sizeimage << ",colorspace=" << pix.colorspace << ",priv=" <<
+      pix.priv << ",flags=" << pix.flags << ",quantization=" <<
+      pix.quantization << ",xfer_func=" << pix.xfer_func;
+    return strm.str();
   }
 
 private:
