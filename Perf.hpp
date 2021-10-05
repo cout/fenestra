@@ -116,6 +116,7 @@ public:
 
     ++frame_;
     last_frame_ = now;
+    prev_last_frame_time_ = last_frame_time;
 
     return now;
   }
