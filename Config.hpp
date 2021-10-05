@@ -83,7 +83,9 @@ public:
 
   int network_command_port() const { return network_command_port_; }
 
-  std::string v4l2_device() const { return v4l2_device_; }
+  std::string const & v4l2_device() const { return v4l2_device_; }
+
+  std::string const & gstreamer_sink_pipeline() const { return gstreamer_sink_pipeline_; }
 
   auto const & button_bindings() const { return button_bindings_; }
   auto const & axis_bindings() const { return axis_bindings_; }
@@ -165,6 +167,9 @@ private:
   int network_command_port_ = 55355;
 
   std::string v4l2_device_ = "/dev/video3";
+
+  // E.g.: v4lsink device=/dev/video3
+  std::string gstreamer_sink_pipeline_ = "";
 
   // Button bindings for 8bitdo SN30+
   std::vector<Button_Binding> button_bindings_ = {

@@ -1,8 +1,9 @@
+#include <gstreamermm.h>
+
 #include "Config.hpp"
 #include "Core.hpp"
 #include "Frontend.hpp"
 #include "Context.hpp"
-#include "Netcmds.hpp"
 #include "Loop.hpp"
 
 // Plugins
@@ -11,11 +12,15 @@
 #include "ALSA.hpp"
 #include "Video.hpp"
 #include "V4l2Stream.hpp"
+#include "Gstreamer.hpp"
+#include "Netcmds.hpp"
 
 #include <iostream>
 
 int main(int argc, char *argv[]) {
   using namespace fenestra;
+
+  Gst::init(argc, argv);
 
   if (argc < 3) {
     std::stringstream strm;
@@ -34,6 +39,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<ALSA>("alsa");
   frontend.add_plugin<Video>("video");
   frontend.add_plugin<V4l2Stream>("v4l2stream");
+  frontend.add_plugin<Gstreamer>("gstreamer");
   frontend.add_plugin<Netcmds>("netcmds");
 
   Context ctx(frontend, core, config);

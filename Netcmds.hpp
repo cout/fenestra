@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Plugin.hpp"
+#include "Config.hpp"
+#include "Core.hpp"
 
 #include "libretro.h"
 

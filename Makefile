@@ -1,6 +1,12 @@
 CXXFLAGS += -Wall -g -MMD -MP -std=c++17
 LDFLAGS += -ldl -lGL -lGLX -lglfw -lepoxy -lportaudiocpp -lasound
 
+# CXXFLAGS += $(shell pkg-config gstreamer-1.0 --cflags)
+# LDFLAGS += $(shell pkg-config gstreamer-1.0 --libs)
+
+CXXFLAGS += $(shell pkg-config gstreamermm-1.0 --cflags)
+LDFLAGS += $(shell pkg-config gstreamermm-1.0 --libs)
+
 CXXFLAGS += $(shell pkg-config --cflags jsoncpp)
 LDFLAGS += $(shell pkg-config --libs jsoncpp)
 

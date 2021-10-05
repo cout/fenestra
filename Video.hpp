@@ -5,6 +5,8 @@
 
 #include "libretro.h"
 
+#include <epoxy/gl.h>
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 
