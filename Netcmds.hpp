@@ -111,10 +111,10 @@ private:
   }
 
   void handle_read_core_ram(std::string_view s_addr, std::string_view s_bytes, sockaddr_in reply_addr, socklen_t reply_addr_len) {
-    unsigned int addr;
+    unsigned int addr = 0;
     std::from_chars(s_addr.data(), s_addr.data() + s_addr.size(), addr, 16);
 
-    unsigned int bytes;
+    unsigned int bytes = 0;
     std::from_chars(s_bytes.data(), s_bytes.data() + s_bytes.size(), bytes, 16);
 
     auto size = core_->get_memory_size(RETRO_MEMORY_SYSTEM_RAM);

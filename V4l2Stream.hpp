@@ -103,7 +103,7 @@ public:
       return;
     }
 
-    write(fd_, buf_.data(), buf_.size());
+    [&] { return write(fd_, buf_.data(), buf_.size()); }();
   }
 
 private:
