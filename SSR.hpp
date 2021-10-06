@@ -6,7 +6,7 @@
 
 #include <stdexcept>
 #include <memory>
-#include <limits>
+#include <cstring>
 
 namespace fenestra {
 
@@ -46,26 +46,48 @@ public:
   virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     if (!ssr_) return;
 
-    auto Bpp = pixel_format_.bpp / CHAR_BIT;
-
-    if (width != width_ || height != height_) {
+    if (width != width_ || height != height_ || pitch_ != pitch) {
       ssr_->UpdateSize(width, height, width * 4);
       width_ = width;
       height_ = height;
+      pitch_ = pitch;
     }
+
+    unsigned int flags = 0;
+    ptr_ = ssr_->NewFrame(&flags);
+
+    if (ptr_) {
+      auto Bpp = pixel_format_.bpp / CHAR_BIT;
+      auto size = Bpp * height * pitch;
+
+      if (buf_.size() != size) {
+        buf_.resize(size);
+      }
+
+      // Copy to a temporary buffer so we can do pixel format conversion
+      // during the frame delay
+      auto src = static_cast<std::uint8_t const *>(data);
+      auto dest = buf_.data();
+      std::memcpy(dest, src, size);
+    }
+  }
+
+  virtual void pre_frame_delay() {
+    if (!ssr_) return;
 
     if (pixel_format_.format != RETRO_PIXEL_FORMAT_RGB565) {
       // Only 565 is implemented, for now
       return;
     }
 
-    unsigned int flags = 0;
-    ptr_ = ssr_->NewFrame(&flags);
-    if (ptr_) {
+    bool captured = ptr_;
+
+    if (captured) {
+      auto Bpp = pixel_format_.bpp / CHAR_BIT;
       auto * dest = static_cast<std::uint8_t *>(ptr_);
-      for (std::size_t y = 0; y < height; ++y) {
-        auto start = static_cast<char const *>(data) + y * pitch;
-        auto end = start + width * Bpp;
+      for (std::size_t y = 0; y < height_; ++y) {
+        auto start = buf_.data() + y * pitch_;
+        auto end = start + width_ * Bpp;
 
         for (auto * src = start; src < end; src += Bpp) {
           // Retroarch pixel formats are always native endianness
@@ -81,15 +103,8 @@ public:
           *dest++ = 255;
         }
       }
-    }
-  }
 
-  virtual void pre_frame_delay() {
-    if (!ssr_) return;
-
-    bool captured = ptr_;
-    if (captured) {
-      ssr_->NextFrame(); // TODO: Do this only if we captured a frame?
+      ssr_->NextFrame();
       ptr_ = nullptr;
     }
   }
@@ -99,6 +114,8 @@ private:
   std::unique_ptr<SSRVideoStreamWriter> ssr_;
   unsigned int width_ = 0;
   unsigned int height_ = 0;
+  std::size_t pitch_ = 0;
+  std::vector<char> buf_;
   void * ptr_ = nullptr;
 };
 
