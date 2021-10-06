@@ -61,6 +61,7 @@ public:
 
     set(v4l2_device_, v, "v4l2_device");
     set(gstreamer_sink_pipeline_, v, "gstreamer_sink_pipeline");
+    set(ssr_channel_, v, "ssr_channel");
   }
 
   auto const & plugins() const { return plugins_; }
@@ -87,6 +88,8 @@ public:
   std::string const & v4l2_device() const { return v4l2_device_; }
 
   std::string const & gstreamer_sink_pipeline() const { return gstreamer_sink_pipeline_; }
+
+  std::string const & ssr_channel() const { return ssr_channel_; }
 
   auto const & button_bindings() const { return button_bindings_; }
   auto const & axis_bindings() const { return axis_bindings_; }
@@ -147,7 +150,7 @@ private:
   }
 
 private:
-  std::set<std::string> plugins_ { "logger", "portaudio", "video", "v4l2stream", "gstreamer", "netcmds" };
+  std::set<std::string> plugins_ { "logger", "portaudio", "video", "v4l2stream", "gstreamer", "ssr", "netcmds" };
 
   bool vsync_ = true;
   bool adaptive_vsync_ = false;
@@ -171,6 +174,8 @@ private:
 
   // E.g.: v4l2sink device=/dev/video3
   std::string gstreamer_sink_pipeline_ = "";
+
+  std::string ssr_channel_ = "";
 
   // Button bindings for 8bitdo SN30+
   std::vector<Button_Binding> button_bindings_ = {

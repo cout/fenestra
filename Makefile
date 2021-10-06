@@ -1,4 +1,4 @@
-CXXFLAGS += -Wall -g -MMD -MP -std=c++17 -Og
+CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og
 LDFLAGS += -ldl -lGL -lGLX -lglfw -lepoxy -lportaudiocpp -lasound
 
 # CXXFLAGS += $(shell pkg-config gstreamer-1.0 --cflags)
@@ -11,7 +11,8 @@ CXXFLAGS += $(shell pkg-config --cflags jsoncpp)
 LDFLAGS += $(shell pkg-config --libs jsoncpp)
 
 FENESTRA_OBJS = \
-  fenestra.o
+  fenestra.o \
+  ssr/SSRVideoStreamWriter.o
 
 LIST_AUDIO_DEVICES_OBJS = \
   tools/list-portaudio-devices.o
