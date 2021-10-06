@@ -2,6 +2,7 @@
 
 #include "libretro.h"
 
+#include "Plugin.hpp"
 #include "Geometry.hpp"
 
 #include <gst/gst.h>
@@ -45,6 +46,9 @@ public:
     appsrc_ = decltype(appsrc_)::cast_dynamic(source_);
     pipeline_->add(source_);
 
+    rate_ = Gst::ElementFactory::create_element("videorate", "videorate");
+    pipeline_->add(rate_);
+
     conv_ = Gst::ElementFactory::create_element("videoconvert", "videoconvert");
     pipeline_->add(conv_);
 
@@ -65,16 +69,20 @@ public:
     auto caps = Gst::Caps::create_simple(
         "video/x-raw",
         "format", pixel_format_.caps_format,
+        "colorimetry", std::string("sRGB"),
         "width", int(geom.base_width()),
         "height", int(geom.base_height()),
         "framerate", Gst::Fraction(0, 1)); // variable framerate
 
     source_->set_property("caps", caps);
 
-    source_->link(conv_)->link(sink_);
+    source_->link(rate_)->link(conv_)->link(sink_);
 
-    source_->set_property("stream_type", 0);
+    source_->set_property("format", Gst::FORMAT_TIME);
+    source_->set_property("stream_type", Gst::APP_STREAM_TYPE_STREAM);
     source_->set_property("is-live", true);
+    source_->set_property("min-latency", 0);
+    source_->set_property("do-timestamp", true);
 
     pipeline_->set_state(Gst::STATE_PLAYING);
   }
@@ -100,11 +108,11 @@ public:
 
   virtual void pre_frame_delay() override {
     if (buf_ && appsrc_) {
-      auto ret = appsrc_->push_buffer(buf_);
+      Glib::RefPtr<Gst::Buffer> buf(buf_.release());
+      auto ret = appsrc_->push_buffer(buf);
       if (ret != Gst::FLOW_OK) {
         throw std::runtime_error("push_buffer failed");
       }
-      [&]{ return buf_.release(); }();
     }
   }
 
@@ -116,6 +124,7 @@ private:
   Glib::RefPtr<Gst::Pipeline> pipeline_;
   Glib::RefPtr<Gst::AppSrc> appsrc_;
   Glib::RefPtr<Gst::Element> source_;
+  Glib::RefPtr<Gst::Element> rate_;
   Glib::RefPtr<Gst::Element> conv_;
   Glib::RefPtr<Gst::Element> sink_;
   Glib::RefPtr<Gst::Buffer> buf_;
