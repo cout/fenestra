@@ -85,7 +85,7 @@ public:
         auto end = start + width_ * Bpp;
         switch (pixel_format_.format) {
           case RETRO_PIXEL_FORMAT_RGB565:
-            dest = serialize_bgra<std::uint16_t, 0, 5, 11, 0x3f, 0x7f, 0x3f, 3, 2, 3>(start, end, dest);
+            dest = serialize_bgra<std::uint16_t, RGB565>(start, end, dest);
             break;
 
           case RETRO_PIXEL_FORMAT_0RGB1555:
@@ -102,26 +102,38 @@ public:
   }
 
 private:
-  template<typename T, auto bshift, auto gshift, auto rshift, auto bmask, auto gmask, auto rmask, auto blshift, auto glshift, auto rlshift>
+  struct RGB565 {
+    static constexpr inline auto bshift = 0;
+    static constexpr inline auto gshift = 5;
+    static constexpr inline auto rshift = 11;
+    static constexpr inline auto bmask = 0x3f;
+    static constexpr inline auto gmask = 0x7f;
+    static constexpr inline auto rmask = 0x3f;
+    static constexpr inline auto blshift = 3;
+    static constexpr inline auto glshift = 2;
+    static constexpr inline auto rlshift = 3;
+  };
+
+  template<typename T, typename Params>
   static inline std::uint8_t * serialize_bgra(char const * start, char const * end, std::uint8_t * dest) {
     for (auto * src = start; src < end; src += sizeof(T)) {
-      dest = serialize_bgra_pixel<T, bshift, gshift, rshift, bmask, gmask, rmask, blshift, glshift, rlshift>(src, dest);
+      dest = serialize_bgra_pixel<T, Params>(src, dest);
     }
     return dest;
   }
 
-  template<typename T, auto bshift, auto gshift, auto rshift, auto bmask, auto gmask, auto rmask, auto blshift, auto glshift, auto rlshift>
+  template<typename T, typename Params>
   static inline std::uint8_t * serialize_bgra_pixel(char const * src, std::uint8_t * dest) {
     // Retroarch pixel formats are always native endianness
     auto i = *(reinterpret_cast<T const *>(src));
 
-    auto blue  = (i >> bshift) & bmask;
-    auto green = (i >> gshift) & gmask;
-    auto red   = (i >> rshift) & rmask;
+    auto blue  = (i >> Params::bshift) & Params::bmask;
+    auto green = (i >> Params::gshift) & Params::gmask;
+    auto red   = (i >> Params::rshift) & Params::rmask;
 
-    *dest++ = blue << blshift;
-    *dest++ = green << glshift;
-    *dest++ = red << rlshift;
+    *dest++ = blue << Params::blshift;
+    *dest++ = green << Params::glshift;
+    *dest++ = red << Params::rlshift;
     *dest++ = 255;
 
     return dest;
