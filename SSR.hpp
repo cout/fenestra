@@ -109,10 +109,24 @@ private:
     static constexpr inline auto bmask = 0x3f;
     static constexpr inline auto gmask = 0x7f;
     static constexpr inline auto rmask = 0x3f;
-    static constexpr inline auto blshift = 3;
-    static constexpr inline auto glshift = 2;
-    static constexpr inline auto rlshift = 3;
+
+    static inline std::uint8_t bscale[256];
+    static inline std::uint8_t gscale[256];
+    static inline std::uint8_t rscale[256];
   };
+
+  struct RGB565_Init {
+    RGB565_Init() {
+      for (int i = 0; i < 256; ++i) {
+
+        RGB565::bscale[i] = (i << 3) | (i >> 2);
+        RGB565::gscale[i] = (i << 2) | (i >> 4);
+        RGB565::rscale[i] = (i << 3) | (i >> 2);
+      }
+    }
+  };
+
+  static inline RGB565_Init rgb565_init_;
 
   template<typename T, typename Params>
   static inline std::uint8_t * serialize_bgra(char const * start, char const * end, std::uint8_t * dest) {
@@ -131,9 +145,9 @@ private:
     auto green = (i >> Params::gshift) & Params::gmask;
     auto red   = (i >> Params::rshift) & Params::rmask;
 
-    *dest++ = blue << Params::blshift;
-    *dest++ = green << Params::glshift;
-    *dest++ = red << Params::rlshift;
+    *dest++ = Params::bscale[blue];
+    *dest++ = Params::gscale[green];
+    *dest++ = Params::rscale[red];
     *dest++ = 255;
 
     return dest;
