@@ -75,11 +75,6 @@ public:
   virtual void pre_frame_delay() {
     if (!ssr_) return;
 
-    if (pixel_format_.format != RETRO_PIXEL_FORMAT_RGB565) {
-      // Only 565 is implemented, for now
-      return;
-    }
-
     bool captured = ptr_;
 
     if (captured) {
@@ -88,25 +83,48 @@ public:
       for (std::size_t y = 0; y < height_; ++y) {
         auto start = buf_.data() + y * pitch_;
         auto end = start + width_ * Bpp;
+        switch (pixel_format_.format) {
+          case RETRO_PIXEL_FORMAT_RGB565:
+            dest = serialize_bgra<std::uint16_t, 0, 5, 11, 0x3f, 0x7f, 0x3f, 3, 2, 3>(start, end, dest);
+            break;
 
-        for (auto * src = start; src < end; src += Bpp) {
-          // Retroarch pixel formats are always native endianness
-          auto i = *(reinterpret_cast<std::uint16_t const *>(src));
-
-          auto blue  = (i >>  0) & 0x3f;
-          auto green = (i >>  5) & 0x7f;
-          auto red   = (i >> 11) & 0x3f;
-
-          *dest++ = blue << 3;
-          *dest++ = green << 2;
-          *dest++ = red << 3;
-          *dest++ = 255;
+          case RETRO_PIXEL_FORMAT_0RGB1555:
+          case RETRO_PIXEL_FORMAT_XRGB8888:
+          case RETRO_PIXEL_FORMAT_UNKNOWN:
+            // not implemented
+            break;
         }
       }
 
       ssr_->NextFrame();
       ptr_ = nullptr;
     }
+  }
+
+private:
+  template<typename T, auto bshift, auto gshift, auto rshift, auto bmask, auto gmask, auto rmask, auto blshift, auto glshift, auto rlshift>
+  static inline std::uint8_t * serialize_bgra(char const * start, char const * end, std::uint8_t * dest) {
+    for (auto * src = start; src < end; src += sizeof(T)) {
+      dest = serialize_bgra_pixel<T, bshift, gshift, rshift, bmask, gmask, rmask, blshift, glshift, rlshift>(src, dest);
+    }
+    return dest;
+  }
+
+  template<typename T, auto bshift, auto gshift, auto rshift, auto bmask, auto gmask, auto rmask, auto blshift, auto glshift, auto rlshift>
+  static inline std::uint8_t * serialize_bgra_pixel(char const * src, std::uint8_t * dest) {
+    // Retroarch pixel formats are always native endianness
+    auto i = *(reinterpret_cast<T const *>(src));
+
+    auto blue  = (i >> bshift) & bmask;
+    auto green = (i >> gshift) & gmask;
+    auto red   = (i >> rshift) & rmask;
+
+    *dest++ = blue << blshift;
+    *dest++ = green << glshift;
+    *dest++ = red << rlshift;
+    *dest++ = 255;
+
+    return dest;
   }
 
 private:
