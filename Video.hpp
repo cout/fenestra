@@ -52,8 +52,6 @@ public:
   }
 
   virtual void set_geometry(Geometry const & geom) override {
-    glViewport(0, 0, geom.scaled_width(), geom.scaled_height());
-
     glEnable(GL_TEXTURE_2D);
 
     if (tex_id_)
