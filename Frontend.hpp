@@ -3,6 +3,7 @@
 #include "libretro.h"
 
 #include "Config.hpp"
+#include "Registry.hpp"
 #include "Window.hpp"
 #include "Gamepad.hpp"
 #include "Geometry.hpp"
@@ -19,22 +20,22 @@ namespace fenestra {
 
 class PluginSlot {
 public:
-  PluginSlot(Perf & perf, std::shared_ptr<Plugin> plugin, std::string const & name)
+  PluginSlot(Perf & perf, Plugin & plugin, std::string const & name)
     : plugin_(plugin)
     , probe_key_(perf.probe_key(name))
   {
   }
 
-  Plugin * operator->() { return plugin_.get(); }
-  Plugin & operator*() { return *plugin_; }
+  Plugin * operator->() { return &plugin_; }
+  Plugin & operator*() { return plugin_; }
 
-  Plugin * operator->() const { return plugin_.get(); }
-  Plugin & operator*() const { return *plugin_; }
+  Plugin * operator->() const { return &plugin_; }
+  Plugin & operator*() const { return plugin_; }
 
   Probe::Key probe_key() const { return probe_key_; }
 
 private:
-  std::shared_ptr<Plugin> plugin_;
+  Plugin & plugin_;
   Probe::Key probe_key_;
 };
 
@@ -43,6 +44,7 @@ public:
   Frontend(std::string const & title, Core & core, Config const & config, Perf & perf)
     : config_(config)
     , core_(core)
+    , registry_(config)
     , window_(title, core, config_)
     , gamepad_(config_)
     , perf_(perf)
@@ -60,7 +62,7 @@ public:
       return;
     }
 
-    auto plugin = std::make_shared<T>(config_);
+    auto & plugin = registry_.fetch<T>();
 
     plugins_.emplace_back(perf_, plugin, name);
 
@@ -170,6 +172,7 @@ public:
 private:
   Config const & config_;
   Core & core_;
+  Registry registry_;
   Window window_;
   Gamepad gamepad_;
   Probe probe_;
