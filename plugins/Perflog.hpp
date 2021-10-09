@@ -3,6 +3,7 @@
 #include "Plugin.hpp"
 
 #include <sstream>
+#include <fstream>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -24,9 +25,7 @@ public:
   }
 
   void open(std::string const & filename) {
-    if ((fd_ = ::open(filename.c_str(), O_CREAT|O_TRUNC|O_RDWR|O_NOATIME, 0664)) < 0) {
-      throw std::runtime_error("open failed");
-    }
+    file_.open(filename, std::ios::out | std::ios::trunc);
   }
 
   virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) override;
@@ -49,7 +48,7 @@ private:
 private:
   Probe::Dictionary probe_dict_;
   Probe last_;
-  int fd_ = -1;
+  std::ofstream file_;
   bool header_written_ = false;
   std::vector<char> buf_;
 
@@ -99,7 +98,7 @@ inline
 void
 Perflog::
 record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
-  if (fd_ < 0) {
+  if (!file_.good()) {
     return;
   }
 
@@ -126,9 +125,7 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
 
     buf_.push_back('\n');
 
-    if (::write(fd_, buf_.data(), buf_.size()) < 0) {
-      throw std::runtime_error("write failed");
-    }
+    file_.write(buf_.data(), buf_.size());
 
     header_version_ = version_;
     header_written_ = true;
@@ -147,9 +144,7 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total_us), reinterpret_cast<char const *>(&total_us) + sizeof(total_us));
   }
 
-  if (::write(fd_, buf_.data(), buf_.size()) < 0) {
-    throw std::runtime_error("write failed");
-  }
+  file_.write(buf_.data(), buf_.size());
 
   for (auto & pc : perf_counters_) {
     pc.reset();
