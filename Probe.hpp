@@ -11,9 +11,9 @@ namespace fenestra {
 
 class Probe {
 public:
-  using Key = std::uint32_t;
-  using Depth = std::uint32_t;
-  enum Type { DELTA, START, END, FINAL, INVALID_ };
+  using Key = std::uint16_t;
+  using Depth = std::uint8_t;
+  enum Type : std::uint8_t { DELTA, START, END, FINAL, INVALID_ };
 
   class Dictionary {
   public:
@@ -24,6 +24,7 @@ public:
         bool inserted;
         std::tie(it, inserted) = keys_.emplace(name, key);
         names_.emplace(key, name);
+        ++version_;
       }
       return it->second;
     }
@@ -32,12 +33,18 @@ public:
       return names_.at(key);
     }
 
+    std::uint64_t version() const { return version_; }
+
+    auto begin() const { return names_.begin(); }
+    auto end() const { return names_.end(); }
+
   private:
     std::map<std::string, Probe::Key> keys_;
     std::map<Probe::Key, std::string> names_;
+    std::uint64_t version_ = 0;
   };
 
-  struct Stamp {
+  struct __attribute__((packed)) Stamp {
     Stamp() {
     }
 

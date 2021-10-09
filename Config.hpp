@@ -41,6 +41,8 @@ public:
 
     set(plugins_, v, "plugins");
 
+    set(perflog_filename_, v, "perflog_filename");
+
     set(vsync_, v, "vsync");
     set(adaptive_vsync_, v, "adaptive_vsync");
     set(glfinish_, v, "glfinish");
@@ -65,6 +67,8 @@ public:
   }
 
   auto const & plugins() const { return plugins_; }
+
+  std::string const & perflog_filename() const { return perflog_filename_; }
 
   bool vsync() const { return vsync_; }
   bool adaptive_vsync() const { return adaptive_vsync_; }
@@ -151,6 +155,8 @@ private:
 
 private:
   std::set<std::string> plugins_ { "logger", "perf", "savefile", "portaudio", "video", "v4l2stream", "gstreamer", "ssr", "netcmds" };
+
+  std::string perflog_filename_ = "";
 
   bool vsync_ = true;
   bool adaptive_vsync_ = false;

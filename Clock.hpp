@@ -12,9 +12,9 @@ using Milliseconds = std::chrono::duration<double, std::milli>;
 using Seconds = std::chrono::duration<double>;
 
 // TODO: Use std::chrono::time_point (but this requires chosing a clock)
-struct Timestamp {
-  Timestamp(Nanoseconds nanos = Nanoseconds::zero()) : nanos_(nanos) { }
-  Nanoseconds nanos_;
+struct __attribute__((packed)) Timestamp {
+  Timestamp(Nanoseconds nanos = Nanoseconds::zero()) : nanos_(nanos.count()) { }
+  std::int64_t nanos_;
 };
 
 inline bool operator==(Timestamp lhs, Timestamp rhs) {
@@ -26,7 +26,7 @@ inline bool operator!=(Timestamp lhs, Timestamp rhs) {
 }
 
 inline Nanoseconds operator-(Timestamp lhs, Timestamp rhs) {
-  return lhs.nanos_ - rhs.nanos_;
+  return Nanoseconds(lhs.nanos_ - rhs.nanos_);
 }
 
 inline Nanoseconds nanoseconds(timespec const & ts) {
@@ -34,12 +34,12 @@ inline Nanoseconds nanoseconds(timespec const & ts) {
 }
 
 inline Nanoseconds nanoseconds_since_epoch(Timestamp ts) {
-  return ts.nanos_;
+  return Nanoseconds(ts.nanos_);
 }
 
 template<typename Rep, typename Period>
 inline Timestamp operator+(Timestamp ts, std::chrono::duration<Rep, Period> delta) {
-  return Timestamp(ts.nanos_ + std::chrono::duration_cast<Nanoseconds>(delta));
+  return Timestamp(Nanoseconds(ts.nanos_) + std::chrono::duration_cast<Nanoseconds>(delta));
 }
 
 template<typename Rep, typename Period>
