@@ -102,6 +102,8 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     return;
   }
 
+  auto now = probe.back().time;
+
   Probe::Stamp last_stamp;
 
   stamps_.clear();
@@ -143,6 +145,8 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
 
   if (!header_written_) {
     buf_.clear();
+    std::string time = "Time";
+    buf_.insert(buf_.end(), time.c_str(), time.c_str() + time.length() + 1);
     for (auto const & pc : perf_counters_) {
       auto last = pc.last();
       buf_.insert(buf_.end(), pc.name().c_str(), pc.name().c_str() + pc.name().length() + 1);
@@ -163,6 +167,8 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   }
 
   buf_.clear();
+
+  buf_.insert(buf_.end(), reinterpret_cast<char const *>(&now), reinterpret_cast<char const *>(&now) + sizeof(now));
 
   for (auto const & pc : perf_counters_) {
     auto last = pc.last();
