@@ -27,7 +27,8 @@ public:
 
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) { }
 
-  virtual void game_loaded(Core const & core) { }
+  virtual void game_loaded(Core const & core, std::string const & filename) { }
+  virtual void unloading_game(Core const & core) { }
   virtual void game_unloaded(Core const & core) { }
 };
 

@@ -4,9 +4,6 @@
 
 #include "Frontend.hpp"
 #include "Core.hpp"
-#include "Saveram.hpp"
-#include "Saveram.hpp"
-#include "Savefile.hpp"
 
 #include <cstdarg>
 #include <cstdlib>
@@ -81,18 +78,9 @@ public:
       throw std::runtime_error("retro_load_game failed");
     }
 
-    auto save_filename = std::filesystem::path(config_.save_directory()) /
-                         std::filesystem::path(filename).filename();
-    save_filename.replace_extension(".srm");
-
-    saveram_ = std::make_unique<Saveram>(core_);
-    savefile_ = std::make_unique<Savefile>(save_filename.native(), saveram_->size());
-
-    std::copy(savefile_->begin(), savefile_->end(), saveram_->begin());
-
     game_loaded_ = true;
 
-    frontend_.game_loaded();
+    frontend_.game_loaded(filename);
   }
 
   void init() {
@@ -102,7 +90,7 @@ public:
 
   void unload_game() {
     if (game_loaded_) {
-      sync_savefile();
+      frontend_.unloading_game();
       core_.unload_game();
       game_loaded_ = false;
       frontend_.game_unloaded();
@@ -111,10 +99,6 @@ public:
 
   void run_core() {
     core_.run();
-  }
-
-  void sync_savefile() {
-    savefile_->sync_if_changed(saveram_->data(), saveram_->size());
   }
 
 private:
@@ -249,9 +233,6 @@ private:
   Frontend & frontend_;
   Core & core_;
   Config const & config_;
-
-  std::unique_ptr<Saveram> saveram_;
-  std::unique_ptr<Savefile> savefile_;
 
   bool core_initialized_ = false;
   bool game_loaded_ = false;

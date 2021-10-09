@@ -8,6 +8,7 @@
 
 // Plugins
 #include "Logger.hpp"
+#include "Savefile.hpp"
 #include "Portaudio.hpp"
 #include "ALSA.hpp"
 #include "Video.hpp"
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]) {
   Frontend frontend("Fenestra", core, config, perf);
 
   frontend.add_plugin<Logger>("logger");
+  frontend.add_plugin<Savefile>("savefile");
   frontend.add_plugin<Portaudio>("portaudio");
   frontend.add_plugin<ALSA>("alsa");
   frontend.add_plugin<Video>("video");

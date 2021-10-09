@@ -42,7 +42,6 @@ public:
   void run() {
     auto final_key = perf_.probe_key("---");
     auto perf_metrics_key = perf_.probe_key("Perf metrics");
-    auto sync_savefile_key = perf_.probe_key("Sync savefile");
     auto pre_frame_delay_key = perf_.probe_key("Pre frame delay");
     auto poll_window_events_key = perf_.probe_key("Poll window events");
     auto frame_delay_key = perf_.probe_key("Frame delay");
@@ -59,7 +58,6 @@ public:
     probe.mark(perf_metrics_key, 0, Clock::gettime(CLOCK_MONOTONIC));
 
     while (!frontend_.window().done()) {
-      step(probe, sync_savefile_key,      [&] { ctx_.sync_savefile();             });
       step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
       step(probe, poll_window_events_key, [&] { frontend_.window().poll_events(); });
       step(probe, frame_delay_key,        [&] { frontend_.window().frame_delay(); });

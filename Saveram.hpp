@@ -9,7 +9,7 @@ namespace fenestra {
 
 class Saveram {
 public:
-  Saveram(Core & core) {
+  Saveram(Core const & core) {
     size_ = core.get_memory_size(RETRO_MEMORY_SAVE_RAM);
 
     if (size_ > 0) {

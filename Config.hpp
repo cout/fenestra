@@ -150,7 +150,7 @@ private:
   }
 
 private:
-  std::set<std::string> plugins_ { "logger", "portaudio", "video", "v4l2stream", "gstreamer", "ssr", "netcmds" };
+  std::set<std::string> plugins_ { "logger", "savefile", "portaudio", "video", "v4l2stream", "gstreamer", "ssr", "netcmds" };
 
   bool vsync_ = true;
   bool adaptive_vsync_ = false;

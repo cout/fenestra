@@ -97,9 +97,15 @@ public:
     }
   }
 
-  void game_loaded() {
+  void game_loaded(std::string const & filename) {
     for (auto const & plugin : plugins_) {
-      plugin->game_loaded(core_);
+      plugin->game_loaded(core_, filename);
+    }
+  }
+
+  void unloading_game() {
+    for (auto const & plugin : plugins_) {
+      plugin->unloading_game(core_);
     }
   }
 

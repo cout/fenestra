@@ -30,7 +30,7 @@ public:
   {
   }
 
-  virtual void game_loaded(Core & core) {
+  virtual void game_loaded(Core const & core, std::string const & filename) override {
     core_ = &core;
     this->start();
   }
@@ -148,7 +148,7 @@ private:
   }
 
 private:
-  Core * core_;
+  Core const * core_;
   int port_ = 0;
   int sock_ = -1;
   std::vector<std::string_view> vec_;
