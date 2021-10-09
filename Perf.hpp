@@ -161,21 +161,6 @@ public:
     frames_ = 0;
   }
 
-  Probe::Key probe_key(std::string const & name) {
-    auto it = probe_keys_.find(name);
-    if (it == probe_keys_.end()) {
-      auto key = probe_keys_.size();
-      bool inserted;
-      std::tie(it, inserted) = probe_keys_.emplace(name, key);
-      probe_names_.emplace(key, name);
-    }
-    return it->second;
-  }
-
-  std::string const & probe_name(Probe::Key key) {
-    return probe_names_.at(key);
-  }
-
   auto & get_counter(std::string name, Probe::Depth depth) {
     auto it = perf_counter_name_to_idx_.find(name);
     if (it != perf_counter_name_to_idx_.end()) {
@@ -238,9 +223,16 @@ public:
     }
   }
 
+  Probe::Key probe_key(std::string const & name) {
+    return dictionary_[name];
+  }
+
+  std::string probe_name(Probe::Key key) {
+    return dictionary_[key];
+  }
+
 private:
-  std::map<std::string, Probe::Key> probe_keys_;
-  std::map<Probe::Key, std::string> probe_names_;
+  Probe::Dictionary dictionary_;
   std::vector<Perfcounter> perf_counters_;
   std::unordered_map<std::string, std::size_t> perf_counter_name_to_idx_;
 

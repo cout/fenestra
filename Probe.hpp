@@ -3,6 +3,9 @@
 #include "Clock.hpp"
 
 #include <vector>
+#include <string>
+#include <map>
+#include <tuple>
 
 namespace fenestra {
 
@@ -11,6 +14,28 @@ public:
   using Key = std::uint32_t;
   using Depth = std::uint32_t;
   enum Type { DELTA, START, END, FINAL, INVALID_ };
+
+  class Dictionary {
+  public:
+    Probe::Key operator[](std::string const & name) {
+      auto it = keys_.find(name);
+      if (it == keys_.end()) {
+        auto key = keys_.size();
+        bool inserted;
+        std::tie(it, inserted) = keys_.emplace(name, key);
+        names_.emplace(key, name);
+      }
+      return it->second;
+    }
+
+    std::string const & operator[](Probe::Key key) {
+      return names_.at(key);
+    }
+
+  private:
+    std::map<std::string, Probe::Key> keys_;
+    std::map<Probe::Key, std::string> names_;
+  };
 
   struct Stamp {
     Stamp() {
