@@ -45,6 +45,9 @@ public:
   auto begin() const { return stamps_.begin(); }
   auto end() const { return stamps_.end(); }
 
+  auto size() const { return stamps_.size(); }
+  auto const & back() const { return stamps_.back(); }
+
   void append(Probe & probe) {
     for (auto const & stamp : probe) {
       stamps_.emplace_back(stamp);

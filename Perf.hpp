@@ -12,6 +12,7 @@
 #include <map>
 #include <unordered_map>
 #include <vector>
+#include <iterator>
 
 namespace fenestra {
 
@@ -229,6 +230,11 @@ public:
       }
 
       last_stamp = stamp;
+    }
+
+    if (probe.size() > 0) {
+      auto now = probe.back().time;
+      loop_done(now);
     }
   }
 
