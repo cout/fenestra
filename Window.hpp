@@ -59,10 +59,6 @@ public:
     }
 
     glfwPollEvents();
-
-    // if (glfwGetKey(win_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-      // glfwSetWindowShouldClose(win_, true);
-    // }
   }
 
   bool done() const {
@@ -72,7 +68,6 @@ public:
   void frame_delay() const {
     if (config_.nv_delay_before_swap()) {
       Seconds delay_before_swap = Milliseconds(16.7) - config_.frame_delay();
-      // glFinish(); // TODO: see comment below in glfinish()
       glXDelayBeforeSwapNV(glfwGetX11Display(), glfwGetGLXWindow(win_), delay_before_swap.count());
     } else {
       Clock::nanosleep_until(last_refresh_ + config_.frame_delay(), CLOCK_MONOTONIC);
@@ -90,7 +85,6 @@ public:
       // artifacts over jitter.
       glXSwapBuffersMscOML(glfwGetX11Display(), glfwGetGLXWindow(win_), msc_ + 1, 0, 0);
     } else {
-      // glfwSwapBuffers(win_);
       glXSwapBuffers(glfwGetX11Display(), glfwGetGLXWindow(win_));
     }
 
