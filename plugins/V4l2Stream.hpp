@@ -2,10 +2,6 @@
 
 #include "Plugin.hpp"
 
-#include "libretro.h"
-
-#include "Geometry.hpp"
-
 #include <unistd.h>
 #include <sys/fcntl.h>
 #include <sys/ioctl.h>

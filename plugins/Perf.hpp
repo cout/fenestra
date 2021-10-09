@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Clock.hpp"
-#include "Probe.hpp"
 #include "Plugin.hpp"
+#include "../Clock.hpp"
 
 #include <iostream>
 #include <iomanip>

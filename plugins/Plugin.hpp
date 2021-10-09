@@ -1,17 +1,17 @@
 #pragma once
 
-#include "libretro.h"
+#include "../libretro.h"
 
-#include "Probe.hpp"
+#include "../Probe.hpp"
+#include "../Geometry.hpp"
+#include "../Core.hpp"
+#include "../Config.hpp"
 
 #include <cstddef>
 #include <cstdarg>
 #include <string_view>
 
 namespace fenestra {
-
-class Geometry;
-class Core;
 
 class Plugin {
 public:

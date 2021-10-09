@@ -1,10 +1,6 @@
 #pragma once
 
 #include "Plugin.hpp"
-#include "Config.hpp"
-#include "Core.hpp"
-
-#include "libretro.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

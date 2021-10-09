@@ -7,8 +7,7 @@
 #include "Window.hpp"
 #include "Gamepad.hpp"
 #include "Geometry.hpp"
-#include "Plugin.hpp"
-#include "Perf.hpp"
+#include "plugins/Plugin.hpp"
 #include "Probe.hpp"
 #include "Clock.hpp"
 

@@ -1,4 +1,4 @@
-#include "../Portaudio.hpp"
+#include "../plugins/Portaudio.hpp"
 #include "../Config.hpp"
 
 int main() {

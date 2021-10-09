@@ -1,9 +1,6 @@
 #pragma once
 
-#include "libretro.h"
-
 #include "Plugin.hpp"
-#include "Geometry.hpp"
 
 #include <gst/gst.h>
 #include <gst/video/video.h>

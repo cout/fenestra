@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Plugin.hpp"
-#include "Config.hpp"
 
 #include <portaudiocpp/PortAudioCpp.hxx>
 #include <portaudio.h>

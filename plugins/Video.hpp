@@ -1,9 +1,6 @@
 #pragma once
 
-#include "Geometry.hpp"
 #include "Plugin.hpp"
-
-#include "libretro.h"
 
 #include <epoxy/gl.h>
 

@@ -6,17 +6,16 @@
 #include "Context.hpp"
 #include "Loop.hpp"
 
-// Plugins
-#include "Logger.hpp"
-#include "Perf.hpp"
-#include "Savefile.hpp"
-#include "Portaudio.hpp"
-#include "ALSA.hpp"
-#include "Video.hpp"
-#include "V4l2Stream.hpp"
-#include "Gstreamer.hpp"
-#include "SSR.hpp"
-#include "Netcmds.hpp"
+#include "plugins/Logger.hpp"
+#include "plugins/Perf.hpp"
+#include "plugins/Savefile.hpp"
+#include "plugins/Portaudio.hpp"
+#include "plugins/ALSA.hpp"
+#include "plugins/Video.hpp"
+#include "plugins/V4l2Stream.hpp"
+#include "plugins/Gstreamer.hpp"
+#include "plugins/SSR.hpp"
+#include "plugins/Netcmds.hpp"
 
 #include <iostream>
 
