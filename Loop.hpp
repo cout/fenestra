@@ -3,7 +3,6 @@
 #include "Frontend.hpp"
 #include "Clock.hpp"
 #include "Context.hpp"
-#include "Perf.hpp"
 #include "Probe.hpp"
 
 #include <utility>
@@ -13,10 +12,9 @@ namespace fenestra {
 
 class Loop {
 public:
-  Loop(Frontend & frontend, Context & ctx, Perf & perf)
+  Loop(Frontend & frontend, Context & ctx)
     : frontend_(frontend)
     , ctx_(ctx)
-    , perf_(perf)
   {
   }
 
@@ -68,7 +66,7 @@ public:
 
       auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
       probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);
-      perf_.record_probe(probe, frontend_.probe_dict());
+      frontend_.record_probe(probe);
       probe.clear();
       probe.mark(perf_metrics_key, 0, perf_metrics_start_time);
     }
@@ -77,7 +75,6 @@ public:
 private:
   Frontend & frontend_;
   Context & ctx_;
-  Perf & perf_;
 };
 
 }

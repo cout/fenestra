@@ -93,6 +93,12 @@ public:
     }
   }
 
+  void record_probe(Probe const & probe) {
+    for (auto const & plugin : plugins_) {
+      plugin->record_probe(probe, probe_dict_);
+    }
+  }
+
   void log_libretro(enum retro_log_level level, char const * fmt, va_list ap) {
     for (auto const & plugin : plugins_) {
       plugin->log_libretro(level, fmt, ap);

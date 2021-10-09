@@ -2,6 +2,8 @@
 
 #include "libretro.h"
 
+#include "Probe.hpp"
+
 #include <cstddef>
 #include <cstdarg>
 #include <string_view>
@@ -14,6 +16,8 @@ class Core;
 class Plugin {
 public:
   virtual ~Plugin() { }
+
+  virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) { }
 
   virtual void set_sample_rate(int sample_rate) { }
   virtual void write_audio_sample(void const * buf, std::size_t frames) { }

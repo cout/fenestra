@@ -2,6 +2,7 @@
 
 #include "Clock.hpp"
 #include "Probe.hpp"
+#include "Plugin.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -84,8 +85,13 @@ private:
   std::size_t count_;
 };
 
-class Perf {
+class Perf
+  : public Plugin
+{
 public:
+  Perf(Config const & config) {
+  }
+
   using PerfID = std::size_t;
 
   auto loop_done(Timestamp now) {
@@ -174,7 +180,7 @@ public:
     }
   }
 
-  void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
+  virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) override {
     Probe::Stamp last_stamp;
 
     stamps_.clear();

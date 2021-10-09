@@ -8,6 +8,7 @@
 
 // Plugins
 #include "Logger.hpp"
+#include "Perf.hpp"
 #include "Savefile.hpp"
 #include "Portaudio.hpp"
 #include "ALSA.hpp"
@@ -33,10 +34,10 @@ int main(int argc, char *argv[]) {
   Core core(argv[1]);
 
   Config config("fenestra.cfg");
-  Perf perf;
   Frontend frontend("Fenestra", core, config);
 
   frontend.add_plugin<Logger>("logger");
+  frontend.add_plugin<Perf>("perf");
   frontend.add_plugin<Savefile>("savefile");
   frontend.add_plugin<Portaudio>("portaudio");
   frontend.add_plugin<ALSA>("alsa");
@@ -50,6 +51,6 @@ int main(int argc, char *argv[]) {
   ctx.load_game(argv[2]);
   ctx.init();
 
-  Loop loop(frontend, ctx, perf);
+  Loop loop(frontend, ctx);
   loop.run();
 }
