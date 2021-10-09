@@ -174,7 +174,7 @@ public:
     }
   }
 
-  void record_probe(Probe const & probe) {
+  void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     Probe::Stamp last_stamp;
 
     stamps_.clear();
@@ -182,7 +182,7 @@ public:
     for (auto const & stamp : probe) {
       // Fetch the counter now so they will be printed in the right
       // order
-      get_counter(probe_name(stamp.key), stamp.depth);
+      get_counter(dictionary[stamp.key], stamp.depth);
 
       if (stamp.time == Timestamp()) continue;
 
@@ -203,7 +203,7 @@ public:
           // TODO: Include parent counters in the counter name,
           // otherwise we will count all probe samples with the same
           // key/depth as the same (e.g. audio sample and video refresh)
-          auto & counter = get_counter(probe_name(last_stamp.key), last_stamp.depth);
+          auto & counter = get_counter(dictionary[last_stamp.key], last_stamp.depth);
           counter.record(frame_, delta);
           break;
         }
@@ -221,14 +221,6 @@ public:
       auto now = probe.back().time;
       loop_done(now);
     }
-  }
-
-  Probe::Key probe_key(std::string const & name) {
-    return dictionary_[name];
-  }
-
-  std::string probe_name(Probe::Key key) {
-    return dictionary_[key];
   }
 
 private:

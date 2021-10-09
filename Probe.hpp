@@ -28,7 +28,7 @@ public:
       return it->second;
     }
 
-    std::string const & operator[](Probe::Key key) {
+    std::string const & operator[](Probe::Key key) const {
       return names_.at(key);
     }
 

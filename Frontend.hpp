@@ -20,9 +20,9 @@ namespace fenestra {
 
 class PluginSlot {
 public:
-  PluginSlot(Perf & perf, Plugin & plugin, std::string const & name)
+  PluginSlot(Probe::Dictionary & probe_dict, Plugin & plugin, std::string const & name)
     : plugin_(plugin)
-    , probe_key_(perf.probe_key(name))
+    , probe_key_(probe_dict[name])
   {
   }
 
@@ -41,20 +41,22 @@ private:
 
 class Frontend {
 public:
-  Frontend(std::string const & title, Core & core, Config const & config, Perf & perf)
+  Frontend(std::string const & title, Core & core, Config const & config)
     : config_(config)
     , core_(core)
     , registry_(config)
     , window_(title, core, config_)
     , gamepad_(config_)
-    , perf_(perf)
-    , video_refresh_key_(perf_.probe_key("Video refresh"))
-    , audio_sample_key_(perf_.probe_key("Audio sample"))
+    , probe_dict_()
+    , video_refresh_key_(probe_dict_["Video refresh"])
+    , audio_sample_key_(probe_dict_["Audio sample"])
   {
   }
 
   Probe const & probe() const { return probe_; }
   Probe & probe() { return probe_; }
+
+  auto & probe_dict() { return probe_dict_; }
 
   template<typename T>
   void add_plugin(std::string const & name) {
@@ -64,14 +66,14 @@ public:
 
     auto & plugin = registry_.fetch<T>();
 
-    plugins_.emplace_back(perf_, plugin, name);
+    plugins_.emplace_back(probe_dict_, plugin, name);
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
-      video_refresh_plugins_.emplace_back(perf_, plugin, name);
+      video_refresh_plugins_.emplace_back(probe_dict_, plugin, name);
     }
 
     if (!std::is_same_v<decltype(&T::write_audio_sample), decltype(&Plugin::write_audio_sample)>) {
-      audio_sample_plugins_.emplace_back(perf_, plugin, name);
+      audio_sample_plugins_.emplace_back(probe_dict_, plugin, name);
     }
   }
 
@@ -182,8 +184,8 @@ private:
   Window window_;
   Gamepad gamepad_;
   Probe probe_;
-  Perf & perf_;
 
+  Probe::Dictionary probe_dict_;
   Probe::Key video_refresh_key_;
   Probe::Key audio_sample_key_;
   std::vector<PluginSlot> plugins_;

@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
   Config config("fenestra.cfg");
   Perf perf;
-  Frontend frontend("Fenestra", core, config, perf);
+  Frontend frontend("Fenestra", core, config);
 
   frontend.add_plugin<Logger>("logger");
   frontend.add_plugin<Savefile>("savefile");

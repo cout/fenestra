@@ -27,7 +27,7 @@ public:
       probe.mark(key, 0, now);
       std::forward<Fn>(fn)();
     } catch(...) {
-      std::cout << "error during " << perf_.probe_name(key) << std::endl;
+      std::cout << "error during " << frontend_.probe_dict()[key] << std::endl;
     }
   }
 
@@ -40,15 +40,15 @@ public:
   }
 
   void run() {
-    auto final_key = perf_.probe_key("---");
-    auto perf_metrics_key = perf_.probe_key("Perf metrics");
-    auto pre_frame_delay_key = perf_.probe_key("Pre frame delay");
-    auto poll_window_events_key = perf_.probe_key("Poll window events");
-    auto frame_delay_key = perf_.probe_key("Frame delay");
-    auto core_run_key = perf_.probe_key("Core run");
-    auto video_render_key = perf_.probe_key("Video render");
-    auto window_refresh_key = perf_.probe_key("Window refresh");
-    auto glfinish_key = perf_.probe_key("Glfinish");
+    auto final_key = frontend_.probe_dict()["---"];
+    auto perf_metrics_key = frontend_.probe_dict()["Perf metrics"];
+    auto pre_frame_delay_key = frontend_.probe_dict()["Pre frame delay"];
+    auto poll_window_events_key = frontend_.probe_dict()["Poll window events"];
+    auto frame_delay_key = frontend_.probe_dict()["Frame delay"];
+    auto core_run_key = frontend_.probe_dict()["Core run"];
+    auto video_render_key = frontend_.probe_dict()["Video render"];
+    auto window_refresh_key = frontend_.probe_dict()["Window refresh"];
+    auto glfinish_key = frontend_.probe_dict()["Glfinish"];
 
     Probe probe;
 
@@ -68,7 +68,7 @@ public:
 
       auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
       probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);
-      perf_.record_probe(probe);
+      perf_.record_probe(probe, frontend_.probe_dict());
       probe.clear();
       probe.mark(perf_metrics_key, 0, perf_metrics_start_time);
     }
