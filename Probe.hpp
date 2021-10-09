@@ -86,8 +86,46 @@ public:
     }
   }
 
+  template<typename Fn>
+  void for_each_delta(Fn fn) const {
+    Probe::Stamp last_stamp;
+
+    tmp_stack_.clear();
+
+    for (auto const & stamp : *this) {
+      if (stamp.time == Timestamp()) continue;
+
+      if (stamp.depth > last_stamp.depth) {
+        tmp_stack_.push_back(last_stamp);
+        last_stamp = Probe::Stamp();
+
+      } else if (stamp.depth < last_stamp.depth) {
+        // TODO: Check for empty before popping
+        last_stamp = tmp_stack_.back();
+        tmp_stack_.pop_back();
+      }
+
+      switch (last_stamp.type) {
+        case Probe::DELTA:
+        case Probe::START: {
+          auto delta = stamp.time - last_stamp.time;
+          fn(last_stamp.key, last_stamp.depth, delta);
+          break;
+        }
+
+        case Probe::END:
+        case Probe::FINAL:
+        case Probe::INVALID_:
+          break;
+      }
+
+      last_stamp = stamp;
+    }
+  }
+
 private:
   std::vector<Stamp> stamps_;
+  mutable std::vector<Stamp> tmp_stack_;
 };
 
 }

@@ -105,44 +105,16 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
 
   auto now = probe.back().time;
 
-  Probe::Stamp last_stamp;
-
-  stamps_.clear();
-
   for (auto const & stamp : probe) {
     // Fetch the counter now so they will be printed in the right
     // order
     get_counter(stamp.key, stamp.depth, dictionary);
-
-    if (stamp.time == Timestamp()) continue;
-
-    if (stamp.depth > last_stamp.depth) {
-      stamps_.push_back(last_stamp);
-      last_stamp = Probe::Stamp();
-
-    } else if (stamp.depth < last_stamp.depth) {
-      // TODO: Check for empty before popping
-      last_stamp = stamps_.back();
-      stamps_.pop_back();
-    }
-
-    switch (last_stamp.type) {
-      case Probe::DELTA:
-      case Probe::START: {
-        auto delta = stamp.time - last_stamp.time;
-        auto & counter = get_counter(last_stamp.key, last_stamp.depth, dictionary);
-        counter.record(frame_, delta);
-        break;
-      }
-
-      case Probe::END:
-      case Probe::FINAL:
-      case Probe::INVALID_:
-        break;
-    }
-
-    last_stamp = stamp;
   }
+
+  probe.for_each_delta([&](auto key, auto depth, auto delta) {
+    auto & counter = get_counter(key, depth, dictionary);
+    counter.record(frame_, delta);
+  });
 
   if (!header_written_) {
     buf_.clear();
