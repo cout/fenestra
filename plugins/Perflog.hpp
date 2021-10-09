@@ -75,23 +75,25 @@ public:
   auto depth() const { return depth_; }
 
   void record(std::uint64_t frame, Nanoseconds obs) {
-    last_frame_ = frame;
-    last_ = obs;
+    total_ += obs;
   }
 
-  auto last_frame() const { return last_frame_; }
-  auto last() const { return last_; }
-
-  auto last_ms() const {
-    Milliseconds last_ms = last_;
-    return last_ms.count();
+  void reset() {
+    total_ = Nanoseconds::zero();
   }
+
+  auto total() const { return total_; }
+
+  auto total_ms() const {
+    Milliseconds total_ms = total_;
+    return total_ms.count();
+  }
+
 
 private:
   std::string name_;
   Probe::Depth depth_ = 0;
-  std::uint64_t last_frame_ = 0;
-  Nanoseconds last_ = Nanoseconds::zero();
+  Nanoseconds total_ = Nanoseconds::zero();
 };
 
 inline
@@ -148,7 +150,6 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     std::string time = "Time";
     buf_.insert(buf_.end(), time.c_str(), time.c_str() + time.length() + 1);
     for (auto const & pc : perf_counters_) {
-      auto last = pc.last();
       buf_.insert(buf_.end(), pc.name().c_str(), pc.name().c_str() + pc.name().length() + 1);
     }
 
@@ -171,12 +172,16 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   buf_.insert(buf_.end(), reinterpret_cast<char const *>(&now), reinterpret_cast<char const *>(&now) + sizeof(now));
 
   for (auto const & pc : perf_counters_) {
-    auto last = pc.last();
-    buf_.insert(buf_.end(), reinterpret_cast<char const *>(&last), reinterpret_cast<char const *>(&last) + sizeof(last));
+    auto total = pc.total();
+    buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total), reinterpret_cast<char const *>(&total) + sizeof(total));
   }
 
   if (::write(fd_, buf_.data(), buf_.size()) < 0) {
     throw std::runtime_error("write failed");
+  }
+
+  for (auto & pc : perf_counters_) {
+    pc.reset();
   }
 
   ++frame_;
