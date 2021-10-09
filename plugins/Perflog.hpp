@@ -84,9 +84,8 @@ public:
 
   auto total() const { return total_; }
 
-  auto total_ms() const {
-    Milliseconds total_ms = total_;
-    return total_ms.count();
+  std::uint32_t total_us() const {
+    return total_.count() / 1000;
   }
 
 
@@ -172,8 +171,8 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   buf_.insert(buf_.end(), reinterpret_cast<char const *>(&now), reinterpret_cast<char const *>(&now) + sizeof(now));
 
   for (auto const & pc : perf_counters_) {
-    auto total = pc.total();
-    buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total), reinterpret_cast<char const *>(&total) + sizeof(total));
+    auto total_us = pc.total_us();
+    buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total_us), reinterpret_cast<char const *>(&total_us) + sizeof(total_us));
   }
 
   if (::write(fd_, buf_.data(), buf_.size()) < 0) {
