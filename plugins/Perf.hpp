@@ -166,19 +166,6 @@ public:
     frames_ = 0;
   }
 
-  auto & get_counter(std::string name, Probe::Depth depth) {
-    auto it = perf_counter_name_to_idx_.find(name);
-    if (it != perf_counter_name_to_idx_.end()) {
-      auto idx = it->second;
-      return perf_counters_[idx];
-    } else {
-      auto idx = perf_counters_.size();
-      perf_counters_.emplace_back(name, depth);
-      perf_counter_name_to_idx_.emplace(name, idx);
-      return perf_counters_[idx];
-    }
-  }
-
   virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) override {
     Probe::Stamp last_stamp;
 
@@ -187,7 +174,7 @@ public:
     for (auto const & stamp : probe) {
       // Fetch the counter now so they will be printed in the right
       // order
-      get_counter(dictionary[stamp.key], stamp.depth);
+      get_counter(stamp.key, stamp.depth, dictionary);
 
       if (stamp.time == Timestamp()) continue;
 
@@ -208,7 +195,7 @@ public:
           // TODO: Include parent counters in the counter name,
           // otherwise we will count all probe samples with the same
           // key/depth as the same (e.g. audio sample and video refresh)
-          auto & counter = get_counter(dictionary[last_stamp.key], last_stamp.depth);
+          auto & counter = get_counter(last_stamp.key, last_stamp.depth, dictionary);
           counter.record(frame_, delta);
           break;
         }
@@ -229,14 +216,30 @@ public:
   }
 
 private:
+  Perfcounter & get_counter(Probe::Key key, Probe::Depth depth, Probe::Dictionary const & dictionary) {
+    auto it = key_to_idx_.find(key);
+    if (it != key_to_idx_.end()) {
+      auto idx = it->second;
+      return perf_counters_[idx];
+    } else {
+      auto idx = perf_counters_.size();
+      perf_counters_.emplace_back(dictionary[key], depth);
+      key_to_idx_.emplace(key, idx);
+      ++version_;
+      return perf_counters_[idx];
+    }
+  }
+
+private:
   std::vector<Perfcounter> perf_counters_;
-  std::unordered_map<std::string, std::size_t> perf_counter_name_to_idx_;
+  std::unordered_map<Probe::Key, std::size_t> key_to_idx_;
 
   std::vector<Probe::Stamp> stamps_;
 
   Timestamp last_dump_ = Nanoseconds::zero();
   Timestamp last_frame_ = Nanoseconds::zero();
 
+  std::uint64_t version_ = 0;
   std::uint64_t frames_ = 0;
   std::uint64_t frame_ = 0;
 
