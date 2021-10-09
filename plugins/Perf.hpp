@@ -229,7 +229,6 @@ public:
   }
 
 private:
-  Probe::Dictionary dictionary_;
   std::vector<Perfcounter> perf_counters_;
   std::unordered_map<std::string, std::size_t> perf_counter_name_to_idx_;
 
