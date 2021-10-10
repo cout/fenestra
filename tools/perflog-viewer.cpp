@@ -145,7 +145,7 @@ class PerflogViewer {
 public:
   PerflogViewer(PerflogReader & reader)
     : reader_(reader)
-    , title_("Perlog Viewer")
+    , title_("Perflog Viewer")
     , font_("/usr/share/fonts/truetype/msttcorefonts/Arial.ttf")
   {
     if (!glfwInit()) {
