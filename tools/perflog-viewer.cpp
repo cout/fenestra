@@ -46,7 +46,7 @@ public:
   }
 
   auto total() const { return total_; }
-  auto avg() const { return total_ / deltas_.size(); }
+  auto avg() const { return deltas_.size() == 0 ? 0 : total_ / deltas_.size(); }
   auto size() const { return deltas_.size(); }
   auto begin() const { return deltas_.begin(); }
   auto end() const { return deltas_.end(); }
@@ -135,6 +135,10 @@ private:
     time_ = 0;
     record_size_ = 8 + n_deltas * 4; // 64-bit time, 32-bit deltas
 
+    if (n_deltas > 0) {
+      queues_.emplace(queues_.begin(), "FPS");
+    }
+
     std::int64_t time;
     std::vector<std::uint32_t> deltas;
     while (read_record(&time, &deltas)) {
@@ -165,9 +169,20 @@ private:
     return false;
   }
 
-  void handle(std::int64_t time, std::vector<std::uint32_t> const & deltas) {
+  void handle(std::uint64_t time, std::vector<std::uint32_t> const & deltas) {
+    float fps = 60.0;
+
+    if (time_ > 0 && time != time_) {
+      auto last_time = time_;
+      auto time_delta_ns = time - last_time;
+      auto time_delta_s = time_delta_ns / 1'000'000'000.0;
+      fps = 1.0 / time_delta_s;
+    }
+
+    queues_[0].record(fps * 1000);
+
     for (std::size_t i = 0; i < std::min(deltas.size(), queues_.size()); ++i) {
-      queues_[i].record(deltas[i]);
+      queues_[i+1].record(deltas[i]); // +1 for fps
     }
 
     time_ = time;
