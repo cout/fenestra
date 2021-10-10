@@ -109,7 +109,9 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   for (auto const & stamp : probe) {
     // Fetch the counter now so they will be printed in the right
     // order
-    get_counter(stamp.key, stamp.depth, dictionary);
+    if (stamp.type != Probe::FINAL && stamp.type != Probe::INVALID_) {
+      get_counter(stamp.key, stamp.depth, dictionary);
+    }
   }
 
   probe.for_each_delta([&](auto key, auto depth, auto delta) {
