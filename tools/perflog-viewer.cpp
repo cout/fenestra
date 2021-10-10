@@ -54,8 +54,9 @@ private:
 
 class PerflogReader {
 public:
-  PerflogReader(std::ifstream & file)
-    : file_(file)
+  PerflogReader(std::string const & filename)
+    : filename_(filename)
+    , file_(filename)
   {
     std::string line;
     std::getline(file_, line);
@@ -133,7 +134,8 @@ private:
   }
 
 private:
-  std::ifstream & file_;
+  std::string filename_;
+  std::ifstream file_;
   std::ifstream::pos_type last_pos_;
   std::vector<PerfQueue> queues_;
   std::size_t record_size_ = 0;
@@ -345,8 +347,7 @@ int main(int argc, char * argv[]) {
     return 1;
   }
 
-  std::ifstream file(argv[1]);
-  PerflogReader reader(file);
+  PerflogReader reader(argv[1]);
   PerflogViewer app(reader);
 
   while (!app.done()) {
