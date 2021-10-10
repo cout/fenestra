@@ -19,6 +19,11 @@
 #include <limits>
 #include <cassert>
 
+#include <sys/stat.h>
+#include <unistd.h>
+
+using namespace fenestra;
+
 class PerfQueue {
 public:
   PerfQueue(std::string const & name)
@@ -56,8 +61,55 @@ class PerflogReader {
 public:
   PerflogReader(std::string const & filename)
     : filename_(filename)
-    , file_(filename)
   {
+    this->stat();
+    last_stat_time_ = Clock::gettime(CLOCK_REALTIME);
+  }
+
+  auto const & queues() const { return queues_; }
+  auto time() const { return time_; }
+
+  void poll() {
+    auto now = Clock::gettime(CLOCK_REALTIME);
+    if (now - last_stat_time_ > Seconds(1.0)) {
+      stat();
+      last_stat_time_ = now;
+    }
+
+    file_.clear();
+    file_.seekg(last_pos_);
+
+    std::int64_t time;
+    std::vector<std::uint32_t> deltas;
+    while (read_record(&time, &deltas)) {
+      handle(time, deltas);
+    }
+  }
+
+private:
+  void stat() {
+    struct stat statbuf;
+    if (lstat(filename_.c_str(), &statbuf) < 0) {
+      // TODO: this might be a transient error, so there should be away
+      // to ignore this and continue
+      throw std::runtime_error("lstat failed");
+    }
+
+    if (statbuf.st_ino != statbuf_.st_ino || statbuf.st_size < statbuf_.st_size || queues_.size() == 0) {
+      std::cout << "File was truncated; re-opening file" << std::endl;
+      open(filename_);
+    }
+
+    statbuf_ = statbuf;
+  }
+
+  void open(std::string const & filename) {
+    queues_.clear();
+
+    file_.close();
+    file_.open(filename);
+    filename_ = filename;
+
     std::string line;
     std::getline(file_, line);
     last_pos_ = file_.tellg();
@@ -78,6 +130,7 @@ public:
     }
 
     auto n_deltas = queues_.size();
+    time_ = 0;
     record_size_ = 8 + n_deltas * 4; // 64-bit time, 32-bit deltas
 
     std::int64_t time;
@@ -87,21 +140,17 @@ public:
     }
   }
 
-  auto const & queues() const { return queues_; }
-  auto time() const { return time_; }
-
-  void poll() {
-    file_.clear();
-    file_.seekg(last_pos_);
-
-    std::int64_t time;
-    std::vector<std::uint32_t> deltas;
-    while (read_record(&time, &deltas)) {
-      handle(time, deltas);
+  ino_t inode() {
+    struct stat statbuf;
+    if (lstat(filename_.c_str(), &statbuf) < 0) {
+      // TODO: this might be a transient error, so there should be away
+      // to ignore this and continue
+      throw std::runtime_error("lstat failed");
     }
+
+    return statbuf.st_ino;
   }
 
-private:
   bool read_record(std::int64_t * time, std::vector<std::uint32_t> * deltas) {
     buf_.clear();
     buf_.resize(record_size_);
@@ -141,6 +190,8 @@ private:
   std::size_t record_size_ = 0;
   std::vector<char> buf_;
   std::uint64_t time_ = 0;
+  Timestamp last_stat_time_ = Nanoseconds::zero();
+  struct stat statbuf_ { 0, 0 }; // dev, inode
 };
 
 class PerflogViewer {
@@ -192,6 +243,11 @@ public:
     glClear(GL_COLOR_BUFFER_BIT);
 
     auto num_queues = reader_.queues().size();
+
+    if (num_queues == 0) {
+      return;
+    }
+
     auto row_height = height_ / num_queues;
     font_.FaceSize(row_height * 0.5);
 
@@ -301,6 +357,8 @@ public:
     if (need_refresh_) {
       glfwSwapBuffers(win_);
       need_refresh_ = false;
+    } else {
+      Clock::nanosleep(Milliseconds(16), CLOCK_REALTIME);
     }
   }
 
