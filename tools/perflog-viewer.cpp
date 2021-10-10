@@ -214,6 +214,7 @@ public:
     }
 
     glfwSetKeyCallback(win_, key_callback_);
+    glfwSetWindowRefreshCallback(win_, refresh_callback_);
 
     glfwMakeContextCurrent(win_);
     glfwSwapInterval(1);
@@ -233,13 +234,13 @@ public:
 
     glfwPollEvents();
     reader_.poll();
+
+    if (reader_.time() > last_time_) {
+      need_redraw_ = true;
+    }
   }
 
   void redraw() {
-    if (reader_.time() == last_time_) {
-      return;
-    }
-
     glClear(GL_COLOR_BUFFER_BIT);
 
     auto num_queues = reader_.queues().size();
@@ -350,6 +351,7 @@ public:
     }
 
     last_time_ = reader_.time();
+    need_redraw_ = false;
     need_refresh_ = true;
   }
 
@@ -371,6 +373,10 @@ private:
     current_->key_callback(key, scancode, action, mods);
   }
 
+  static void refresh_callback_(GLFWwindow * window) {
+    current_->refresh_callback();
+  }
+
   void key_callback(int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
       key_pressed(key, scancode, mods);
@@ -385,6 +391,10 @@ private:
     }
   }
 
+  void refresh_callback() {
+    need_redraw_ = true;
+  }
+
 private:
   static inline PerflogViewer * current_ = nullptr;
 
@@ -396,6 +406,7 @@ private:
   std::uint32_t width_ = 768;
   std::uint32_t height_ = 900;
   std::uint64_t last_time_ = 0;
+  bool need_redraw_ = false;
   bool need_refresh_ = false;
 };
 
