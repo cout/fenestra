@@ -2,4 +2,5 @@
 *.d
 fenestra
 tools/list-portaudio-devices
+tools/perflog-viewer
 core

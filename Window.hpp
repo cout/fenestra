@@ -176,7 +176,7 @@ private:
   std::string title_;
   Core & core_;
   Config const & config_;
-  GLFWwindow * win_ = 0;
+  GLFWwindow * win_ = nullptr;
   std::int64_t ust_ = 0;
   std::int64_t msc_ = 0;
   std::int64_t sbc_ = 0;

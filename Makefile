@@ -7,6 +7,9 @@ LDFLAGS += $(shell pkg-config gstreamermm-1.0 --libs)
 CXXFLAGS += $(shell pkg-config --cflags jsoncpp)
 LDFLAGS += $(shell pkg-config --libs jsoncpp)
 
+CXXFLAGS += $(shell pkg-config --cflags ftgl)
+LDFLAGS += $(shell pkg-config --libs ftgl)
+
 FENESTRA_OBJS = \
   fenestra.o \
   plugins/ssr/SSRVideoStreamWriter.o
@@ -14,15 +17,20 @@ FENESTRA_OBJS = \
 LIST_AUDIO_DEVICES_OBJS = \
   tools/list-portaudio-devices.o
 
-OBJS = $(FENESTRA_OBJS) $(LIST_AUDIO_DEVICES_OBJS)
+PERFLOGVIEWER_OBJS = \
+  tools/perflog-viewer.o
 
-BIN = fenestra tools/list-portaudio-devices
+OBJS = $(FENESTRA_OBJS) $(LIST_AUDIO_DEVICES_OBJS) ${PERFLOGVIEWER_OBJS}
+
+BIN = fenestra tools/list-portaudio-devices tools/perflog-viewer
 
 all: $(BIN)
 
 fenestra: $(FENESTRA_OBJS)
 
 tools/list-portaudio-devices: $(LIST_AUDIO_DEVICES_OBJS)
+
+tools/perflog-viewer: ${PERFLOGVIEWER_OBJS}
 
 $(BIN):
 	$(CXX) $^ -o $@ $(LDFLAGS)
