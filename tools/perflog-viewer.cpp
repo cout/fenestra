@@ -271,7 +271,7 @@ public:
         std::size_t i = 0;
         for (auto val : queue) {
           assert(i * 2 + 1 < coords.size());
-          auto pct = (val - min) / max;
+          auto pct = float(val - min) / max;
           assert(pct >= 0.0);
           assert(pct <= 1.0);
           coords[i*2] = x + float(i) / num_points * graph_width;
