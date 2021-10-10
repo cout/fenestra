@@ -172,17 +172,25 @@ private:
 
   void handle(std::uint64_t time, std::vector<std::uint32_t> const & deltas) {
     std::uint32_t frame_time_us = 16'667;
-    float fps = 60.0;
-
     if (time_ > 0 && time != time_) {
       auto last_time = time_;
       auto time_delta_ns = time - last_time;
-      auto time_delta_s = time_delta_ns / 1'000'000'000.0;
       frame_time_us = time_delta_ns / 1'000;
-      fps = 1.0 / time_delta_s;
     }
-
     queues_[0].record(frame_time_us);
+
+    float fps = 60.0;
+    if (queues_[0].size() >= 8) {
+      // Average fps over 8 frames
+      auto it = std::prev(queues_[0].end());
+      std::uint64_t eight_frame_time = 0;
+      for (std::size_t i = 0; i < 8; ++i, --it) {
+        eight_frame_time += *it;
+      }
+      auto avg_us = eight_frame_time / 8.0;
+      auto avg_s = avg_us / 1'000'000;
+      fps = 1.0 / avg_s;
+    }
     queues_[1].record(fps * 1000);
 
     for (std::size_t i = 0; i < std::min(deltas.size(), queues_.size()); ++i) {
