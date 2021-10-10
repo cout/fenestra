@@ -276,7 +276,7 @@ public:
           assert(pct >= 0.0);
           assert(pct <= 1.0);
           coords[i*2] = x + float(i) / num_points * graph_width;
-          coords[i*2 + 1] = pct * row_height * 0.8 + y + row_height + 0.1 * row_height;
+          coords[i*2 + 1] = pct * row_height * 0.8 + y + 0.1 * row_height;
           ++i;
         }
 
