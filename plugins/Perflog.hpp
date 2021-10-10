@@ -45,6 +45,8 @@ private:
     }
   }
 
+  void write_header();
+
 private:
   Probe::Dictionary probe_dict_;
   Probe last_;
@@ -116,19 +118,7 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   });
 
   if (!header_written_) {
-    buf_.clear();
-    std::string time = "Time";
-    buf_.insert(buf_.end(), time.c_str(), time.c_str() + time.length() + 1);
-    for (auto const & pc : perf_counters_) {
-      buf_.insert(buf_.end(), pc.name().c_str(), pc.name().c_str() + pc.name().length() + 1);
-    }
-
-    buf_.push_back('\n');
-
-    file_.write(buf_.data(), buf_.size());
-
-    header_version_ = version_;
-    header_written_ = true;
+    write_header();
   }
 
   if (header_version_ != version_) {
@@ -151,6 +141,25 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   }
 
   ++frame_;
+}
+
+inline
+void
+Perflog::
+write_header() {
+  buf_.clear();
+  std::string time = "Time";
+  buf_.insert(buf_.end(), time.c_str(), time.c_str() + time.length() + 1);
+  for (auto const & pc : perf_counters_) {
+    buf_.insert(buf_.end(), pc.name().c_str(), pc.name().c_str() + pc.name().length() + 1);
+  }
+
+  buf_.push_back('\n');
+
+  file_.write(buf_.data(), buf_.size());
+
+  header_version_ = version_;
+  header_written_ = true;
 }
 
 }
