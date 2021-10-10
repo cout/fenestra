@@ -112,6 +112,7 @@ private:
       *time = reinterpret_cast<std::uint64_t const &>(*p);
       p += sizeof(std::uint64_t);
 
+      deltas->clear();
       for (; p < end; p += sizeof(std::uint32_t)) {
         deltas->push_back(reinterpret_cast<std::uint32_t const &>(*p));
       }
