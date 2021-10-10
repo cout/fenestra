@@ -318,7 +318,7 @@ public:
       {
         std::stringstream strm;
         strm << std::fixed << std::setprecision(2);
-        strm << min / 1000.0;
+        strm << max / 1000.0;
         auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
         next_x = std::max(next_x, pos.X());
         y -= row_height / 2;
@@ -326,7 +326,7 @@ public:
       {
         std::stringstream strm;
         strm << std::fixed << std::setprecision(2);
-        strm << max / 1000.0;
+        strm << min / 1000.0;
         auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
         next_x = std::max(next_x, pos.X());
         y -= row_height / 2;
