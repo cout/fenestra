@@ -140,17 +140,6 @@ private:
     }
   }
 
-  ino_t inode() {
-    struct stat statbuf;
-    if (lstat(filename_.c_str(), &statbuf) < 0) {
-      // TODO: this might be a transient error, so there should be away
-      // to ignore this and continue
-      throw std::runtime_error("lstat failed");
-    }
-
-    return statbuf.st_ino;
-  }
-
   bool read_record(std::int64_t * time, std::vector<std::uint32_t> * deltas) {
     buf_.clear();
     buf_.resize(record_size_);
