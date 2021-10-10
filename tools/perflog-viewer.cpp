@@ -76,7 +76,7 @@ public:
       }
     }
 
-    auto n_deltas = queues_.size() - 1;
+    auto n_deltas = queues_.size();
     record_size_ = 8 + n_deltas * 4; // 64-bit time, 32-bit deltas
 
     std::int64_t time;
