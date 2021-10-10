@@ -96,7 +96,9 @@ private:
     }
 
     if (statbuf.st_ino != statbuf_.st_ino || statbuf.st_size < statbuf_.st_size || queues_.size() == 0) {
-      std::cout << "File was truncated; re-opening file" << std::endl;
+      if (last_stat_time_ > Timestamp()) {
+        std::cout << "File was truncated; re-opening file" << std::endl;
+      }
       open(filename_);
     }
 
