@@ -137,6 +137,7 @@ private:
 
     if (n_deltas > 0) {
       queues_.emplace(queues_.begin(), "FPS");
+      queues_.emplace(queues_.begin(), "Frame Time");
     }
 
     std::int64_t time;
@@ -170,19 +171,22 @@ private:
   }
 
   void handle(std::uint64_t time, std::vector<std::uint32_t> const & deltas) {
+    std::uint32_t frame_time_us = 16'667;
     float fps = 60.0;
 
     if (time_ > 0 && time != time_) {
       auto last_time = time_;
       auto time_delta_ns = time - last_time;
       auto time_delta_s = time_delta_ns / 1'000'000'000.0;
+      frame_time_us = time_delta_ns / 1'000;
       fps = 1.0 / time_delta_s;
     }
 
-    queues_[0].record(fps * 1000);
+    queues_[0].record(frame_time_us);
+    queues_[1].record(fps * 1000);
 
     for (std::size_t i = 0; i < std::min(deltas.size(), queues_.size()); ++i) {
-      queues_[i+1].record(deltas[i]); // +1 for fps
+      queues_[i+2].record(deltas[i]); // +2 for frame time, fps
     }
 
     time_ = time;
