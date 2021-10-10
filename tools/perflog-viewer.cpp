@@ -191,7 +191,7 @@ public:
 
     auto num_queues = reader_.queues().size();
     auto row_height = height_ / num_queues;
-    font_.FaceSize(row_height * 0.8);
+    font_.FaceSize(row_height * 0.5);
 
     FTGL_DOUBLE y = height_ - row_height;
     FTGL_DOUBLE x = 0;
@@ -231,26 +231,29 @@ public:
       maxes[i] = max;
     }
 
-    y = height_ - row_height;
-    x = next_x + 20;
-    for (auto min : mins) {
-      std::stringstream strm;
-      strm << std::fixed << std::setprecision(2);
-      strm << min / 1000.0;
-      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
-      next_x = std::max(next_x, pos.X());
-      y -= row_height;
-    }
+    font_.FaceSize(row_height * 0.75 / 2);
 
-    y = height_ - row_height;
+    y = height_ - row_height / 2;
     x = next_x + 20;
-    for (auto max : maxes) {
-      std::stringstream strm;
-      strm << std::fixed << std::setprecision(2);
-      strm << max / 1000.0;
-      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
-      next_x = std::max(next_x, pos.X());
-      y -= row_height;
+    for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
+      auto min = mins[i];
+      auto max = maxes[i];
+      {
+        std::stringstream strm;
+        strm << std::fixed << std::setprecision(2);
+        strm << min / 1000.0;
+        auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+        next_x = std::max(next_x, pos.X());
+        y -= row_height / 2;
+      }
+      {
+        std::stringstream strm;
+        strm << std::fixed << std::setprecision(2);
+        strm << max / 1000.0;
+        auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+        next_x = std::max(next_x, pos.X());
+        y -= row_height / 2;
+      }
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -330,8 +333,8 @@ private:
   FTGLPixmapFont font_;
   GLFWwindow * win_ = nullptr;
 
-  std::uint32_t width_ = 1000;
-  std::uint32_t height_ = 600;
+  std::uint32_t width_ = 768;
+  std::uint32_t height_ = 900;
   std::uint64_t last_time_ = 0;
   bool need_refresh_ = false;
 };
