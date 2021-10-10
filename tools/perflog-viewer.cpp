@@ -213,6 +213,45 @@ public:
       y -= row_height;
     }
 
+    std::vector<std::uint32_t> mins;
+    std::vector<std::uint32_t> maxes;
+
+    mins.resize(reader_.queues().size());
+    maxes.resize(reader_.queues().size());
+
+    for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
+      std::uint32_t max = 0;
+      std::uint32_t min = std::numeric_limits<std::uint32_t>::max();
+      for (auto val : reader_.queues()[i]) {
+        min = std::min(val, min);
+        max = std::max(val, max);
+      }
+      mins[i] = min;
+      maxes[i] = max;
+    }
+
+    y = height_ - row_height;
+    x = next_x + 20;
+    for (auto min : mins) {
+      std::stringstream strm;
+      strm << std::fixed << std::setprecision(2);
+      strm << min / 1000.0;
+      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+      next_x = std::max(next_x, pos.X());
+      y -= row_height;
+    }
+
+    y = height_ - row_height;
+    x = next_x + 20;
+    for (auto max : maxes) {
+      std::stringstream strm;
+      strm << std::fixed << std::setprecision(2);
+      strm << max / 1000.0;
+      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+      next_x = std::max(next_x, pos.X());
+      y -= row_height;
+    }
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -220,16 +259,13 @@ public:
     x = next_x + 20;
     auto graph_width = width_ - x - 20;
     std::vector<GLfloat> coords;
+    std::size_t qidx = 0;
     for (auto const & queue : reader_.queues()) {
       auto num_points = queue.size();
       coords.clear();
       coords.resize(num_points * 2);
-      std::uint32_t max = 0;
-      std::uint32_t min = std::numeric_limits<std::uint32_t>::max();
-      for (auto val : queue) {
-        min = std::min(val, min);
-        max = std::max(val, max);
-      }
+      auto min = mins[qidx];
+      auto max = maxes[qidx];
 
       if (max > 0) {
         std::size_t i = 0;
@@ -248,6 +284,7 @@ public:
       }
 
       y -= row_height;
+      ++qidx;
     }
 
     last_time_ = reader_.time();
