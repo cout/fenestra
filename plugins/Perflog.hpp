@@ -153,7 +153,8 @@ write_header() {
   std::string time = "Time";
   buf_.insert(buf_.end(), time.c_str(), time.c_str() + time.length() + 1);
   for (auto const & pc : perf_counters_) {
-    buf_.insert(buf_.end(), pc.name().c_str(), pc.name().c_str() + pc.name().length() + 1);
+    auto name = std::string(4*pc.depth(), ' ') + pc.name();
+    buf_.insert(buf_.end(), name.c_str(), name.c_str() + name.length() + 1);
   }
 
   buf_.push_back('\n');
