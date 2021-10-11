@@ -265,6 +265,7 @@ public:
     }
 
     glClear(GL_COLOR_BUFFER_BIT);
+    glColor4f(1.0, 1.0, 1.0, 1.0);
 
     auto num_queues = reader_.queues().size();
 
@@ -372,6 +373,48 @@ public:
       y -= row_height;
       ++qidx;
     }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0, 1.0, 0.0, 0.2);
+
+    // first queue is frame time
+    coords.clear();
+    std::size_t i = 0;
+    auto num_points = reader_.queues()[0].size();
+    std::uint32_t prev_val = 16667;
+    for (auto val : reader_.queues()[0]) {
+      if (val > 18000 && prev_val > 16667 && val <= 19000) {
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(0);
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(height_);
+      }
+      prev_val = val;
+      ++i;
+    }
+    glVertexPointer(2, GL_FLOAT, 0, coords.data());
+    glDrawArrays(GL_LINES, 0, coords.size() / 2);
+
+    glColor4f(1.0, 0.0, 0.0, 0.4);
+
+    // first queue is frame time
+    coords.clear();
+    i = 0;
+    num_points = reader_.queues()[0].size();
+    prev_val = 16667;
+    for (auto val : reader_.queues()[0]) {
+      if (val > 19000 && prev_val > 16667) {
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(0);
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(height_);
+      }
+      prev_val = val;
+      ++i;
+    }
+    glVertexPointer(2, GL_FLOAT, 0, coords.data());
+    glDrawArrays(GL_LINES, 0, coords.size() / 2);
 
     last_time_ = reader_.time();
     need_redraw_ = false;
