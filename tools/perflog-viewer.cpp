@@ -259,6 +259,11 @@ public:
   }
 
   void redraw() {
+    if (!need_redraw_) {
+      need_refresh_ = false;
+      return;
+    }
+
     glClear(GL_COLOR_BUFFER_BIT);
 
     auto num_queues = reader_.queues().size();
