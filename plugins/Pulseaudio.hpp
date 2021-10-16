@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Plugin.hpp"
+#include "../Clock.hpp"
 
 #include <pulse/pulseaudio.h>
 
@@ -69,6 +70,13 @@ public:
   virtual void pre_frame_delay() override {
     int ret;
     while (pa_mainloop_iterate(loop_, false, &ret) > 0) { }
+
+    auto now = Clock::gettime(CLOCK_REALTIME);
+    if (stream_ && now - last_update_ > Seconds(1)) {
+      dump_timing_info();
+      dump_latency();
+      last_update_ = now;
+    }
   }
 
   virtual void write_audio_sample(void const * buf, std::size_t frames) override {
@@ -104,7 +112,9 @@ private:
     if (state == PA_CONTEXT_READY) {
       std::cout << "connecting playback" << std::endl;
       int err;
-      if ((err = pa_stream_connect_playback(stream_, nullptr, nullptr, pa_stream_flags(0), nullptr, nullptr)) < 0) {
+      // auto flags = pa_stream_flags(0);
+      auto flags = PA_STREAM_AUTO_TIMING_UPDATE;
+      if ((err = pa_stream_connect_playback(stream_, nullptr, nullptr, flags, nullptr, nullptr)) < 0) {
         std::stringstream strm;
         strm << "pa_stream_connect_playback failed: " << pa_strerror(err);
         throw std::runtime_error(strm.str());
@@ -123,6 +133,38 @@ private:
     std::cout << "stream state: " << state << "; ready: " << ready_ << std::endl;
   }
 
+  void dump_timing_info() {
+    auto const * timing_info = pa_stream_get_timing_info(stream_);
+    if (timing_info) {
+      std::stringstream strm;
+      strm << "Timing info:"
+           << " timestamp=" << timing_info->timestamp.tv_sec
+                     << "." << std::setfill('0') << std::setw(6) << timing_info->timestamp.tv_usec
+           << " synchronized_clocks=" << timing_info->synchronized_clocks
+           << " sink_usec=" << timing_info->sink_usec
+           << " source_usec=" << timing_info->source_usec
+           << " transport_usec=" << timing_info->transport_usec
+           << " playing=" << timing_info->playing
+           << " write_index_corrupt=" << timing_info->write_index_corrupt
+           << " write_index=" << timing_info->write_index
+           << " read_index_corrupt=" << timing_info->read_index_corrupt
+           << " read_index=" << timing_info->read_index
+           << " configured_sink_usec=" << timing_info->configured_sink_usec
+           << " configured_source_usec=" << timing_info->configured_source_usec
+           << " since_underrun=" << timing_info->since_underrun
+           << " ahead_by=" << (timing_info->write_index - timing_info->read_index);
+      std::cout << strm.str() << std::endl;
+    }
+  }
+
+  void dump_latency() {
+    pa_usec_t usec;
+    int negative;
+    if (pa_stream_get_latency(stream_, &usec, &negative) == 0) {
+      std::cout << "Latency: usec=" << usec << " negative=" << negative << std::endl;
+    }
+  }
+
 private:
   Config const & config_;
   pa_mainloop * loop_ = nullptr;
@@ -130,6 +172,7 @@ private:
   pa_context * context_ = nullptr;
   pa_stream * stream_ = nullptr;
   bool ready_ = false;
+  Timestamp last_update_ = Timestamp();
 };
 
 }
