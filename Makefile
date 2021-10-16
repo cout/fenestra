@@ -10,6 +10,10 @@ LDFLAGS += $(shell pkg-config --libs jsoncpp)
 CXXFLAGS += $(shell pkg-config --cflags ftgl)
 LDFLAGS += $(shell pkg-config --libs ftgl)
 
+CXXFLAGS += $(shell pkg-config --cflags libpulse)
+LDFLAGS += $(shell pkg-config --libs libpulse)
+LDFLAGS += -lpulse-simple
+
 FENESTRA_OBJS = \
   fenestra.o \
   plugins/ssr/SSRVideoStreamWriter.o
