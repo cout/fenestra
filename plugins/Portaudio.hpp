@@ -45,11 +45,6 @@ public:
     auto & host_api = this->host_api(system, config_.audio_api());
     auto & device = this->device(host_api, config_.audio_device());
 
-    // TODO TODO TODO: should we be using a blocking stream or can we
-    // use a different kind?
-    // TODO TODO TODO: Look at
-    // https://github.com/PortAudio/portaudio/blob/master/bindings/cpp/example/devs.cxx
-    // to see how to correctly set parameters for output-only.
     auto suggested_latency = config_.audio_suggested_latency() * 0.001;
     portaudio::DirectionSpecificStreamParameters in_params(system.nullDevice(), 0, portaudio::INVALID_FORMAT, 0, 0, 0);
     portaudio::DirectionSpecificStreamParameters out_params(device, 2, portaudio::INT16, true, suggested_latency, nullptr);
