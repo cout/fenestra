@@ -12,7 +12,7 @@
 #include "plugins/Portaudio.hpp"
 #include "plugins/ALSA.hpp"
 #include "plugins/Pulseaudio.hpp"
-#include "plugins/Video.hpp"
+#include "plugins/GL.hpp"
 #include "plugins/V4l2Stream.hpp"
 #include "plugins/Gstreamer.hpp"
 #include "plugins/SSR.hpp"
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Portaudio>("portaudio");
   frontend.add_plugin<ALSA>("alsa");
   frontend.add_plugin<Pulseaudio>("pulseaudio");
-  frontend.add_plugin<Video>("video");
+  frontend.add_plugin<GL>("gl");
   frontend.add_plugin<V4l2Stream>("v4l2stream");
   frontend.add_plugin<Gstreamer>("gstreamer");
   frontend.add_plugin<SSR>("ssr");

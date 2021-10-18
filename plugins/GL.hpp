@@ -13,7 +13,7 @@
 
 namespace fenestra {
 
-class Video
+class GL
   : public Plugin
 {
 private:
@@ -30,10 +30,10 @@ private:
   };
 
 public:
-  Video(Config const & config) {
+  GL(Config const & config) {
   }
 
-  ~Video()
+  ~GL()
   {
     if (tex_id_) {
       glDeleteTextures(1, &tex_id_);

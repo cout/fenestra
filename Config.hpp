@@ -154,7 +154,7 @@ private:
   }
 
 private:
-  std::set<std::string> plugins_ { "logger", "perf", "savefile", "portaudio", "video", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" };
+  std::set<std::string> plugins_ { "logger", "perf", "savefile", "portaudio", "gl", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" };
 
   std::string perflog_filename_ = "";
 
