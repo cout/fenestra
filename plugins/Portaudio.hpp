@@ -59,9 +59,23 @@ public:
 
     try {
       stream_.write(buf, frames);
+    } catch(portaudio::PaException const & ex) {
+      if (ex.paError() == paOutputUnderflowed) {
+        ++underruns_;
+      } else {
+        std::cout << "ERROR: " << ex.what() << std::endl;
+      }
     } catch(std::exception const & ex) {
       std::cout << "ERROR: " << ex.what() << std::endl;
     }
+  }
+
+  virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
+    if (!underruns_key_) { underruns_key_ = dictionary["Audio Underruns"]; }
+    // if (!latency_key_) { latency_key_ = dictionary["Audio Latency"]; }
+    probe.meter(*underruns_key_, Probe::VALUE, 0, underruns_);
+    // probe.meter(*latency_key_, Probe::VALUE, 0, stream_.outputLatency());
+    underruns_ = 0;
   }
 
 private:
@@ -93,6 +107,9 @@ private:
   Config const & config_;
   portaudio::AutoSystem auto_system_;
   portaudio::BlockingStream stream_;
+  std::optional<Probe::Key> underruns_key_;
+  // std::optional<Probe::Key> latency_key_;
+  std::uint64_t underruns_ = 0;
 };
 
 }
