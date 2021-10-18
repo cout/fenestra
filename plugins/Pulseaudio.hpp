@@ -131,8 +131,7 @@ private:
 
     if (state == PA_CONTEXT_READY) {
       int err;
-      // auto flags = pa_stream_flags(0);
-      auto flags = PA_STREAM_AUTO_TIMING_UPDATE;
+      auto flags = pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_INTERPOLATE_TIMING);
       if ((err = pa_stream_connect_playback(stream_, nullptr, nullptr, flags, nullptr, nullptr)) < 0) {
         std::stringstream strm;
         strm << "pa_stream_connect_playback failed: " << pa_strerror(err);
