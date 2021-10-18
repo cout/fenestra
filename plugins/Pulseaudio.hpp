@@ -73,8 +73,8 @@ public:
 
     auto now = Clock::gettime(CLOCK_REALTIME);
     if (stream_ && now - last_update_ > Seconds(1)) {
-      dump_timing_info();
-      dump_latency();
+      // dump_timing_info();
+      // dump_latency();
       last_update_ = now;
     }
   }
