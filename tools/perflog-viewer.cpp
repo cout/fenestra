@@ -133,6 +133,7 @@ private:
 
     auto n_deltas = queues_.size();
     time_ = 0;
+    frames_ = 0;
     record_size_ = 8 + n_deltas * 4; // 64-bit time, 32-bit deltas
 
     if (n_deltas > 0) {
@@ -171,6 +172,13 @@ private:
   }
 
   void handle(std::uint64_t time, std::vector<std::uint32_t> const & deltas) {
+    ++frames_;
+
+    // Ignore the first few frames
+    if (frames_ < 4) {
+      return;
+    }
+
     std::uint32_t frame_time_us = 16'667;
     if (time_ > 0 && time != time_) {
       auto last_time = time_;
@@ -208,6 +216,7 @@ private:
   std::size_t record_size_ = 0;
   std::vector<char> buf_;
   std::uint64_t time_ = 0;
+  std::uint64_t frames_ = 0;
   Timestamp last_stat_time_ = Nanoseconds::zero();
   struct stat statbuf_ { 0, 0 }; // dev, inode
 };

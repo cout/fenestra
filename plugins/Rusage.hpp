@@ -29,10 +29,9 @@ public:
     if (!minflt_key_) { minflt_key_ = dictionary["Minor faults"]; }
     if (!majflt_key_) { majflt_key_ = dictionary["Major faults"]; }
 
-    bool primed = updates_ > 2;
     auto nvcsw = usage.ru_nvcsw - last_usage_.ru_nvcsw;
     auto nivcsw = usage.ru_nivcsw - last_usage_.ru_nivcsw;
-    Probe::Value cs = primed ? nvcsw + nivcsw : 0;
+    Probe::Value cs = nvcsw + nivcsw;
     Probe::Value minflt = usage.ru_minflt - last_usage_.ru_minflt;
     Probe::Value majflt = usage.ru_majflt - last_usage_.ru_majflt;
 
