@@ -120,10 +120,8 @@ private:
 
   void context_state_callback(pa_context * c) {
     auto state = pa_context_get_state(c);
-    std::cout << "context state: " << state << "; ready: " << ready_ << std::endl;
 
     if (state == PA_CONTEXT_READY) {
-      std::cout << "connecting playback" << std::endl;
       int err;
       // auto flags = pa_stream_flags(0);
       auto flags = PA_STREAM_AUTO_TIMING_UPDATE;
@@ -143,7 +141,6 @@ private:
   void stream_state_callback(pa_stream * p) {
     auto state = pa_stream_get_state(p);
     ready_ = state == PA_STREAM_READY;
-    std::cout << "stream state: " << state << "; ready: " << ready_ << std::endl;
   }
 
   void dump_timing_info() {
@@ -179,8 +176,7 @@ private:
   }
 
 private:
-  Config const & config_;
-  pa_mainloop * loop_ = nullptr;
+  Config const & config_; pa_mainloop * loop_ = nullptr;
   pa_mainloop_api * api_ = nullptr;
   pa_context * context_ = nullptr;
   pa_stream * stream_ = nullptr;
