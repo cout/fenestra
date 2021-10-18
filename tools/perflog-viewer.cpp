@@ -273,21 +273,26 @@ public:
       return;
     }
 
-    auto row_height = height_ / num_queues;
+    auto top_margin = 0;
+    auto bottom_margin = 5;
+    auto left_margin = 5;
+    auto right_margin = 10;
+    auto column_margin = 20;
+    auto row_height = (height_ - top_margin - bottom_margin) / num_queues;
     font_.FaceSize(row_height * 0.5);
 
-    FTGL_DOUBLE y = height_ - row_height;
-    FTGL_DOUBLE x = 0;
+    FTGL_DOUBLE y = height_ - row_height - top_margin;
+    FTGL_DOUBLE x = left_margin;
     FTGL_DOUBLE next_x = 0;
     for (auto const & queue : reader_.queues()) {
       std::string s(queue.name());
-      auto pos = font_.Render(s.c_str(), -1, FTPoint(0, y, 0));
+      auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
       next_x = std::max(next_x, pos.X());
       y -= row_height;
     }
 
-    y = height_ - row_height;
-    x = next_x + 20;
+    y = height_ - row_height - top_margin;
+    x = next_x + column_margin;
     for (auto const & queue : reader_.queues()) {
       std::stringstream strm;
       strm << std::fixed << std::setprecision(2);
@@ -316,8 +321,8 @@ public:
 
     font_.FaceSize(row_height * 0.75 / 2);
 
-    y = height_ - row_height / 2;
-    x = next_x + 20;
+    y = height_ - row_height / 2 - top_margin;
+    x = next_x + column_margin;
     for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
       auto min = mins[i];
       auto max = maxes[i];
@@ -342,9 +347,9 @@ public:
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    y = height_ - row_height;
-    x = next_x + 20;
-    auto graph_width = width_ - x - 20;
+    y = height_ - row_height - top_margin;
+    x = next_x + column_margin;
+    auto graph_width = width_ - x - right_margin;
     std::vector<GLfloat> coords;
     std::size_t qidx = 0;
     for (auto const & queue : reader_.queues()) {
