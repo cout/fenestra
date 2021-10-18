@@ -95,6 +95,12 @@ public:
     }
   }
 
+  void collect_metrics(Probe & probe) {
+    for (auto const & plugin : plugins_) {
+      plugin->collect_metrics(probe, probe_dict_);
+    }
+  }
+
   void record_probe(Probe const & probe) {
     for (auto const & plugin : plugins_) {
       plugin->record_probe(probe, probe_dict_);

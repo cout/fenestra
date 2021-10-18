@@ -66,6 +66,7 @@ public:
 
       auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
       probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);
+      frontend_.collect_metrics(probe);
       frontend_.record_probe(probe);
       probe.clear();
       probe.mark(perf_metrics_key, 0, perf_metrics_start_time);

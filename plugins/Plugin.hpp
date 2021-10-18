@@ -17,6 +17,7 @@ class Plugin {
 public:
   virtual ~Plugin() { }
 
+  virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) { }
   virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) { }
 
   virtual void set_sample_rate(double sample_rate, double adjusted_rate) { }

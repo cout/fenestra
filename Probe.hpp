@@ -71,7 +71,7 @@ public:
     stamps_.emplace_back(key, type, depth, nanoseconds_since_epoch(time).count());
   }
 
-  void mark(Key key, Type type, Depth depth, Value value) {
+  void meter(Key key, Type type, Depth depth, Value value) {
     stamps_.emplace_back(key, type, depth, value);
   }
 
