@@ -282,12 +282,14 @@ public:
       return;
     }
 
-    auto top_margin = 0;
-    auto bottom_margin = 5;
-    auto left_margin = 5;
-    auto right_margin = 10;
-    auto column_margin = 20;
-    auto row_height = (height_ - top_margin - bottom_margin) / num_queues;
+    // TODO: This math is all wrong...
+    // (obviously it's wrong since the top margin shouldn't be negative)
+    double top_margin = -15;
+    double bottom_margin = 10;
+    double left_margin = 5;
+    double right_margin = 10;
+    double column_margin = 20;
+    double row_height = (height_ - top_margin - bottom_margin) / num_queues;
     font_.FaceSize(row_height * 0.5);
 
     // Draw metric names
@@ -333,9 +335,10 @@ public:
 
     // Draw min/max values
     font_.FaceSize(row_height * 0.75 / 2);
-    y = height_ - row_height / 2 - top_margin;
+    y = height_ - row_height - top_margin + row_height / 4 + row_height / 8;
     x = next_x + column_margin;
     for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
+      y -= row_height / 8;
       auto min = mins[i];
       auto max = maxes[i];
       {
@@ -344,7 +347,7 @@ public:
         strm << max / 1000.0;
         auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
         next_x = std::max(next_x, pos.X());
-        y -= row_height / 2;
+        y -= 0.75 * (row_height / 2);
       }
       {
         std::stringstream strm;
@@ -352,8 +355,9 @@ public:
         strm << min / 1000.0;
         auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
         next_x = std::max(next_x, pos.X());
-        y -= row_height / 2;
+        y -= 0.75 * (row_height / 2);
       }
+      y -= row_height / 8;
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
