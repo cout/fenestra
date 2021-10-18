@@ -65,6 +65,8 @@ public:
     }
 
     pa_stream_set_state_callback(stream_, stream_state_callback, this);
+    pa_stream_set_overflow_callback(stream_, stream_overflow_callback, this);
+    pa_stream_set_underflow_callback(stream_, stream_underflow_callback, this);
   }
 
   virtual void pre_frame_delay() override {
@@ -92,6 +94,7 @@ public:
   }
 
   virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
+    if (!overruns_key_) { overruns_key_ = dictionary["Audio Overruns"]; }
     if (!underruns_key_) { underruns_key_ = dictionary["Audio Underruns"]; }
     if (!latency_key_) { latency_key_ = dictionary["Audio Latency"]; }
 
@@ -101,7 +104,12 @@ public:
       usec = 0;
     }
 
+    probe.meter(*overruns_key_, Probe::VALUE, 0, overruns_);
+    probe.meter(*underruns_key_, Probe::VALUE, 0, underruns_);
     probe.meter(*latency_key_, Probe::VALUE, 0, usec / 1000);
+
+    overruns_ = 0;
+    underruns_ = 0;
   }
 
 private:
@@ -143,6 +151,24 @@ private:
     ready_ = state == PA_STREAM_READY;
   }
 
+  static void stream_overflow_callback(pa_stream * p, void * userdata) {
+    auto self = static_cast<Pulseaudio *>(userdata);
+    return self->stream_overflow_callback(p);
+  }
+
+  void stream_overflow_callback(pa_stream * p) {
+    ++overruns_;
+  }
+
+  static void stream_underflow_callback(pa_stream * p, void * userdata) {
+    auto self = static_cast<Pulseaudio *>(userdata);
+    return self->stream_underflow_callback(p);
+  }
+
+  void stream_underflow_callback(pa_stream * p) {
+    ++underruns_;
+  }
+
   void dump_timing_info() {
     auto const * timing_info = pa_stream_get_timing_info(stream_);
     if (timing_info) {
@@ -182,8 +208,11 @@ private:
   pa_stream * stream_ = nullptr;
   bool ready_ = false;
   Timestamp last_update_ = Timestamp();
+  std::optional<Probe::Key> overruns_key_;
   std::optional<Probe::Key> underruns_key_;
   std::optional<Probe::Key> latency_key_;
+  Probe::Value overruns_;
+  Probe::Value underruns_;
 };
 
 }
