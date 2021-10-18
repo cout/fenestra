@@ -29,17 +29,21 @@ public:
       cs_key_ = dictionary["Context switches"];
     }
 
-    Probe::Value nvcsw = usage.ru_nvcsw - last_usage_.ru_nvcsw;
-    Probe::Value nivcsw = usage.ru_nivcsw - last_usage_.ru_nivcsw;
+    bool primed = updates_ > 2;
+    auto nvcsw = usage.ru_nvcsw - last_usage_.ru_nvcsw;
+    auto nivcsw = usage.ru_nivcsw - last_usage_.ru_nivcsw;
+    Probe::Value cs = primed ? nvcsw + nivcsw : 0;
 
-    probe.meter(*cs_key_, Probe::VALUE, 0, nvcsw + nivcsw);
+    probe.meter(*cs_key_, Probe::VALUE, 0, cs);
 
     last_usage_ = usage;
+    ++updates_;
   }
 
 private:
   std::optional<Probe::Key> cs_key_;
   rusage last_usage_;
+  std::uint64_t updates_= 0;
 };
 
 }
