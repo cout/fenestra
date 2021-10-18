@@ -17,6 +17,7 @@
 #include "plugins/Gstreamer.hpp"
 #include "plugins/SSR.hpp"
 #include "plugins/Netcmds.hpp"
+#include "plugins/Rusage.hpp"
 
 #include <iostream>
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Gstreamer>("gstreamer");
   frontend.add_plugin<SSR>("ssr");
   frontend.add_plugin<Netcmds>("netcmds");
+  frontend.add_plugin<Rusage>("rusage");
 
   Context ctx(frontend, core, config);
   ctx.load_game(argv[2]);

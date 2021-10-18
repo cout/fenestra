@@ -91,7 +91,7 @@ public:
   }
 
   std::uint32_t total() const {
-    return total_is_ns_ ? total_ / 1000 : total_;
+    return total_is_ns_ ? total_ / 1000 : total_ * 1000;
   }
 
 private:
@@ -109,13 +109,22 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     return;
   }
 
-  auto now = Timestamp(Nanoseconds(probe.back().value));
+  std::uint64_t timestamp;
 
   for (auto const & stamp : probe) {
-    // Fetch the counter now so they will be printed in the right
-    // order
-    if (stamp.type != Probe::FINAL && stamp.type != Probe::INVALID_) {
-      get_counter(stamp.key, stamp.depth, dictionary);
+    switch(stamp.type) {
+      case Probe::FINAL:
+        timestamp = stamp.value;
+        break;
+
+      case Probe::INVALID_:
+        break;
+
+      default:
+        // Fetch the counter now so they will be printed in the right
+        // order
+        get_counter(stamp.key, stamp.depth, dictionary);
+        break;
     }
   }
 
@@ -134,10 +143,10 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
 
   buf_.clear();
 
-  buf_.insert(buf_.end(), reinterpret_cast<char const *>(&now), reinterpret_cast<char const *>(&now) + sizeof(now));
+  buf_.insert(buf_.end(), reinterpret_cast<char const *>(&timestamp), reinterpret_cast<char const *>(&timestamp) + sizeof(timestamp));
 
   for (auto const & pc : perf_counters_) {
-    auto total = pc.total();
+    std::uint32_t total = pc.total();
     buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total), reinterpret_cast<char const *>(&total) + sizeof(total));
   }
 

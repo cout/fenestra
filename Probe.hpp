@@ -110,6 +110,13 @@ public:
         tmp_stack_.pop_back();
       }
 
+      // Count these immediately, and do not interfere with delta
+      // calculations
+      if (stamp.type == Probe::VALUE) {
+        fn(stamp.key, stamp.depth, stamp.value);
+        continue;
+      }
+
       switch (last_stamp.type) {
         case Probe::DELTA:
         case Probe::START: {
@@ -118,11 +125,8 @@ public:
           break;
         }
 
-        case Probe::VALUE:
-          fn(last_stamp.key, last_stamp.depth, last_stamp.value);
-          break;
-
         case Probe::END:
+        case Probe::VALUE:
         case Probe::FINAL:
         case Probe::INVALID_:
           break;
