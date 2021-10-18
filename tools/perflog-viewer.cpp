@@ -290,6 +290,7 @@ public:
     auto row_height = (height_ - top_margin - bottom_margin) / num_queues;
     font_.FaceSize(row_height * 0.5);
 
+    // Draw metric names
     FTGL_DOUBLE y = height_ - row_height - top_margin;
     FTGL_DOUBLE x = left_margin;
     FTGL_DOUBLE next_x = 0;
@@ -300,6 +301,7 @@ public:
       y -= row_height;
     }
 
+    // Draw averages
     y = height_ - row_height - top_margin;
     x = next_x + column_margin;
     for (auto const & queue : reader_.queues()) {
@@ -317,6 +319,7 @@ public:
     mins.resize(reader_.queues().size());
     maxes.resize(reader_.queues().size());
 
+    // Calculate min/max values
     for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
       std::uint32_t max = 0;
       std::uint32_t min = std::numeric_limits<std::uint32_t>::max();
@@ -328,8 +331,8 @@ public:
       maxes[i] = max;
     }
 
+    // Draw min/max values
     font_.FaceSize(row_height * 0.75 / 2);
-
     y = height_ - row_height / 2 - top_margin;
     x = next_x + column_margin;
     for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
@@ -356,6 +359,7 @@ public:
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
+    // Draw sparklines
     y = height_ - row_height - top_margin;
     x = next_x + column_margin;
     auto graph_width = width_ - x - right_margin;
