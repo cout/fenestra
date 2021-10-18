@@ -76,24 +76,29 @@ public:
   auto depth() const { return depth_; }
 
   void record(std::uint64_t frame, Nanoseconds obs) {
+    total_ += obs.count();
+    total_is_ns_ = true;
+  }
+
+  void record(std::uint64_t frame, Probe::Value obs) {
     total_ += obs;
+    total_is_ns_ = false;
   }
 
   void reset() {
-    total_ = Nanoseconds::zero();
+    total_ = 0;
+    total_is_ns_ = true;
   }
 
-  auto total() const { return total_; }
-
-  std::uint32_t total_us() const {
-    return total_.count() / 1000;
+  std::uint32_t total() const {
+    return total_is_ns_ ? total_ / 1000 : total_;
   }
-
 
 private:
   std::string name_;
   Probe::Depth depth_ = 0;
-  Nanoseconds total_ = Nanoseconds::zero();
+  std::uint64_t total_ = 0;
+  bool total_is_ns_ = true;
 };
 
 inline
@@ -104,7 +109,7 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     return;
   }
 
-  auto now = probe.back().time;
+  auto now = Timestamp(Nanoseconds(probe.back().value));
 
   for (auto const & stamp : probe) {
     // Fetch the counter now so they will be printed in the right
@@ -114,9 +119,9 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     }
   }
 
-  probe.for_each_delta([&](auto key, auto depth, auto delta) {
+  probe.for_each_perf_metric([&](auto key, auto depth, auto value) {
     auto & counter = get_counter(key, depth, dictionary);
-    counter.record(frame_, delta);
+    counter.record(frame_, value);
   });
 
   if (!header_written_) {
@@ -132,8 +137,8 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   buf_.insert(buf_.end(), reinterpret_cast<char const *>(&now), reinterpret_cast<char const *>(&now) + sizeof(now));
 
   for (auto const & pc : perf_counters_) {
-    auto total_us = pc.total_us();
-    buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total_us), reinterpret_cast<char const *>(&total_us) + sizeof(total_us));
+    auto total = pc.total();
+    buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total), reinterpret_cast<char const *>(&total) + sizeof(total));
   }
 
   file_.write(buf_.data(), buf_.size());
