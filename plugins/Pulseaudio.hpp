@@ -91,6 +91,19 @@ public:
     }
   }
 
+  virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
+    if (!underruns_key_) { underruns_key_ = dictionary["Audio Underruns"]; }
+    if (!latency_key_) { latency_key_ = dictionary["Audio Latency"]; }
+
+    pa_usec_t usec;
+    int negative;
+    if (pa_stream_get_latency(stream_, &usec, &negative) != 0) {
+      usec = 0;
+    }
+
+    probe.meter(*latency_key_, Probe::VALUE, 0, usec / 1000);
+  }
+
 private:
   static void context_event_callback(pa_context * c, char const * name, pa_proplist * p, void * userdata) {
     auto self = static_cast<Pulseaudio *>(userdata);
@@ -173,6 +186,8 @@ private:
   pa_stream * stream_ = nullptr;
   bool ready_ = false;
   Timestamp last_update_ = Timestamp();
+  std::optional<Probe::Key> underruns_key_;
+  std::optional<Probe::Key> latency_key_;
 };
 
 }
