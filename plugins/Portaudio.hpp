@@ -40,7 +40,7 @@ public:
     return devices;
   }
 
-  virtual void set_sample_rate(double sample_rate) override {
+  virtual void set_sample_rate(double sample_rate, double adjusted_rate) override {
     auto & system = portaudio::System::instance();
     auto & host_api = this->host_api(system, config_.audio_api());
     auto & device = this->device(host_api, config_.audio_device());
@@ -48,7 +48,7 @@ public:
     auto suggested_latency = config_.audio_suggested_latency() * 0.001;
     portaudio::DirectionSpecificStreamParameters in_params(system.nullDevice(), 0, portaudio::INVALID_FORMAT, 0, 0, 0);
     portaudio::DirectionSpecificStreamParameters out_params(device, 2, portaudio::INT16, true, suggested_latency, nullptr);
-    portaudio::StreamParameters params(in_params, out_params, sample_rate, 0, paNoFlag);
+    portaudio::StreamParameters params(in_params, out_params, adjusted_rate, 0, paNoFlag);
     stream_.open(params);
   }
 

@@ -88,7 +88,10 @@ public:
     }
 
     for (auto const & plugin : plugins_) {
-      plugin->set_sample_rate(av.timing.sample_rate);
+      auto sample_rate = av.timing.sample_rate;
+      auto refresh_rate = 60.0; // TODO: use better initial estimate of refresh reate
+      auto adjusted_rate = sample_rate / (av.timing.fps / refresh_rate);
+      plugin->set_sample_rate(av.timing.sample_rate, adjusted_rate);
     }
   }
 

@@ -33,7 +33,7 @@ public:
     }
   }
 
-  virtual void set_sample_rate(double sample_rate) override {
+  virtual void set_sample_rate(double sample_rate, double adjusted_rate) override {
     if (!(loop_ = pa_mainloop_new())) {
       throw std::runtime_error("pa_mainloop_new failed");
     }
@@ -59,7 +59,7 @@ public:
     pa_sample_spec ss;
     ss.format = PA_SAMPLE_S16LE;
     ss.channels = 2;
-    ss.rate = sample_rate;
+    ss.rate = adjusted_rate;
     if (!(stream_ = pa_stream_new(context_, "fenestra", &ss, nullptr))) {
       throw std::runtime_error("pa_stream_new failed");
     }

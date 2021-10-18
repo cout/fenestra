@@ -24,7 +24,7 @@ public:
     }
   }
 
-  virtual void set_sample_rate(double sample_rate) override {
+  virtual void set_sample_rate(double sample_rate, double adjusted_rate) override {
     int err;
 
     std::string audio_device(config_.audio_device().data());
@@ -36,7 +36,7 @@ public:
       throw std::runtime_error(strm.str());
     }
 
-    err = snd_pcm_set_params(pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, sample_rate, 1, config_.audio_suggested_latency() * 1000);
+    err = snd_pcm_set_params(pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, adjusted_rate, 1, config_.audio_suggested_latency() * 1000);
 
     if (err < 0) {
       std::stringstream strm;
