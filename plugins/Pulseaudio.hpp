@@ -33,7 +33,7 @@ public:
     }
   }
 
-  virtual void set_sample_rate(int sample_rate) override {
+  virtual void set_sample_rate(double sample_rate) override {
     if (!(loop_ = pa_mainloop_new())) {
       throw std::runtime_error("pa_mainloop_new failed");
     }

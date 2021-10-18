@@ -40,7 +40,7 @@ public:
     return devices;
   }
 
-  virtual void set_sample_rate(int sample_rate) override {
+  virtual void set_sample_rate(double sample_rate) override {
     auto & system = portaudio::System::instance();
     auto & host_api = this->host_api(system, config_.audio_api());
     auto & device = this->device(host_api, config_.audio_device());

@@ -24,7 +24,7 @@ public:
     }
   }
 
-  virtual void set_sample_rate(int sample_rate) override {
+  virtual void set_sample_rate(double sample_rate) override {
     int err;
 
     std::string audio_device(config_.audio_device().data());

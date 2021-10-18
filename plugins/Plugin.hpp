@@ -19,7 +19,7 @@ public:
 
   virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) { }
 
-  virtual void set_sample_rate(int sample_rate) { }
+  virtual void set_sample_rate(double sample_rate) { }
   virtual void write_audio_sample(void const * buf, std::size_t frames) { }
 
   virtual void set_pixel_format(retro_pixel_format format) { }
