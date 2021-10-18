@@ -47,8 +47,6 @@ public:
     , window_(title, core, config_)
     , gamepad_(config_)
     , probe_dict_()
-    , video_refresh_key_(probe_dict_["Video refresh"])
-    , audio_sample_key_(probe_dict_["Audio sample"])
   {
   }
 
@@ -68,11 +66,11 @@ public:
     plugins_.emplace_back(probe_dict_, plugin, name);
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
-      video_refresh_plugins_.emplace_back(probe_dict_, plugin, name);
+      video_refresh_plugins_.emplace_back(probe_dict_, plugin, "Video: " + name);
     }
 
     if (!std::is_same_v<decltype(&T::write_audio_sample), decltype(&Plugin::write_audio_sample)>) {
-      audio_sample_plugins_.emplace_back(probe_dict_, plugin, name);
+      audio_sample_plugins_.emplace_back(probe_dict_, plugin, "Audio: " + name);
     }
   }
 
@@ -146,15 +144,13 @@ public:
   }
 
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
-    probe_.mark(video_refresh_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (data) {
       for (auto const & plugin : video_refresh_plugins_) {
-        probe_.mark(plugin.probe_key(), Probe::START, 2, Clock::gettime(CLOCK_MONOTONIC));
+        probe_.mark(plugin.probe_key(), Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
         plugin->video_refresh(data, width, height, pitch);
-        probe_.mark(plugin.probe_key(), Probe::END, 2, Clock::gettime(CLOCK_MONOTONIC));
+        probe_.mark(plugin.probe_key(), Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
       }
     }
-    probe_.mark(video_refresh_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
   }
 
   void video_render() {
@@ -181,13 +177,11 @@ public:
   }
 
   std::size_t audio_sample_batch(const std::int16_t * data, std::size_t frames) {
-    probe_.mark(audio_sample_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     for (auto const & plugin : audio_sample_plugins_) {
-      probe_.mark(plugin.probe_key(), Probe::START, 2, Clock::gettime(CLOCK_MONOTONIC));
+      probe_.mark(plugin.probe_key(), Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       plugin->write_audio_sample(data, frames);
-      probe_.mark(plugin.probe_key(), Probe::END, 2, Clock::gettime(CLOCK_MONOTONIC));
+      probe_.mark(plugin.probe_key(), Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
-    probe_.mark(audio_sample_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     return frames;
   }
 
@@ -200,8 +194,6 @@ private:
   Probe probe_;
 
   Probe::Dictionary probe_dict_;
-  Probe::Key video_refresh_key_;
-  Probe::Key audio_sample_key_;
   std::vector<PluginSlot> plugins_;
   std::vector<PluginSlot> video_refresh_plugins_;
   std::vector<PluginSlot> audio_sample_plugins_;
