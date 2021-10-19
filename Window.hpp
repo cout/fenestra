@@ -56,6 +56,8 @@ public:
 
     if (config_.oml_sync()) {
       glXGetSyncValuesOML(glfwGetX11Display(), glfwGetGLXWindow(win_), &ust_, &msc_, &sbc_);
+    } else if (config_.sgi_sync()) {
+      glXGetVideoSyncSGI(&vsc_);
     }
 
     glfwPollEvents();
@@ -84,6 +86,9 @@ public:
       // This also doesn't achieve the goal of preferring visual
       // artifacts over jitter.
       glXSwapBuffersMscOML(glfwGetX11Display(), glfwGetGLXWindow(win_), msc_ + 1, 0, 0);
+    } else if (config_.sgi_sync()) {
+      glXSwapBuffers(glfwGetX11Display(), glfwGetGLXWindow(win_));
+      glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc_);
     } else {
       glXSwapBuffers(glfwGetX11Display(), glfwGetGLXWindow(win_));
     }
@@ -180,6 +185,7 @@ private:
   std::int64_t ust_ = 0;
   std::int64_t msc_ = 0;
   std::int64_t sbc_ = 0;
+  unsigned int vsc_ = 0;
   Timestamp last_refresh_;
 
   bool close_requested_ = false;

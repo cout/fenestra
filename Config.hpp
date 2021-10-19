@@ -47,6 +47,7 @@ public:
     set(adaptive_vsync_, v, "adaptive_vsync");
     set(glfinish_, v, "glfinish");
     set(oml_sync_, v, "oml_sync");
+    set(sgi_sync_, v, "sgi_sync");
     set(nv_delay_before_swap_, v, "nv_delay_before_swap");
     set(scale_factor_, v, "scale_factor");
 
@@ -74,6 +75,7 @@ public:
   bool adaptive_vsync() const { return adaptive_vsync_; }
   bool glfinish() const { return glfinish_; }
   bool oml_sync() const { return oml_sync_; }
+  bool sgi_sync() const { return sgi_sync_; }
   bool nv_delay_before_swap() const { return nv_delay_before_swap_; }
   float scale_factor() const { return scale_factor_; }
 
@@ -162,6 +164,7 @@ private:
   bool adaptive_vsync_ = false;
   bool glfinish_ = false;
   bool oml_sync_ = false;
+  bool sgi_sync_ = false;
   bool nv_delay_before_swap_ = false;
   float scale_factor_ = 6.0f;
 
