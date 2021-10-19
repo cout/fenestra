@@ -48,7 +48,26 @@ public:
     glfwSetKeyCallback(win_, key_callback_);
 
     glfwMakeContextCurrent(win_);
-    glfwSwapInterval(config_.adaptive_vsync() ? -1 : config_.vsync() ? 1 : 0);
+
+    set_swap_interval();
+  }
+
+  void set_swap_interval() {
+    if (config_.adaptive_vsync()) {
+      if (epoxy_has_glx_extension(glfwGetX11Display(), 0, "GLX_EXT_swap_control_tear")) {
+        glfwSwapInterval(-1);
+        return;
+      } else {
+        std::cout << "GLX_EXT_swap_control_tear not found; not using adaptive vsync" << std::endl;
+      }
+    }
+
+    // TODO: If vsync is off, we need another sync method, either a swap
+    // rate or using audio sync.  The portaudio plugin does blocking, so
+    // it will sync, but the pulseaudio plugin does not block, so it
+    // will not sync.
+    bool vsync = config_.vsync() || config_.adaptive_vsync();
+    glfwSwapInterval(vsync ? 1 : 0);
   }
 
   void poll_events() {

@@ -161,7 +161,7 @@ private:
   std::string perflog_filename_ = "";
 
   bool vsync_ = true;
-  bool adaptive_vsync_ = false;
+  bool adaptive_vsync_ = true;
   bool glfinish_ = false;
   bool oml_sync_ = false;
   bool sgi_sync_ = false;
