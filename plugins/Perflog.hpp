@@ -4,10 +4,13 @@
 
 #include <sstream>
 #include <fstream>
+#include <thread>
+#include <atomic>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 namespace fenestra {
 
@@ -17,16 +20,15 @@ class Perflog
 private:
   class Perfcounter;
 
-public:
-  Perflog(Config const & config) {
-    if (config.perflog_filename() != "") {
-      open(config.perflog_filename());
-    }
-  }
+  template <typename T>
+  class Queue;
 
-  void open(std::string const & filename) {
-    file_.open(filename, std::ios::out | std::ios::trunc);
-  }
+public:
+  Perflog(Config const & config);
+
+  ~Perflog();
+
+  void open(std::string const & filename);
 
   virtual void record_probe(Probe const & probe, Probe::Dictionary const & dictionary) override;
 
@@ -51,6 +53,7 @@ private:
   Probe::Dictionary probe_dict_;
   Probe last_;
   std::ofstream file_;
+  bool file_open_ = false;
   bool header_written_ = false;
   std::vector<char> buf_;
 
@@ -62,6 +65,10 @@ private:
   std::uint64_t version_ = 0;
   std::uint64_t header_version_ = 0;
   std::int64_t frame_ = 0;
+
+  std::unique_ptr<Queue<char>> queue_;
+  std::thread th_;
+  std::atomic<bool> done_ = false;
 };
 
 class Perflog::Perfcounter {
@@ -101,11 +108,108 @@ private:
   bool total_is_ns_ = true;
 };
 
+
+template <typename T>
+class Perflog::Queue {
+public:
+  Queue(std::size_t size)
+    : size_(size)
+  {
+    queue_ = new T[size];
+  }
+
+  ~Queue() {
+    delete[] queue_;
+  }
+
+  template<typename It>
+  void write(It s, It e) {
+    auto rd_idx = rd_idx_.load();
+    auto wr_idx = wr_idx_.load();
+
+    // Only do full record writes
+    auto len = e - s;
+    if (wr_idx + len - rd_idx > size_) {
+      return;
+    }
+
+    while (s != e) {
+      // TODO: inefficient
+      queue_[wr_idx % size_] = *s;
+      ++wr_idx;
+      ++s;
+    }
+    wr_idx_.store(wr_idx);
+  }
+
+  std::size_t read(T * buf, std::size_t max) {
+    std::size_t n = 0;
+    auto rd_idx = rd_idx_.load();
+    auto wr_idx = wr_idx_.load();
+    while (n < max && rd_idx < wr_idx) {
+      // TODO: inefficient
+      *buf = queue_[rd_idx % size_];
+      ++buf;
+      ++rd_idx;
+      ++n;
+    }
+    rd_idx_.store(rd_idx);
+    return n;
+  }
+
+private:
+  std::atomic<std::uint64_t> rd_idx_ = 0;
+  std::atomic<std::uint64_t> wr_idx_ = 0;
+  std::size_t size_;
+  T * queue_ = nullptr;
+};
+
+inline
+Perflog::
+Perflog(Config const & config)
+{
+  if (config.perflog_filename() != "") {
+    open(config.perflog_filename());
+  }
+}
+
+inline
+Perflog::
+~Perflog() {
+  done_.store(true);
+  if (th_.joinable()) {
+    th_.join();
+  }
+}
+
+inline
+void
+Perflog::
+open(std::string const & filename) {
+  queue_ = std::make_unique<Queue<char>>(262144);
+
+  file_.open(filename, std::ios::out | std::ios::trunc);
+  std::cout << "Starting thread" << std::endl;
+  th_ = std::thread([&]() {
+    bool done = false;
+    while(!done) {
+      char buf[16384];
+      auto n = queue_->read(buf, sizeof(buf));
+      if (n > 0) {
+        file_.write(buf, n);
+      }
+      sleep(1);
+      done = done_.load();
+    }
+  });
+  file_open_ = true;
+}
+
 inline
 void
 Perflog::
 record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
-  if (!file_.good()) {
+  if (!file_open_) {
     return;
   }
 
@@ -150,7 +254,7 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
     buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total), reinterpret_cast<char const *>(&total) + sizeof(total));
   }
 
-  file_.write(buf_.data(), buf_.size());
+  queue_->write(buf_.data(), buf_.data() + buf_.size());
 
   for (auto & pc : perf_counters_) {
     pc.reset();
@@ -173,10 +277,9 @@ write_header() {
 
   buf_.push_back('\n');
 
-  file_.write(buf_.data(), buf_.size());
+  queue_->write(buf_.data(), buf_.data() + buf_.size());
 
   header_version_ = version_;
   header_written_ = true;
 }
-
 }

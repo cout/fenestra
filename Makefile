@@ -1,5 +1,5 @@
-CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og
-LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lepoxy -lportaudiocpp -lasound
+CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og -pthread
+LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lepoxy -lportaudiocpp -lasound -lpthread
 
 CXXFLAGS += $(shell pkg-config gstreamermm-1.0 --cflags)
 LDFLAGS += $(shell pkg-config gstreamermm-1.0 --libs)
@@ -37,7 +37,7 @@ tools/list-portaudio-devices: $(LIST_AUDIO_DEVICES_OBJS)
 tools/perflog-viewer: ${PERFLOGVIEWER_OBJS}
 
 $(BIN):
-	$(CXX) $^ -o $@ $(LDFLAGS)
+	$(CXX) $^ -o $@ $(CPPFLAGS) $(LDFLAGS)
 
 $(OBJS): Makefile
 
