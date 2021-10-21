@@ -58,6 +58,7 @@ public:
     set(audio_api_, v, "audio_api");
     set(audio_device_, v, "audio_device");
     set(audio_suggested_latency_, v, "audio_suggested_latency");
+    set(audio_maximum_latency_, v, "audio_maximum_latency");
     set(audio_nonblock_, v, "audio_nonblock");
 
     set(network_command_port_, v, "network_command_port");
@@ -87,6 +88,7 @@ public:
   std::string_view audio_api() const { return audio_api_; }
   std::string_view audio_device() const { return audio_device_; }
   int audio_suggested_latency() const { return audio_suggested_latency_; }
+  int audio_maximum_latency() const { return audio_maximum_latency_; }
   bool audio_nonblock() const { return audio_nonblock_; }
 
   int network_command_port() const { return network_command_port_; }
@@ -174,7 +176,8 @@ private:
 
   std::string audio_api_ = "ALSA";
   std::string audio_device_ = "pipewire";
-  int audio_suggested_latency_ = 128;
+  int audio_suggested_latency_ = 64;
+  int audio_maximum_latency_ = 64;
   bool audio_nonblock_ = true;
 
   int network_command_port_ = 55355;

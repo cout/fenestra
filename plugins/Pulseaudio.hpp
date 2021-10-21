@@ -34,6 +34,9 @@ public:
   }
 
   virtual void set_sample_rate(double sample_rate, double adjusted_rate) override {
+    game_sample_rate_ = sample_rate;
+    game_adjusted_rate_ = adjusted_rate;
+
     if (!(loop_ = pa_mainloop_new())) {
       throw std::runtime_error("pa_mainloop_new failed");
     }
@@ -55,18 +58,6 @@ public:
     if (pa_context_connect(context_, server, flags, nullptr) < 0) {
       throw std::runtime_error("pa_context_connect failed");
     }
-
-    pa_sample_spec ss;
-    ss.format = PA_SAMPLE_S16LE;
-    ss.channels = 2;
-    ss.rate = adjusted_rate;
-    if (!(stream_ = pa_stream_new(context_, "fenestra", &ss, nullptr))) {
-      throw std::runtime_error("pa_stream_new failed");
-    }
-
-    pa_stream_set_state_callback(stream_, stream_state_callback, this);
-    pa_stream_set_overflow_callback(stream_, stream_overflow_callback, this);
-    pa_stream_set_underflow_callback(stream_, stream_underflow_callback, this);
   }
 
   virtual void pre_frame_delay() override {
@@ -100,7 +91,7 @@ public:
 
     pa_usec_t usec;
     int negative;
-    if (pa_stream_get_latency(stream_, &usec, &negative) != 0) {
+    if (stream_ && pa_stream_get_latency(stream_, &usec, &negative) != 0) {
       usec = 0;
     }
 
@@ -130,9 +121,27 @@ private:
     auto state = pa_context_get_state(c);
 
     if (state == PA_CONTEXT_READY) {
+      pa_sample_spec ss;
+      ss.format = PA_SAMPLE_S16LE;
+      ss.channels = 2;
+      ss.rate = game_adjusted_rate_;
+      if (!(stream_ = pa_stream_new(context_, "fenestra", &ss, nullptr))) {
+        throw std::runtime_error("pa_stream_new failed");
+      }
+
+      pa_stream_set_state_callback(stream_, stream_state_callback, this);
+      pa_stream_set_overflow_callback(stream_, stream_overflow_callback, this);
+      pa_stream_set_underflow_callback(stream_, stream_underflow_callback, this);
+
+      pa_buffer_attr buffer_attr;
+      buffer_attr.maxlength = pa_usec_to_bytes(config_.audio_maximum_latency() * 1000, &ss);
+      buffer_attr.tlength = pa_usec_to_bytes(config_.audio_suggested_latency() * 1000, &ss);
+      buffer_attr.prebuf = -1;
+      buffer_attr.minreq = -1;
+      buffer_attr.fragsize = -1;
+      auto flags = pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY);
       int err;
-      auto flags = pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_INTERPOLATE_TIMING);
-      if ((err = pa_stream_connect_playback(stream_, nullptr, nullptr, flags, nullptr, nullptr)) < 0) {
+      if ((err = pa_stream_connect_playback(stream_, nullptr, &buffer_attr, flags, nullptr, nullptr)) < 0) {
         std::stringstream strm;
         strm << "pa_stream_connect_playback failed: " << pa_strerror(err);
         throw std::runtime_error(strm.str());
@@ -202,6 +211,8 @@ private:
 
 private:
   Config const & config_; pa_mainloop * loop_ = nullptr;
+  double game_sample_rate_ = 0.0;
+  double game_adjusted_rate_ = 0.0;
   pa_mainloop_api * api_ = nullptr;
   pa_context * context_ = nullptr;
   pa_stream * stream_ = nullptr;
