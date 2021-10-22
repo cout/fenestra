@@ -5,6 +5,7 @@
 #include <typeinfo>
 #include <memory>
 #include <functional>
+#include <vector>
 
 namespace fenestra {
 
@@ -15,10 +16,9 @@ private:
     template <typename ... Names>
     Name(std::string type_name, Names const & ... args)
       : type_name_(type_name)
+      , args_({ args... })
     {
-      std::array<std::string, sizeof...(Names)> a { args... };
-      for (auto const & n : a) {
-        args_.push_back(n);
+      for (auto const & n : args_) {
         stringified_args_ += "." + n;
       }
     }
