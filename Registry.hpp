@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Config.hpp"
-
 #include <map>
 #include <string>
 #include <typeinfo>
@@ -12,8 +10,7 @@ namespace fenestra {
 
 class Registry {
 public:
-  Registry(Config const & config)
-    : config_(config)
+  Registry()
   {
   }
 
@@ -51,7 +48,6 @@ private:
   }
 
 private:
-  Config const & config_;
   std::map<std::string, std::shared_ptr<void>> values_;
 };
 

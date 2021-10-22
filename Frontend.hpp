@@ -43,7 +43,7 @@ public:
   Frontend(std::string const & title, Core & core, Config const & config)
     : config_(config)
     , core_(core)
-    , registry_(config)
+    , registry_()
     , window_(title, core, config_)
     , gamepad_(config_)
     , probe_dict_()
