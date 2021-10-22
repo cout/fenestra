@@ -10,7 +10,10 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 #include <fstream>
+#include <functional>
+#include <memory>
 
 namespace fenestra {
 
@@ -25,12 +28,48 @@ struct Axis_Binding {
   unsigned int retro_button;
 };
 
+struct Abstract_Setting {
+  virtual ~Abstract_Setting() { }
+};
+
+template <typename T>
+struct Setting : Abstract_Setting {
+  virtual ~Setting() { }
+  Setting() { }
+  Setting(T const & value) : value(value) { }
+  T value;
+};
+
 class Config {
 public:
-  Config() {
+  Config()
+    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
+    , perflog_filename_(fetch<std::string>("perflog_filename", ""))
+    , vsync_(fetch<bool>("vsync", true))
+    , adaptive_vsync_(fetch<bool>("adaptive_vsync", true))
+    , glfinish_(fetch<bool>("glfinish", false))
+    , oml_sync_(fetch<bool>("oml_sync", false))
+    , sgi_sync_(fetch<bool>("sgi_sync", false))
+    , nv_delay_before_swap_(fetch<bool>("nv_delay_before_swap", false))
+    , scale_factor_(fetch<float>("scale_factor", 6.0f))
+    , frame_delay_(fetch<Milliseconds>("frame_deplay", Milliseconds(4)))
+    , system_directory_(fetch<std::string>("system_directory", "."))
+    , save_directory_(fetch<std::string>("save_directory", "."))
+    , audio_api_(fetch<std::string>("audio_api", "ALSA"))
+    , audio_device_(fetch<std::string>("audio_device", "pipewire"))
+    , audio_suggested_latency_(fetch<int>("audio_suggested_latency", 64))
+    , audio_maximum_latency_(fetch<int>("audio_maximum_latency", 64))
+    , audio_nonblock_(fetch<bool>("audio_nonblock", true))
+    , network_command_port_(fetch<int>("network_command_port", 55355))
+    , v4l2_device_(fetch<std::string>("v4l2_device", ""))
+    , gstreamer_sink_pipeline_(fetch<std::string>("gstreamer_sink_pipeline", ""))
+    , ssr_channel_(fetch<std::string>("ssr_channel", ""))
+  {
   }
 
-  Config(std::string const & filename) {
+  explicit Config(std::string const & filename)
+    : Config()
+  {
     load(filename);
   }
 
@@ -39,59 +78,37 @@ public:
     std::ifstream file(filename);
     file >> v;
 
-    set(plugins_, v, "plugins");
+    cfg_ = v;
 
-    set(perflog_filename_, v, "perflog_filename");
-
-    set(vsync_, v, "vsync");
-    set(adaptive_vsync_, v, "adaptive_vsync");
-    set(glfinish_, v, "glfinish");
-    set(oml_sync_, v, "oml_sync");
-    set(sgi_sync_, v, "sgi_sync");
-    set(nv_delay_before_swap_, v, "nv_delay_before_swap");
-    set(scale_factor_, v, "scale_factor");
-
-    set(frame_delay_, v, "frame_delay");
-    set(system_directory_, v, "system_directory");
-    set(save_directory_, v, "save_directory");
-
-    set(audio_api_, v, "audio_api");
-    set(audio_device_, v, "audio_device");
-    set(audio_suggested_latency_, v, "audio_suggested_latency");
-    set(audio_maximum_latency_, v, "audio_maximum_latency");
-    set(audio_nonblock_, v, "audio_nonblock");
-
-    set(network_command_port_, v, "network_command_port");
-
-    set(v4l2_device_, v, "v4l2_device");
-    set(gstreamer_sink_pipeline_, v, "gstreamer_sink_pipeline");
-    set(ssr_channel_, v, "ssr_channel");
+    for (auto const & setter : setters_) {
+      setter(cfg_);
+    }
   }
 
   auto const & plugins() const { return plugins_; }
 
   std::string const & perflog_filename() const { return perflog_filename_; }
 
-  bool vsync() const { return vsync_; }
-  bool adaptive_vsync() const { return adaptive_vsync_; }
-  bool glfinish() const { return glfinish_; }
-  bool oml_sync() const { return oml_sync_; }
-  bool sgi_sync() const { return sgi_sync_; }
-  bool nv_delay_before_swap() const { return nv_delay_before_swap_; }
-  float scale_factor() const { return scale_factor_; }
+  bool const & vsync() const { return vsync_; }
+  bool const & adaptive_vsync() const { return adaptive_vsync_; }
+  bool const & glfinish() const { return glfinish_; }
+  bool const & oml_sync() const { return oml_sync_; }
+  bool const & sgi_sync() const { return sgi_sync_; }
+  bool const & nv_delay_before_swap() const { return nv_delay_before_swap_; }
+  float const & scale_factor() const { return scale_factor_; }
 
-  Milliseconds frame_delay() const { return frame_delay_; }
+  Milliseconds const & frame_delay() const { return frame_delay_; }
 
   char const * system_directory() const { return system_directory_.c_str(); }
   char const * save_directory() const { return save_directory_.c_str(); }
 
   std::string_view audio_api() const { return audio_api_; }
   std::string_view audio_device() const { return audio_device_; }
-  int audio_suggested_latency() const { return audio_suggested_latency_; }
-  int audio_maximum_latency() const { return audio_maximum_latency_; }
-  bool audio_nonblock() const { return audio_nonblock_; }
+  int const & audio_suggested_latency() const { return audio_suggested_latency_; }
+  int const & audio_maximum_latency() const { return audio_maximum_latency_; }
+  bool const & audio_nonblock() const { return audio_nonblock_; }
 
-  int network_command_port() const { return network_command_port_; }
+  int const & network_command_port() const { return network_command_port_; }
 
   std::string const & v4l2_device() const { return v4l2_device_; }
 
@@ -102,15 +119,26 @@ public:
   auto const & button_bindings() const { return button_bindings_; }
   auto const & axis_bindings() const { return axis_bindings_; }
 
-private:
-  template <typename T>
-  void set(T & dest, Json::Value const & v, std::string_view name) {
-    auto src = v.find(name.data(), name.data() + name.size());
-    if (src) {
-      assign(dest, *src);
+  template <typename T, typename Default>
+  T & fetch(std::string const & name, Default dflt) {
+    auto it = values_.find(name);
+    if (it == values_.end()) {
+      auto [ inserted_it, inserted ] = values_.emplace(name, std::make_shared<Setting<T>>(dflt));
+      auto setting = std::static_pointer_cast<Setting<T>>(inserted_it->second);
+      setters_.emplace_back([name, setting](Json::Value const & cfg) {
+        auto cfg_value = cfg.find(name.data(), name.data() + name.size());
+        if (cfg_value) {
+          assign(setting->value, *cfg_value);
+        }
+      });
+      setters_.back()(cfg_);
+      return setting->value;
+    } else {
+      return std::dynamic_pointer_cast<Setting<T>>(it->second)->value;
     }
   }
 
+private:
   template <typename T>
   static void assign(std::vector<T> & dest, Json::Value const & src) {
     std::vector<T> result;
@@ -158,36 +186,40 @@ private:
   }
 
 private:
-  std::set<std::string> plugins_ { "logger", "perf", "savefile", "portaudio", "gl", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" };
+  Json::Value cfg_;
+  std::map<std::string, std::shared_ptr<Abstract_Setting>> values_;
+  std::vector<std::function<void(Json::Value const &)>> setters_;
 
-  std::string perflog_filename_ = "";
+  std::set<std::string> & plugins_;
 
-  bool vsync_ = true;
-  bool adaptive_vsync_ = true;
-  bool glfinish_ = false;
-  bool oml_sync_ = false;
-  bool sgi_sync_ = false;
-  bool nv_delay_before_swap_ = false;
-  float scale_factor_ = 6.0f;
+  std::string & perflog_filename_;
 
-  Milliseconds frame_delay_ = Milliseconds(4);
-  std::string system_directory_ = ".";
-  std::string save_directory_ = ".";
+  bool & vsync_;
+  bool & adaptive_vsync_;
+  bool & glfinish_;
+  bool & oml_sync_;
+  bool & sgi_sync_;
+  bool & nv_delay_before_swap_;
+  float & scale_factor_;
 
-  std::string audio_api_ = "ALSA";
-  std::string audio_device_ = "pipewire";
-  int audio_suggested_latency_ = 64;
-  int audio_maximum_latency_ = 64;
-  bool audio_nonblock_ = true;
+  Milliseconds & frame_delay_;
+  std::string & system_directory_;
+  std::string & save_directory_;
 
-  int network_command_port_ = 55355;
+  std::string & audio_api_;
+  std::string & audio_device_;
+  int & audio_suggested_latency_;
+  int & audio_maximum_latency_;
+  bool & audio_nonblock_;
 
-  std::string v4l2_device_ = "";
+  int & network_command_port_;
+
+  std::string & v4l2_device_;
 
   // E.g.: v4l2sink device=/dev/video3
-  std::string gstreamer_sink_pipeline_ = "";
+  std::string & gstreamer_sink_pipeline_;
 
-  std::string ssr_channel_ = "";
+  std::string & ssr_channel_;
 
   // Button bindings for 8bitdo SN30+
   std::vector<Button_Binding> button_bindings_ = {
