@@ -47,14 +47,12 @@ public:
   template <typename T, typename Factory>
   void register_factory(Factory factory) {
     std::string type_name = typeid(T).name();
-    auto it = factories_.find(type_name);
-    if (it != factories_.end()) {
-      throw std::runtime_error("Factory already exists: " + type_name);
-    }
-    bool inserted;
-    std::tie(it, inserted) = factories_.emplace(
+    auto [ it, inserted ] = factories_.emplace(
         type_name,
         std::make_shared<Factory_Function<T>>([=](Name const & name) { return factory(name.args()); }));
+    if (!inserted) {
+      throw std::runtime_error("Factory already exists: " + type_name);
+    }
   }
 
   template <typename T, typename ... Names>
