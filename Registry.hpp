@@ -18,8 +18,11 @@ private:
       : type_name_(type_name)
       , args_({ args... })
     {
+      char const * sep = "";
       for (auto const & n : args_) {
-        stringified_args_ += "." + n;
+        stringified_args_ += sep;
+        stringified_args_ += n;
+        sep = ".";
       }
     }
 
