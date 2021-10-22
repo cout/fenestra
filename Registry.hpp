@@ -36,8 +36,7 @@ private:
     std::string stringified_args_;
   };
 
-  template <typename T>
-  using Factory_Function = std::function<std::shared_ptr<T>(Name const &)>;
+  using Factory_Function = std::function<std::shared_ptr<void>(Name const &)>;
 
 public:
   Registry()
@@ -49,7 +48,7 @@ public:
     std::string type_name = typeid(T).name();
     auto [ it, inserted ] = factories_.emplace(
         type_name,
-        std::make_shared<Factory_Function<T>>([=](Name const & name) { return factory(name.args()); }));
+        std::make_shared<Factory_Function>([=](Name const & name) -> std::shared_ptr<void> { return factory(name.args()); }));
     if (!inserted) {
       throw std::runtime_error("Factory already exists: " + type_name);
     }
@@ -65,7 +64,7 @@ public:
       if (factory_it == factories_.end()) {
         throw std::runtime_error("Could not find factory for: " + type_name);
       }
-      auto & factory = *std::static_pointer_cast<Factory_Function<T>>(factory_it->second);
+      auto & factory = *std::static_pointer_cast<Factory_Function>(factory_it->second);
       auto plugin = factory(name);
       bool inserted;
       std::tie(it, inserted) = values_.emplace(name, plugin);
