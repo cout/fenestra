@@ -17,14 +17,24 @@ public:
   {
   }
 
+  template<typename T, typename Factory, typename ... Names>
+  T & create(Factory factory, Names const & ... names) {
+    auto name = this->name<T>(names...);
+    auto it = values_.find(name);
+    if (it == values_.end()) {
+      auto plugin = factory();
+      bool inserted;
+      std::tie(it, inserted) = values_.emplace(name, plugin);
+    }
+    return *std::static_pointer_cast<T>(it->second);
+  }
+
   template<typename T, typename ... Names>
   T & fetch(Names const & ... names) {
     auto name = this->name<T>(names...);
     auto it = values_.find(name);
     if (it == values_.end()) {
-      auto plugin = std::make_shared<T>(config_);
-      bool inserted;
-      std::tie(it, inserted) = values_.emplace(name, plugin);
+      throw std::runtime_error("Not found: " + name);
     }
     return *std::static_pointer_cast<T>(it->second);
   }

@@ -61,7 +61,7 @@ public:
       return;
     }
 
-    auto & plugin = registry_.fetch<T>();
+    auto & plugin = registry_.create<T>([&]() { return std::make_shared<T>(config_); });
 
     plugins_.emplace_back(probe_dict_, plugin, name);
 
