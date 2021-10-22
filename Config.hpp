@@ -112,7 +112,7 @@ private:
   }
 
   template <typename T>
-  void assign(std::vector<T> & dest, Json::Value const & src) {
+  static void assign(std::vector<T> & dest, Json::Value const & src) {
     std::vector<T> result;
     for (auto v : src) {
       T tmp;
@@ -123,7 +123,7 @@ private:
   }
 
   template <typename T>
-  void assign(std::set<T> & dest, Json::Value const & src) {
+  static void assign(std::set<T> & dest, Json::Value const & src) {
     std::set<T> result;
     for (auto v : src) {
       T tmp;
@@ -133,27 +133,27 @@ private:
     dest = result;
   }
 
-  void assign(bool & dest, Json::Value const & src) {
+  static void assign(bool & dest, Json::Value const & src) {
     dest = src.asBool();
   }
 
-  void assign(int & dest, Json::Value const & src) {
+  static void assign(int & dest, Json::Value const & src) {
     dest = src.asInt();
   }
 
-  void assign(float & dest, Json::Value const & src) {
+  static void assign(float & dest, Json::Value const & src) {
     dest = src.asFloat();
   }
 
-  void assign(double & dest, Json::Value const & src) {
+  static void assign(double & dest, Json::Value const & src) {
     dest = src.asDouble();
   }
 
-  void assign(std::string & dest, Json::Value const & src) {
+  static void assign(std::string & dest, Json::Value const & src) {
     dest = src.asString();
   }
 
-  void assign(Milliseconds & dest, Json::Value const & src) {
+  static void assign(Milliseconds & dest, Json::Value const & src) {
     dest = Milliseconds(src.asDouble());
   }
 
