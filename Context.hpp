@@ -10,7 +10,6 @@
 #include <fstream>
 #include <memory>
 #include <string>
-#include <filesystem>
 #include <map>
 
 namespace fenestra {
