@@ -408,11 +408,26 @@ public:
     // first queue is frame time
     coords.clear();
     colors.clear();
-    auto num_points = reader_.queues()[0].size();
+    auto & queue = reader_.queues()[0];
+    auto num_points = queue.size();
     std::uint32_t prev_val = 16667;
-    for (std::size_t i = 0; i < reader_.queues()[0].size(); ++i) {
-      auto val = reader_.queues()[0][i];
-      if (val > 19000 && prev_val > 16667) {
+    for (std::size_t i = 0; i < queue.size(); ++i) {
+      auto val = queue[i];
+      auto next_val = i < queue.size() - 1 ? queue[i+1] : 16667;
+      if (val > 18000 && next_val < 16667) {
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(0);
+        colors.push_back(0.2);
+        colors.push_back(0.2);
+        colors.push_back(1.0);
+        colors.push_back(0.4);
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(height_);
+        colors.push_back(0.2);
+        colors.push_back(0.2);
+        colors.push_back(1.0);
+        colors.push_back(0.4);
+      } else if (val > 19000 && prev_val > 16667) {
         coords.push_back(x + float(i) / num_points * graph_width);
         coords.push_back(0);
         colors.push_back(1.0);
