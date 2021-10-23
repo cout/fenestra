@@ -51,6 +51,8 @@ public:
   auto begin() const { return deltas_.begin(); }
   auto end() const { return deltas_.end(); }
 
+  auto operator[](std::size_t i) const { return deltas_[i]; }
+
 private:
   std::string name_;
   std::deque<std::uint32_t> deltas_;
@@ -361,6 +363,7 @@ public:
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     // Draw sparklines
@@ -397,45 +400,49 @@ public:
     }
 
     glEnable(GL_BLEND);
+    glEnableClientState(GL_COLOR_ARRAY);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1.0, 1.0, 0.0, 0.2);
+
+    std::vector<GLfloat> colors;
 
     // first queue is frame time
     coords.clear();
-    std::size_t i = 0;
+    colors.clear();
     auto num_points = reader_.queues()[0].size();
     std::uint32_t prev_val = 16667;
-    for (auto val : reader_.queues()[0]) {
-      if (val > 18000 && prev_val > 16667 && val <= 19000) {
-        coords.push_back(x + float(i) / num_points * graph_width);
-        coords.push_back(0);
-        coords.push_back(x + float(i) / num_points * graph_width);
-        coords.push_back(height_);
-      }
-      prev_val = val;
-      ++i;
-    }
-    glVertexPointer(2, GL_FLOAT, 0, coords.data());
-    glDrawArrays(GL_LINES, 0, coords.size() / 2);
-
-    glColor4f(1.0, 0.0, 0.0, 0.4);
-
-    // first queue is frame time
-    coords.clear();
-    i = 0;
-    num_points = reader_.queues()[0].size();
-    prev_val = 16667;
-    for (auto val : reader_.queues()[0]) {
+    for (std::size_t i = 0; i < reader_.queues()[0].size(); ++i) {
+      auto val = reader_.queues()[0][i];
       if (val > 19000 && prev_val > 16667) {
         coords.push_back(x + float(i) / num_points * graph_width);
         coords.push_back(0);
+        colors.push_back(1.0);
+        colors.push_back(0.0);
+        colors.push_back(0.0);
+        colors.push_back(0.4);
         coords.push_back(x + float(i) / num_points * graph_width);
         coords.push_back(height_);
+        colors.push_back(1.0);
+        colors.push_back(0.0);
+        colors.push_back(0.0);
+        colors.push_back(0.4);
+      } if (val > 18000 && prev_val > 16667 && val <= 19000) {
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(0);
+        colors.push_back(1.0);
+        colors.push_back(1.0);
+        colors.push_back(0.0);
+        colors.push_back(0.2);
+        coords.push_back(x + float(i) / num_points * graph_width);
+        coords.push_back(height_);
+        colors.push_back(1.0);
+        colors.push_back(1.0);
+        colors.push_back(0.0);
+        colors.push_back(0.2);
       }
       prev_val = val;
-      ++i;
     }
     glVertexPointer(2, GL_FLOAT, 0, coords.data());
+    glColorPointer(4, GL_FLOAT, 0, colors.data());
     glDrawArrays(GL_LINES, 0, coords.size() / 2);
 
     last_time_ = reader_.time();
