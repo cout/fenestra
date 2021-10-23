@@ -15,7 +15,8 @@ class Pulseaudio
 {
 public:
   Pulseaudio(Config const & config)
-    : config_(config)
+    : audio_maximum_latency_(config.fetch<int>("pulseaudio.audio_maximum_latency", 64))
+    , audio_suggested_latency_(config.fetch<int>("pulseaudio.audio_suggested_latency", 64))
   {
   }
 
@@ -134,8 +135,8 @@ private:
       pa_stream_set_underflow_callback(stream_, stream_underflow_callback, this);
 
       pa_buffer_attr buffer_attr;
-      buffer_attr.maxlength = pa_usec_to_bytes(config_.audio_maximum_latency() * 1000, &ss);
-      buffer_attr.tlength = pa_usec_to_bytes(config_.audio_suggested_latency() * 1000, &ss);
+      buffer_attr.maxlength = pa_usec_to_bytes(audio_maximum_latency_ * 1000, &ss);
+      buffer_attr.tlength = pa_usec_to_bytes(audio_suggested_latency_ * 1000, &ss);
       buffer_attr.prebuf = -1;
       buffer_attr.minreq = -1;
       buffer_attr.fragsize = -1;
@@ -210,7 +211,10 @@ private:
   }
 
 private:
-  Config const & config_; pa_mainloop * loop_ = nullptr;
+  int const & audio_maximum_latency_;
+  int const & audio_suggested_latency_;
+
+  pa_mainloop * loop_ = nullptr;
   double game_sample_rate_ = 0.0;
   double game_adjusted_rate_ = 0.0;
   pa_mainloop_api * api_ = nullptr;

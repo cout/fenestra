@@ -50,6 +50,7 @@ private:
   void write_header();
 
 private:
+  std::string const & filename_;
   Probe::Dictionary probe_dict_;
   Probe last_;
   std::ofstream file_;
@@ -167,9 +168,10 @@ private:
 inline
 Perflog::
 Perflog(Config const & config)
+  : filename_(config.fetch<std::string>("perflog.filename", ""))
 {
-  if (config.perflog_filename() != "") {
-    open(config.perflog_filename());
+  if (filename_ != "") {
+    open(filename_);
   }
 }
 

@@ -26,10 +26,10 @@ public:
   };
 
   Gstreamer(Config const & config)
-    : config_(config)
+    : sink_pipeline_(config.fetch<std::string>("gstreamer.sink_pipeline", ""))
   {
-    if (config_.gstreamer_sink_pipeline() != "") {
-      open(config_.gstreamer_sink_pipeline());
+    if (sink_pipeline_ != "") {
+      open(sink_pipeline_);
     }
   }
 
@@ -114,7 +114,7 @@ public:
   }
 
 private:
-  Config const & config_;
+  std::string const & sink_pipeline_;
 
   Pixel_Format pixel_format_;
 

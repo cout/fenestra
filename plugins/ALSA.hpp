@@ -14,7 +14,9 @@ class ALSA
 {
 public:
   ALSA(Config const & config)
-    : config_(config)
+    : audio_device_(config.fetch<std::string>("alsa.audio_device", "default"))
+    , audio_suggested_latency_(config.fetch<int>("alsa.audio_suggested_latency", 64))
+    , audio_nonblock_(config.fetch<bool>("alsa.audio_nonblock", 64))
   {
   }
 
@@ -27,16 +29,15 @@ public:
   virtual void set_sample_rate(double sample_rate, double adjusted_rate) override {
     int err;
 
-    std::string audio_device(config_.audio_device().data());
     int flags = 0;
-    if (config_.audio_nonblock()) flags |= SND_PCM_NONBLOCK;
-    if ((err = snd_pcm_open(&pcm, audio_device.c_str(), SND_PCM_STREAM_PLAYBACK, flags)) < 0) {
+    if (audio_nonblock_) flags |= SND_PCM_NONBLOCK;
+    if ((err = snd_pcm_open(&pcm, audio_device_.c_str(), SND_PCM_STREAM_PLAYBACK, flags)) < 0) {
       std::stringstream strm;
       strm << "snd_pcm_open failed: " << snd_strerror(err);
       throw std::runtime_error(strm.str());
     }
 
-    err = snd_pcm_set_params(pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, adjusted_rate, 1, config_.audio_suggested_latency() * 1000);
+    err = snd_pcm_set_params(pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, adjusted_rate, 1, audio_suggested_latency_ * 1000);
 
     if (err < 0) {
       std::stringstream strm;
@@ -55,7 +56,10 @@ public:
   }
 
 private:
-  Config const & config_;
+  std::string const & audio_device_;
+  int const & audio_suggested_latency_;
+  bool const & audio_nonblock_;
+
   snd_pcm_t * pcm = 0;
 };
 

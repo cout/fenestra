@@ -23,9 +23,11 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { 16, RETRO_PIXEL_FORMAT_RGB565 } },
   };
 
-  SSR(Config const & config) {
-    if (config.ssr_channel() != "") {
-      open(config.ssr_channel());
+  SSR(Config const & config)
+    : channel_(config.fetch<std::string>("ssr.channel", ""))
+  {
+    if (channel_ != "") {
+      open(channel_);
     }
   }
 
@@ -154,6 +156,7 @@ private:
   }
 
 private:
+  std::string const & channel_;
   Pixel_Format pixel_format_;
   std::unique_ptr<SSRVideoStreamWriter> ssr_;
   unsigned int width_ = 0;

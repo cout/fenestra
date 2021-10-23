@@ -22,7 +22,7 @@ class Netcmds
 {
 public:
   Netcmds(Config const & config)
-    : port_(config.network_command_port())
+    : port_(config.fetch<int>("netcmds.port", 55355))
   {
   }
 
@@ -145,7 +145,7 @@ private:
 
 private:
   Core const * core_;
-  int port_ = 0;
+  int & port_;
   int sock_ = -1;
   std::vector<std::string_view> vec_;
 };

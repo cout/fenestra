@@ -18,7 +18,10 @@ class Portaudio
 {
 public:
   Portaudio(Config const & config)
-    : config_(config)
+    : audio_api_(config.fetch<std::string>("portaudio.audio_api", "ALSA"))
+    , audio_device_(config.fetch<std::string>("portaudio.audio_device", "default"))
+    , audio_suggested_latency_(config.fetch<int>("portaudio.audio_suggested_latency", 64))
+    , audio_nonblock_(config.fetch<bool>("portaudio.audio_nonblock", 64))
   {
   }
 
@@ -42,10 +45,10 @@ public:
 
   virtual void set_sample_rate(double sample_rate, double adjusted_rate) override {
     auto & system = portaudio::System::instance();
-    auto & host_api = this->host_api(system, config_.audio_api());
-    auto & device = this->device(host_api, config_.audio_device());
+    auto & host_api = this->host_api(system, audio_api_);
+    auto & device = this->device(host_api, audio_device_);
 
-    auto suggested_latency = config_.audio_suggested_latency() * 0.001;
+    auto suggested_latency = audio_suggested_latency_ * 0.001;
     portaudio::DirectionSpecificStreamParameters in_params(system.nullDevice(), 0, portaudio::INVALID_FORMAT, 0, 0, 0);
     portaudio::DirectionSpecificStreamParameters out_params(device, 2, portaudio::INT16, true, suggested_latency, nullptr);
     portaudio::StreamParameters params(in_params, out_params, adjusted_rate, 0, paNoFlag);
@@ -104,7 +107,11 @@ private:
   }
 
 private:
-  Config const & config_;
+  std::string const & audio_api_;
+  std::string const & audio_device_;
+  int const & audio_suggested_latency_;
+  bool const & audio_nonblock_;
+
   portaudio::AutoSystem auto_system_;
   portaudio::BlockingStream stream_;
   std::optional<Probe::Key> underruns_key_;
