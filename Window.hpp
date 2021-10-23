@@ -54,7 +54,7 @@ public:
 
   void set_swap_interval() {
     if (config_.adaptive_vsync()) {
-      if (epoxy_has_glx_extension(glfwGetX11Display(), 0, "GLX_EXT_swap_control_tear")) {
+      if (epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_EXT_swap_control_tear")) {
         glfwSwapInterval(-1);
         return;
       } else {
@@ -74,7 +74,7 @@ public:
     current_ = this;
 
     if (config_.oml_sync()) {
-      glXGetSyncValuesOML(glfwGetX11Display(), glfwGetGLXWindow(win_), &ust_, &msc_, &sbc_);
+      glXGetSyncValuesOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), &ust_, &msc_, &sbc_);
     } else if (config_.sgi_sync()) {
       glXGetVideoSyncSGI(&vsc_);
     }
@@ -89,7 +89,7 @@ public:
   void frame_delay() const {
     if (config_.nv_delay_before_swap()) {
       Seconds delay_before_swap = Milliseconds(16.7) - config_.frame_delay();
-      glXDelayBeforeSwapNV(glfwGetX11Display(), glfwGetGLXWindow(win_), delay_before_swap.count());
+      glXDelayBeforeSwapNV(glXGetCurrentDisplay(), glXGetCurrentDrawable(), delay_before_swap.count());
     } else {
       Clock::nanosleep_until(last_refresh_ + config_.frame_delay(), CLOCK_MONOTONIC);
     }
@@ -104,12 +104,12 @@ public:
       //
       // This also doesn't achieve the goal of preferring visual
       // artifacts over jitter.
-      glXSwapBuffersMscOML(glfwGetX11Display(), glfwGetGLXWindow(win_), msc_ + 1, 0, 0);
+      glXSwapBuffersMscOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), msc_ + 1, 0, 0);
     } else if (config_.sgi_sync()) {
-      glXSwapBuffers(glfwGetX11Display(), glfwGetGLXWindow(win_));
+      glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
       glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc_);
     } else {
-      glXSwapBuffers(glfwGetX11Display(), glfwGetGLXWindow(win_));
+      glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
     }
 
     last_refresh_ = Clock::gettime(CLOCK_MONOTONIC);
