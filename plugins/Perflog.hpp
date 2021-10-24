@@ -40,7 +40,8 @@ private:
       return perf_counters_[idx];
     } else {
       auto idx = perf_counters_.size();
-      perf_counters_.emplace_back(dictionary[key], depth);
+      auto scale = dictionary.scale(key);
+      perf_counters_.emplace_back(dictionary[key], key, depth, scale);
       key_to_idx_.emplace(key, idx);
       ++version_;
       return perf_counters_[idx];
@@ -74,14 +75,18 @@ private:
 
 class Perflog::Perfcounter {
 public:
-  Perfcounter(std::string_view name, Probe::Depth depth)
+  Perfcounter(std::string_view name, Probe::Key key, Probe::Depth depth, Probe::Scale scale)
     : name_(name)
+    , key_(key)
     , depth_(depth)
+    , scale_(scale)
   {
   }
 
   auto const & name() const { return name_; }
+  auto const & key() const { return key_; }
   auto depth() const { return depth_; }
+  auto scale() const { return scale_; }
 
   void record(std::uint64_t frame, Nanoseconds obs) {
     total_ += obs.count();
@@ -104,7 +109,9 @@ public:
 
 private:
   std::string name_;
+  Probe::Key key_;
   Probe::Depth depth_ = 0;
+  Probe::Scale scale_ = 1;
   std::uint64_t total_ = 0;
   bool total_is_ns_ = true;
 };
@@ -252,7 +259,7 @@ record_probe(Probe const & probe, Probe::Dictionary const & dictionary) {
   buf_.insert(buf_.end(), reinterpret_cast<char const *>(&timestamp), reinterpret_cast<char const *>(&timestamp) + sizeof(timestamp));
 
   for (auto const & pc : perf_counters_) {
-    std::uint32_t total = pc.total();
+    std::uint32_t total = pc.total() / pc.scale();
     buf_.insert(buf_.end(), reinterpret_cast<char const *>(&total), reinterpret_cast<char const *>(&total) + sizeof(total));
   }
 

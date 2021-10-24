@@ -14,20 +14,30 @@ public:
   using Key = std::uint16_t;
   using Depth = std::uint8_t;
   using Value = std::uint64_t;
+  using Scale = std::uint32_t;
   enum Type : std::uint8_t { DELTA, START, END, VALUE, FINAL, INVALID_ };
 
   class Dictionary {
   public:
     Probe::Key operator[](std::string const & name) {
+      return define(name);
+    }
+
+    Probe::Key define(std::string const & name, Scale scale = 1) {
       auto it = keys_.find(name);
       if (it == keys_.end()) {
         auto key = keys_.size();
         bool inserted;
         std::tie(it, inserted) = keys_.emplace(name, key);
         names_.emplace(key, name);
+        scales_[key] = scale;
         ++version_;
       }
       return it->second;
+    }
+
+    Scale scale(Probe::Key key) const {
+      return scales_.at(key);
     }
 
     std::string const & operator[](Probe::Key key) const {
@@ -42,6 +52,7 @@ public:
   private:
     std::map<std::string, Probe::Key> keys_;
     std::map<Probe::Key, std::string> names_;
+    std::map<Probe::Key, Scale> scales_;
     std::uint64_t version_ = 0;
   };
 

@@ -127,7 +127,7 @@ public:
   }
 
   virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
-    if (!render_latency_key_) { render_latency_key_ = dictionary["Render latency (µs)"]; }
+    if (!render_latency_key_) { render_latency_key_ = dictionary.define("Render latency", 1000); }
 
     GLint available = 0;
     glGetQueryObjectiv(query_ids_[result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
