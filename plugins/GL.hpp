@@ -87,8 +87,8 @@ public:
 
     if (do_query) {
       flush_errors();
-      glBeginQuery(GL_TIME_ELAPSED, query_ids_[query_idx_]);
-      log_errors("glBeginQuery");
+      glGetInteger64v(GL_TIMESTAMP, &render_start_time_[query_idx_]);
+      log_errors("glGetInteger64v");
       query_started_ = true;
     }
 
@@ -119,8 +119,8 @@ public:
 
     if (query_started_) {
       flush_errors();
-      glEndQuery(GL_TIME_ELAPSED);
-      log_errors("glEndQuery");
+      glQueryCounter(query_ids_[query_idx_], GL_TIMESTAMP);
+      log_errors("glQueryCounter");
       query_idx_ = next_query_idx_;
       query_started_ = false;
     }
@@ -133,10 +133,11 @@ public:
     glGetQueryObjectiv(query_ids_[result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
 
     if (available) {
-      GLuint result = 0;
-      glGetQueryObjectuiv(query_ids_[result_idx_], GL_QUERY_RESULT, &result);
+      GLint64 result = 0;
+      glGetQueryObjecti64v(query_ids_[result_idx_], GL_QUERY_RESULT, &result);
 
-      probe.meter(*render_latency_key_, Probe::VALUE, 0, result / 1'000);
+      Probe::Value render_latency = (result - render_start_time_[result_idx_]) / 1000;
+      probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
 
       result_idx_ = (result_idx_ + 1) % query_ids_.size();
     } else {
@@ -176,6 +177,7 @@ private:
   std::size_t result_idx_ = 0;
   std::size_t query_idx_ = 0;
   std::size_t next_query_idx_ = 0;
+  std::array<GLint64, 16> render_start_time_;
   std::array<GLuint, 16> query_ids_;
 
   std::optional<Probe::Key> render_latency_key_;
