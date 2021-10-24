@@ -43,10 +43,8 @@ struct Setting : Abstract_Setting {
 class Config {
 public:
   Config()
-    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "sync", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
-    , nv_delay_before_swap_(fetch<bool>("nv_delay_before_swap", false))
+    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "sync", "framedelay", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
     , scale_factor_(fetch<float>("scale_factor", 6.0f))
-    , frame_delay_(fetch<Milliseconds>("frame_delay", Milliseconds(4)))
     , system_directory_(fetch<std::string>("system_directory", "."))
     , save_directory_(fetch<std::string>("save_directory", "."))
   {
@@ -72,10 +70,7 @@ public:
 
   auto const & plugins() const { return plugins_; }
 
-  bool const & nv_delay_before_swap() const { return nv_delay_before_swap_; }
   float const & scale_factor() const { return scale_factor_; }
-
-  Milliseconds const & frame_delay() const { return frame_delay_; }
 
   char const * system_directory() const { return system_directory_.c_str(); }
   char const * save_directory() const { return save_directory_.c_str(); }
@@ -176,10 +171,8 @@ private:
 
   std::set<std::string> & plugins_;
 
-  bool & nv_delay_before_swap_;
   float & scale_factor_;
 
-  Milliseconds & frame_delay_;
   std::string & system_directory_;
   std::string & save_directory_;
 

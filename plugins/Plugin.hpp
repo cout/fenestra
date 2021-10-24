@@ -30,8 +30,10 @@ public:
 
   virtual void window_created() { }
   virtual void window_refresh() { }
+  virtual void window_refreshed() { }
 
   virtual void pre_frame_delay() { }
+  virtual void frame_delay() { }
 
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) { }
 

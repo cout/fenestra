@@ -148,6 +148,12 @@ public:
     }
   }
 
+  void frame_delay() {
+    for (auto const & plugin : plugins_) {
+      plugin->frame_delay();
+    }
+  }
+
   void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
     if (data) {
       for (auto const & plugin : video_refresh_plugins_) {
@@ -168,7 +174,10 @@ public:
     for (auto const & plugin : plugins_) {
       plugin->window_refresh();
     }
-    window_.window_refreshed();
+
+    for (auto const & plugin : plugins_) {
+      plugin->window_refreshed();
+    }
   }
 
   void poll_input() {

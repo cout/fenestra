@@ -57,10 +57,10 @@ public:
     while (!frontend_.window().done()) {
       step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
       step(probe, poll_window_events_key, [&] { frontend_.window().poll_events(); });
-      step(probe, frame_delay_key,        [&] { frontend_.window().frame_delay(); });
+      step(probe, frame_delay_key,        [&] { frontend_.frame_delay();          });
       step(probe, core_run_key,           [&] { run_core(probe);                  });
       step(probe, video_render_key,       [&] { frontend_.video_render();         });
-      step(probe, window_refresh_key,     [&] { frontend_.window_refresh();        });
+      step(probe, window_refresh_key,     [&] { frontend_.window_refresh();       });
 
       auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
       probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);

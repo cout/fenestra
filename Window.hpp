@@ -59,19 +59,6 @@ public:
     return glfwWindowShouldClose(win_);
   }
 
-  void frame_delay() const {
-    if (config_.nv_delay_before_swap()) {
-      Seconds delay_before_swap = Milliseconds(16.7) - config_.frame_delay();
-      glXDelayBeforeSwapNV(glXGetCurrentDisplay(), glXGetCurrentDrawable(), delay_before_swap.count());
-    } else {
-      Clock::nanosleep_until(last_refresh_ + config_.frame_delay(), CLOCK_MONOTONIC);
-    }
-  }
-
-  void window_refreshed() {
-    last_refresh_ = Clock::gettime(CLOCK_MONOTONIC);
-  }
-
   bool paused() const { return paused_; }
 
 private:
@@ -150,7 +137,6 @@ private:
   Timestamp reset_requested_time_;
 
   bool paused_ = false;
-  Timestamp last_refresh_;
 };
 
 }

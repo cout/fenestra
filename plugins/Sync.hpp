@@ -2,6 +2,8 @@
 
 #include "Plugin.hpp"
 
+#include <epoxy/gl.h>
+
 namespace fenestra {
 
 class Sync
@@ -71,7 +73,7 @@ public:
     // glXDelayBeforeSwapNV, but that doesn't work (it always sleeps for
     // 15ms when we do that, regardles of what delay we pass in).
     glClear(GL_COLOR_BUFFER_BIT);
-    if (glfinish_ || config_.nv_delay_before_swap()) {
+    if (glfinish_) {
       glFinish();
     }
   }
