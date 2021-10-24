@@ -78,18 +78,17 @@ public:
     tex_w_ = geom.max_width();
     tex_h_ = geom.max_height();
 
-    glGenQueries(query_ids_.size(), query_ids_.data());
+    glGenQueries(render_query_ids_.size(), render_query_ids_.data());
+    glGenQueries(sync_query_ids_.size(), sync_query_ids_.data());
   }
 
   virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) override {
-    next_query_idx_ = (query_idx_ + 1) % query_ids_.size();
-    bool do_query = (next_query_idx_ != result_idx_) && !query_started_;
-
-    if (do_query) {
+    next_render_query_idx_ = (render_query_idx_ + 1) % render_query_ids_.size();
+    if (next_render_query_idx_ != render_result_idx_ && !render_query_started_) {
       flush_errors();
-      glGetInteger64v(GL_TIMESTAMP, &render_start_time_[query_idx_]);
+      glGetInteger64v(GL_TIMESTAMP, &render_start_time_[render_query_idx_]);
       log_errors("glGetInteger64v");
-      query_started_ = true;
+      render_query_started_ = true;
     }
 
     glBindTexture(GL_TEXTURE_2D, tex_id_);
@@ -117,34 +116,66 @@ public:
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    if (query_started_) {
+    if (render_query_started_) {
       flush_errors();
-      glQueryCounter(query_ids_[query_idx_], GL_TIMESTAMP);
+      glQueryCounter(render_query_ids_[render_query_idx_], GL_TIMESTAMP);
       log_errors("glQueryCounter");
-      query_idx_ = next_query_idx_;
-      query_started_ = false;
+      render_query_idx_ = next_render_query_idx_;
+      render_query_started_ = false;
     }
   }
 
   virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
     if (!render_latency_key_) { render_latency_key_ = dictionary.define("Render latency", 1000); }
+    if (!sync_latency_key_) { sync_latency_key_ = dictionary.define("Sync latency", 1000); }
 
     GLint available = 0;
-    glGetQueryObjectiv(query_ids_[result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
+    glGetQueryObjectiv(render_query_ids_[render_result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
 
     if (available) {
-      GLint64 result = 0;
-      glGetQueryObjecti64v(query_ids_[result_idx_], GL_QUERY_RESULT, &result);
+      GLint64 render_finish_time = 0;
+      glGetQueryObjecti64v(render_query_ids_[render_result_idx_], GL_QUERY_RESULT, &render_finish_time);
 
-      Probe::Value render_latency = (result - render_start_time_[result_idx_]) / 1000;
+      Probe::Value render_latency = (render_finish_time - render_start_time_[render_result_idx_]) / 1000;
       probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
 
-      result_idx_ = (result_idx_ + 1) % query_ids_.size();
+      render_result_idx_ = (render_result_idx_ + 1) % render_query_ids_.size();
+
+      next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_query_ids_.size();
+      if (next_sync_query_idx_ != sync_result_idx_ && !sync_query_started_) {
+	sync_start_time_[sync_query_idx_] = render_finish_time;
+	sync_query_started_ = true;
+      }
     } else {
       probe.meter(*render_latency_key_, Probe::VALUE, 0, 0);
     }
 
+    available = 0;
+    glGetQueryObjectiv(sync_query_ids_[sync_result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
+
+    if (available) {
+      GLint64 sync_finish_time = 0;
+      glGetQueryObjecti64v(sync_query_ids_[sync_result_idx_], GL_QUERY_RESULT, &sync_finish_time);
+
+      Probe::Value sync_latency = (sync_finish_time - sync_start_time_[sync_result_idx_]) / 1000;
+      probe.meter(*sync_latency_key_, Probe::VALUE, 0, sync_latency);
+
+      sync_result_idx_ = (sync_result_idx_ + 1) % sync_query_ids_.size();
+    } else {
+      probe.meter(*sync_latency_key_, Probe::VALUE, 0, 0);
+    }
+
     log_errors("GL");
+  }
+
+  virtual void window_refreshed() override {
+    if (sync_query_started_) {
+      flush_errors();
+      glQueryCounter(sync_query_ids_[sync_query_idx_], GL_TIMESTAMP);
+      log_errors("glQueryCounter");
+      sync_query_idx_ = next_sync_query_idx_;
+      sync_query_started_ = false;
+    }
   }
 
   void flush_errors() {
@@ -174,14 +205,22 @@ private:
 
   Pixel_Format pixel_format_;
 
-  std::size_t result_idx_ = 0;
-  std::size_t query_idx_ = 0;
-  std::size_t next_query_idx_ = 0;
+  std::size_t render_result_idx_ = 0;
+  std::size_t render_query_idx_ = 0;
+  std::size_t next_render_query_idx_ = 0;
   std::array<GLint64, 16> render_start_time_;
-  std::array<GLuint, 16> query_ids_;
+  std::array<GLuint, 16> render_query_ids_;
+  bool render_query_started_ = false;
+
+  std::size_t sync_result_idx_ = 0;
+  std::size_t sync_query_idx_ = 0;
+  std::size_t next_sync_query_idx_ = 0;
+  std::array<GLint64, 16> sync_start_time_;
+  std::array<GLuint, 16> sync_query_ids_;
+  bool sync_query_started_ = false;
 
   std::optional<Probe::Key> render_latency_key_;
-  bool query_started_ = false;
+  std::optional<Probe::Key> sync_latency_key_;
 };
 
 }
