@@ -98,6 +98,12 @@ public:
     }
   }
 
+  void start_metrics(Probe & probe) {
+    for (auto const & plugin : plugins_) {
+      plugin->start_metrics(probe, probe_dict_);
+    }
+  }
+
   void collect_metrics(Probe & probe) {
     for (auto const & plugin : plugins_) {
       plugin->collect_metrics(probe, probe_dict_);

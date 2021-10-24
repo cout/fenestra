@@ -48,6 +48,7 @@ public:
     auto window_refresh_key = frontend_.probe_dict()["Window refresh"];
 
     Probe probe;
+    frontend_.start_metrics(probe);
 
     // Make sure this is always the first probe, otherwise we will show
     // the timing for the previous perf_record as if it were the one
