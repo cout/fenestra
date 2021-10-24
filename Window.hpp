@@ -72,8 +72,6 @@ public:
     last_refresh_ = Clock::gettime(CLOCK_MONOTONIC);
   }
 
-  auto & win() { return *win_; }
-
   bool paused() const { return paused_; }
 
 private:
