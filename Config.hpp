@@ -44,11 +44,6 @@ class Config {
 public:
   Config()
     : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "sync", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
-    , vsync_(fetch<bool>("vsync", true))
-    , adaptive_vsync_(fetch<bool>("adaptive_vsync", true))
-    , glfinish_(fetch<bool>("glfinish", false))
-    , oml_sync_(fetch<bool>("oml_sync", false))
-    , sgi_sync_(fetch<bool>("sgi_sync", false))
     , nv_delay_before_swap_(fetch<bool>("nv_delay_before_swap", false))
     , scale_factor_(fetch<float>("scale_factor", 6.0f))
     , frame_delay_(fetch<Milliseconds>("frame_delay", Milliseconds(4)))
@@ -77,11 +72,6 @@ public:
 
   auto const & plugins() const { return plugins_; }
 
-  bool const & vsync() const { return vsync_; }
-  bool const & adaptive_vsync() const { return adaptive_vsync_; }
-  bool const & glfinish() const { return glfinish_; }
-  bool const & oml_sync() const { return oml_sync_; }
-  bool const & sgi_sync() const { return sgi_sync_; }
   bool const & nv_delay_before_swap() const { return nv_delay_before_swap_; }
   float const & scale_factor() const { return scale_factor_; }
 
@@ -186,11 +176,6 @@ private:
 
   std::set<std::string> & plugins_;
 
-  bool & vsync_;
-  bool & adaptive_vsync_;
-  bool & glfinish_;
-  bool & oml_sync_;
-  bool & sgi_sync_;
   bool & nv_delay_before_swap_;
   float & scale_factor_;
 
