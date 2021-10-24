@@ -47,6 +47,10 @@ public:
     glfwSetKeyCallback(win_, key_callback_);
 
     glfwMakeContextCurrent(win_);
+
+    std::cout << "GL: Vendor: " << glGetString(GL_VENDOR)
+              << " Renderer: "  << glGetString(GL_RENDERER)
+              << " Version: "   << glGetString(GL_VERSION) << std::endl;
   }
 
   void poll_events() {
