@@ -13,7 +13,8 @@ public:
   Sync(Config const & config)
     : vsync_(config.fetch<bool>("sync.vsync", true))
     , adaptive_vsync_(config.fetch<bool>("sync.adaptive_vsync", true))
-    , glfinish_(config.fetch<bool>("sync.glfinish", false))
+    , glfinish_draw_(config.fetch<bool>("sync.glfinish_draw", false))
+    , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
     , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
     , probe_(&dummy_probe_)
@@ -22,9 +23,10 @@ public:
 
   virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) {
     probe_ = &probe;
-    swap_key_ = dictionary["Swap Buffers"];
+    swap_key_ = dictionary["Swap buffers"];
     sync_key_ = dictionary["Sync"];
-    glfinish_key_ = dictionary["Glfinish"];
+    glfinish_draw_key_ = dictionary["Glfinish draw"];
+    glfinish_sync_key_ = dictionary["Glfinish sync"];
   }
 
   virtual void window_created() override {
@@ -54,6 +56,12 @@ public:
   }
 
   virtual void window_refresh() override {
+    if (glfinish_draw_) {
+      probe_->mark(glfinish_draw_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
+      glFinish();
+      probe_->mark(glfinish_draw_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
+    }
+
     if (oml_sync_) {
       // TODO: Obviously this is not ideal.  One problem is we don't
       // know how long it takes to swap buffers, so we can't push the
@@ -89,23 +97,26 @@ public:
     // glXDelayBeforeSwapNV, but that doesn't work (it always sleeps for
     // 15ms when we do that, regardles of what delay we pass in).
     glClear(GL_COLOR_BUFFER_BIT);
-    if (glfinish_) {
-      probe_->mark(glfinish_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
+
+    if (glfinish_sync_) {
+      probe_->mark(glfinish_sync_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glFinish();
-      probe_->mark(glfinish_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
+      probe_->mark(glfinish_sync_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
   }
 
 private:
   bool const & vsync_;
   bool const & adaptive_vsync_;
-  bool const & glfinish_;
+  bool const & glfinish_draw_;
+  bool const & glfinish_sync_;
   bool const & oml_sync_;
   bool const & sgi_sync_;
 
   Probe::Key swap_key_;
   Probe::Key sync_key_;
-  Probe::Key glfinish_key_;
+  Probe::Key glfinish_draw_key_;
+  Probe::Key glfinish_sync_key_;
   Probe dummy_probe_;
   Probe * probe_;
 
