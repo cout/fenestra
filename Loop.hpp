@@ -46,7 +46,6 @@ public:
     auto core_run_key = frontend_.probe_dict()["Core run"];
     auto video_render_key = frontend_.probe_dict()["Video render"];
     auto window_refresh_key = frontend_.probe_dict()["Window refresh"];
-    auto glfinish_key = frontend_.probe_dict()["Glfinish"];
 
     Probe probe;
 
@@ -61,8 +60,7 @@ public:
       step(probe, frame_delay_key,        [&] { frontend_.window().frame_delay(); });
       step(probe, core_run_key,           [&] { run_core(probe);                  });
       step(probe, video_render_key,       [&] { frontend_.video_render();         });
-      step(probe, window_refresh_key,     [&] { frontend_.window().refresh();     });
-      step(probe, glfinish_key,           [&] { frontend_.window().glfinish();    });
+      step(probe, window_refresh_key,     [&] { frontend_.window_refresh();        });
 
       auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
       probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);

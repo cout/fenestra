@@ -28,6 +28,9 @@ public:
   virtual void video_refresh(void const * data, unsigned int width, unsigned int height, std::size_t pitch) { }
   virtual void video_render() { }
 
+  virtual void window_created() { }
+  virtual void window_refresh() { }
+
   virtual void pre_frame_delay() { }
 
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) { }

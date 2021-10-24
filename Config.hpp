@@ -43,7 +43,7 @@ struct Setting : Abstract_Setting {
 class Config {
 public:
   Config()
-    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
+    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "sync", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
     , vsync_(fetch<bool>("vsync", true))
     , adaptive_vsync_(fetch<bool>("adaptive_vsync", true))
     , glfinish_(fetch<bool>("glfinish", false))

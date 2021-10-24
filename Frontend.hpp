@@ -83,6 +83,10 @@ public:
     window_.init(geom);
 
     for (auto const & plugin : plugins_) {
+      plugin->window_created();
+    }
+
+    for (auto const & plugin : plugins_) {
       plugin->set_geometry(geom);
     }
 
@@ -158,6 +162,13 @@ public:
     for (auto const & plugin : plugins_) {
       plugin->video_render();
     }
+  }
+
+  void window_refresh() {
+    for (auto const & plugin : plugins_) {
+      plugin->window_refresh();
+    }
+    window_.window_refreshed();
   }
 
   void poll_input() {
