@@ -31,7 +31,9 @@ private:
   };
 
 public:
-  GL(Config const & config) {
+  GL(Config const & config)
+    : log_errors_(config.fetch<bool>("gl.log_errors", false))
+  {
   }
 
   ~GL()
@@ -86,7 +88,7 @@ public:
     if (do_query) {
       flush_errors();
       glBeginQuery(GL_TIME_ELAPSED, query_ids_[query_idx_]);
-      show_errors("glBeginQuery");
+      log_errors("glBeginQuery");
       query_started_ = true;
     }
 
@@ -118,7 +120,7 @@ public:
     if (query_started_) {
       flush_errors();
       glEndQuery(GL_TIME_ELAPSED);
-      show_errors("glEndQuery");
+      log_errors("glEndQuery");
       query_idx_ = next_query_idx_;
       query_started_ = false;
     }
@@ -141,15 +143,19 @@ public:
       probe.meter(*render_latency_key_, Probe::VALUE, 0, 0);
     }
 
-    show_errors("GL");
+    log_errors("GL");
   }
 
   void flush_errors() {
+    if (!log_errors_) return;
+
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) { }
   }
 
-  void show_errors(char const * op) {
+  void log_errors(char const * op) {
+    if (!log_errors_) return;
+
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
       std::cout << op << ": " << gluErrorString(err) << " (" << err << ")" << std::endl;
@@ -157,6 +163,8 @@ public:
   }
 
 private:
+  bool const & log_errors_;
+
   GLuint tex_id_ = 0;
   GLint tex_w_ = 0;
   GLint tex_h_ = 0;
