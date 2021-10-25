@@ -48,6 +48,11 @@ private:
       running_ = true;
     }
 
+    void start(GLint64 start_time) {
+      start_time_ = start_time;
+      running_ = true;
+    }
+
     void stop() {
       if (!running_) {
 	throw std::runtime_error("Cannot stop stopwatch before it is started");
@@ -161,9 +166,8 @@ public:
     tex_w_ = geom.max_width();
     tex_h_ = geom.max_height();
 
-    glGenQueries(sync_query_ids_.size(), sync_query_ids_.data());
-
     render_timers_.resize(16);
+    sync_timers_.resize(16);
   }
 
   virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) override {
@@ -216,10 +220,9 @@ public:
       Probe::Value render_latency = render_latency_ns / 1000;
       probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
 
-      next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_query_ids_.size();
-      if (next_sync_query_idx_ != sync_result_idx_ && !sync_query_started_) {
-	sync_start_time_[sync_query_idx_] = render_timers_[render_result_idx_].stop_time();
-	sync_query_started_ = true;
+      next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_timers_.size();
+      if (next_sync_query_idx_ != sync_result_idx_ && !sync_timers_[sync_query_idx_].running()) {
+	sync_timers_[sync_query_idx_].start(render_timers_[render_result_idx_].stop_time());
       }
 
       render_result_idx_ = (render_result_idx_ + 1) % render_timers_.size();
@@ -227,17 +230,13 @@ public:
       probe.meter(*render_latency_key_, Probe::VALUE, 0, 0);
     }
 
-    GLint available = 0;
-    glGetQueryObjectiv(sync_query_ids_[sync_result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
+    auto sync_latency_ns = sync_timers_[sync_result_idx_].duration();
 
-    if (available) {
-      GLint64 sync_finish_time = 0;
-      glGetQueryObjecti64v(sync_query_ids_[sync_result_idx_], GL_QUERY_RESULT, &sync_finish_time);
-
-      Probe::Value sync_latency = (sync_finish_time - sync_start_time_[sync_result_idx_]) / 1000;
+    if (sync_latency_ns != 0) {
+      Probe::Value sync_latency = sync_latency_ns / 1000;
       probe.meter(*sync_latency_key_, Probe::VALUE, 0, sync_latency);
 
-      sync_result_idx_ = (sync_result_idx_ + 1) % sync_query_ids_.size();
+      sync_result_idx_ = (sync_result_idx_ + 1) % sync_timers_.size();
     } else {
       probe.meter(*sync_latency_key_, Probe::VALUE, 0, 0);
     }
@@ -246,12 +245,11 @@ public:
   }
 
   virtual void window_refreshed() override {
-    if (sync_query_started_) {
+    if (sync_timers_[sync_query_idx_].running()) {
       flush_errors();
-      glQueryCounter(sync_query_ids_[sync_query_idx_], GL_TIMESTAMP);
+      sync_timers_[sync_query_idx_].stop();
       log_errors("glQueryCounter");
       sync_query_idx_ = next_sync_query_idx_;
-      sync_query_started_ = false;
     }
   }
 
@@ -290,9 +288,7 @@ private:
   std::size_t sync_query_idx_ = 0;
   std::size_t sync_result_idx_ = 0;
   std::size_t next_sync_query_idx_ = 0;
-  std::array<GLint64, 16> sync_start_time_;
-  std::array<GLuint, 16> sync_query_ids_;
-  bool sync_query_started_ = false;
+  std::vector<Stopwatch> sync_timers_;
 
   std::optional<Probe::Key> render_latency_key_;
   std::optional<Probe::Key> sync_latency_key_;
