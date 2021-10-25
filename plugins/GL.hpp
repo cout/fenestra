@@ -217,29 +217,24 @@ public:
 
     auto render_latency_ns = render_timers_[render_result_idx_].duration();
     if (render_latency_ns != Nanoseconds::zero()) {
-      Probe::Value render_latency = render_latency_ns.count() / 1000;
-      probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
-
       next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_timers_.size();
       if (next_sync_query_idx_ != sync_result_idx_ && !sync_timers_[sync_query_idx_].running()) {
 	sync_timers_[sync_query_idx_].start(render_timers_[render_result_idx_].stop_time());
       }
 
       render_result_idx_ = (render_result_idx_ + 1) % render_timers_.size();
-    } else {
-      probe.meter(*render_latency_key_, Probe::VALUE, 0, 0);
     }
 
     auto sync_latency_ns = sync_timers_[sync_result_idx_].duration();
-
     if (sync_latency_ns != Nanoseconds::zero()) {
-      Probe::Value sync_latency = sync_latency_ns.count() / 1000;
-      probe.meter(*sync_latency_key_, Probe::VALUE, 0, sync_latency);
-
       sync_result_idx_ = (sync_result_idx_ + 1) % sync_timers_.size();
-    } else {
-      probe.meter(*sync_latency_key_, Probe::VALUE, 0, 0);
     }
+
+    Probe::Value render_latency = render_latency_ns.count() / 1000;
+    Probe::Value sync_latency = sync_latency_ns.count() / 1000;
+
+    probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
+    probe.meter(*sync_latency_key_, Probe::VALUE, 0, sync_latency);
 
     log_errors("GL");
   }
