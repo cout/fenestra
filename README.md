@@ -5,17 +5,10 @@ Fenestra is a lightweight libretro frontend (like retroarch) that exposes
 performance measurements to help reduce jitter.  It is written in
 C++17.
 
-Currently, these metrics include timing information for the event loop that
-are sent to stdout once per second.  This can be used to diagnose why frame
-rate suddenly drops (as opposed to just showing fps, which can tell you when
-frame rate drops, but not why).
-
-In the future, fenestra will capture other important metrics such as number of
-context switches, how many frames missed the vsync deadline, and how many
-milliseconds late those frames were.  These can then be used to adjust
-settings to ensure consistent performance.  Metrics will also be written to a
-ring buffer instead of to stdout, so that recording metrics will not impact
-performance.
+These metrics include timing measurements for each step through the
+event loop, as well as context switches, page faults, audio latency, and
+video latency.  Metrics are written in a thread to a binary log file,
+which can be visualized in real-time from an out-of-process log viewer.
 
 Requirements
 ------------
