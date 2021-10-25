@@ -217,16 +217,27 @@ public:
 
     auto render_latency_ns = render_timers_[render_result_idx_].duration();
     if (render_latency_ns != Nanoseconds::zero()) {
-      next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_timers_.size();
-      if (next_sync_query_idx_ != sync_result_idx_ && !sync_timers_[sync_query_idx_].running()) {
-	sync_timers_[sync_query_idx_].start(render_timers_[render_result_idx_].stop_time());
-      }
+      renders_to_sync_.push_back(render_timers_[render_result_idx_].stop_time());
 
+      render_timers_[render_result_idx_].reset();
       render_result_idx_ = (render_result_idx_ + 1) % render_timers_.size();
     }
 
-    auto sync_latency_ns = sync_timers_[sync_result_idx_].duration();
-    if (sync_latency_ns != Nanoseconds::zero()) {
+    auto sync_latency_ns = Nanoseconds::zero();
+    auto sync_duration_ns = sync_timers_[sync_result_idx_].duration();
+    if (sync_duration_ns != Nanoseconds::zero()) {
+      // Find the most recent rendered-but-unsynchronized frame before
+      // the sync time and assume that is the frame that was copied.
+      //
+      // TODO: For now, we assume that as long as the frame was rendered
+      // before sync was complete that we made it "in time", but this is
+      // not necessarily the case.
+      while (renders_to_sync_.size() > 0 && renders_to_sync_.front() < sync_timers_[sync_result_idx_].start_time()) {
+	sync_latency_ns = sync_timers_[sync_result_idx_].stop_time() - renders_to_sync_.front();
+	renders_to_sync_.pop_front();
+      }
+
+      sync_timers_[sync_result_idx_].reset();
       sync_result_idx_ = (sync_result_idx_ + 1) % sync_timers_.size();
     }
 
@@ -240,6 +251,13 @@ public:
   }
 
   virtual void window_refreshed() override {
+    next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_timers_.size();
+    if (next_sync_query_idx_ != sync_result_idx_ && !sync_timers_[sync_query_idx_].running()) {
+      flush_errors();
+      sync_timers_[sync_query_idx_].start();
+      log_errors("glGetInteger64v");
+    }
+
     if (sync_timers_[sync_query_idx_].running()) {
       flush_errors();
       sync_timers_[sync_query_idx_].stop();
@@ -279,6 +297,7 @@ private:
   std::size_t next_render_query_idx_ = 0;
   std::size_t render_query_idx_ = 0;
   std::vector<Stopwatch> render_timers_;
+  std::deque<Nanoseconds> renders_to_sync_;
 
   std::size_t sync_query_idx_ = 0;
   std::size_t sync_result_idx_ = 0;
