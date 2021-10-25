@@ -30,6 +30,89 @@ private:
     { RETRO_PIXEL_FORMAT_RGB565,   { GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 16 } },
   };
 
+  class Stopwatch {
+  public:
+    Stopwatch() {
+      glGenQueries(1, &query_id_);
+      if (query_id_ == 0) {
+	throw std::runtime_error("glGenQueries failed");
+      }
+    }
+
+    ~Stopwatch() {
+      glDeleteQueries(1, &query_id_);
+    }
+
+    void start() {
+      glGetInteger64v(GL_TIMESTAMP, &start_time_);
+      running_ = true;
+    }
+
+    void stop() {
+      if (!running_) {
+	throw std::runtime_error("Cannot stop stopwatch before it is started");
+      }
+
+      glQueryCounter(query_id_, GL_TIMESTAMP);
+      stopping_ = true;
+    }
+
+    bool running() const { return running_; }
+    bool stopping() const { return stopping_; }
+
+    GLint64 start_time() {
+      return start_time_;
+    }
+
+    GLint64 stop_time() {
+      get_stop_time();
+      return stop_time_;
+    }
+
+    GLint64 duration() {
+      get_stop_time();
+      if (start_time_ != 0 && stop_time_ != 0) {
+	return stop_time_ - start_time_;
+      } else {
+	return 0;
+      }
+    }
+
+    void reset() {
+      if (stopping_) {
+	throw std::runtime_error("Cannot reset stopwatch while in progress");
+      }
+
+      running_ = false;
+      start_time_ = 0;
+      stop_time_ = 0;
+    }
+
+  private:
+    void get_stop_time() {
+      if (stopping_) {
+	GLint available = 0;
+	glGetQueryObjectiv(query_id_, GL_QUERY_RESULT_AVAILABLE, &available);
+
+	if (available) {
+	  glGetQueryObjecti64v(query_id_, GL_QUERY_RESULT, &stop_time_);
+	}
+
+	if (stop_time_ != 0) {
+	  running_ = false;
+	  stopping_ = false;
+	}
+      }
+    }
+
+  private:
+    GLuint query_id_ = 0;
+    GLint64 start_time_ = 0;
+    GLint64 stop_time_ = 0;
+    bool running_ = false;
+    bool stopping_ = false;
+  };
+
 public:
   GL(Config const & config)
     : log_errors_(config.fetch<bool>("gl.log_errors", false))
@@ -78,17 +161,17 @@ public:
     tex_w_ = geom.max_width();
     tex_h_ = geom.max_height();
 
-    glGenQueries(render_query_ids_.size(), render_query_ids_.data());
     glGenQueries(sync_query_ids_.size(), sync_query_ids_.data());
+
+    render_timers_.resize(16);
   }
 
   virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) override {
-    next_render_query_idx_ = (render_query_idx_ + 1) % render_query_ids_.size();
-    if (next_render_query_idx_ != render_result_idx_ && !render_query_started_) {
+    next_render_query_idx_ = (render_query_idx_ + 1) % render_timers_.size();
+    if (next_render_query_idx_ != render_result_idx_ && !render_timers_[render_query_idx_].running()) {
       flush_errors();
-      glGetInteger64v(GL_TIMESTAMP, &render_start_time_[render_query_idx_]);
+      render_timers_[render_query_idx_].start();
       log_errors("glGetInteger64v");
-      render_query_started_ = true;
     }
 
     glBindTexture(GL_TEXTURE_2D, tex_id_);
@@ -116,12 +199,11 @@ public:
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    if (render_query_started_) {
+    if (render_timers_[render_query_idx_].running()) {
       flush_errors();
-      glQueryCounter(render_query_ids_[render_query_idx_], GL_TIMESTAMP);
+      render_timers_[render_query_idx_].stop();
       log_errors("glQueryCounter");
       render_query_idx_ = next_render_query_idx_;
-      render_query_started_ = false;
     }
   }
 
@@ -129,28 +211,23 @@ public:
     if (!render_latency_key_) { render_latency_key_ = dictionary.define("Render latency", 1000); }
     if (!sync_latency_key_) { sync_latency_key_ = dictionary.define("Sync latency", 1000); }
 
-    GLint available = 0;
-    glGetQueryObjectiv(render_query_ids_[render_result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
-
-    if (available) {
-      GLint64 render_finish_time = 0;
-      glGetQueryObjecti64v(render_query_ids_[render_result_idx_], GL_QUERY_RESULT, &render_finish_time);
-
-      Probe::Value render_latency = (render_finish_time - render_start_time_[render_result_idx_]) / 1000;
+    auto render_latency_ns = render_timers_[render_result_idx_].duration();
+    if (render_latency_ns != 0) {
+      Probe::Value render_latency = render_latency_ns / 1000;
       probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
-
-      render_result_idx_ = (render_result_idx_ + 1) % render_query_ids_.size();
 
       next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_query_ids_.size();
       if (next_sync_query_idx_ != sync_result_idx_ && !sync_query_started_) {
-	sync_start_time_[sync_query_idx_] = render_finish_time;
+	sync_start_time_[sync_query_idx_] = render_timers_[render_result_idx_].stop_time();
 	sync_query_started_ = true;
       }
+
+      render_result_idx_ = (render_result_idx_ + 1) % render_timers_.size();
     } else {
       probe.meter(*render_latency_key_, Probe::VALUE, 0, 0);
     }
 
-    available = 0;
+    GLint available = 0;
     glGetQueryObjectiv(sync_query_ids_[sync_result_idx_], GL_QUERY_RESULT_AVAILABLE, &available);
 
     if (available) {
@@ -206,14 +283,12 @@ private:
   Pixel_Format pixel_format_;
 
   std::size_t render_result_idx_ = 0;
-  std::size_t render_query_idx_ = 0;
   std::size_t next_render_query_idx_ = 0;
-  std::array<GLint64, 16> render_start_time_;
-  std::array<GLuint, 16> render_query_ids_;
-  bool render_query_started_ = false;
+  std::size_t render_query_idx_ = 0;
+  std::vector<Stopwatch> render_timers_;
 
-  std::size_t sync_result_idx_ = 0;
   std::size_t sync_query_idx_ = 0;
+  std::size_t sync_result_idx_ = 0;
   std::size_t next_sync_query_idx_ = 0;
   std::array<GLint64, 16> sync_start_time_;
   std::array<GLuint, 16> sync_query_ids_;
