@@ -13,7 +13,11 @@ public:
   Framedelay(Config const & config)
     : frame_delay_(config.fetch<Milliseconds>("framedelay.milliseconds", Milliseconds(4)))
     , nv_delay_before_swap_(config.fetch<bool>("framedelay.nv_delay_before_swap", false))
+    , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
   {
+  }
+
+  virtual void window_created() override {
     // We have to glfinish before capturing timing information,
     // (either before or after swap), otherwise sync latency will be 1
     // frame longer.
@@ -58,8 +62,12 @@ public:
     // initiate swap/sync, then do work, then find out later when the
     // sync completed.
     if (nv_delay_before_swap_) {
-      auto & glfinish_sync = config.fetch<bool>("sync.glfinish_sync", false);
-      glfinish_sync = true;
+      if (epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_NV_delay_before_swap")) {
+	glfinish_sync_ = true;
+      } else {
+        std::cout << "GLX_NV_delay_before_swap not found; not using nv_delay_before_swap" << std::endl;
+	nv_delay_before_swap_ = false;
+      }
     }
   }
 
@@ -85,7 +93,8 @@ public:
 
 private:
   Milliseconds const & frame_delay_;
-  bool const & nv_delay_before_swap_;
+  bool & nv_delay_before_swap_;
+  bool & glfinish_sync_;
 
   Timestamp last_refresh_;
 };
