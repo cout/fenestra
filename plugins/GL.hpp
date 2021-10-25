@@ -48,8 +48,8 @@ private:
       running_ = true;
     }
 
-    void start(GLint64 start_time) {
-      start_time_ = start_time;
+    void start(Nanoseconds start_time) {
+      start_time_ = start_time.count();
       running_ = true;
     }
 
@@ -65,21 +65,21 @@ private:
     bool running() const { return running_; }
     bool stopping() const { return stopping_; }
 
-    GLint64 start_time() {
-      return start_time_;
+    Nanoseconds start_time() {
+      return Nanoseconds(start_time_);
     }
 
-    GLint64 stop_time() {
+    Nanoseconds stop_time() {
       get_stop_time();
-      return stop_time_;
+      return Nanoseconds(stop_time_);
     }
 
-    GLint64 duration() {
+    Nanoseconds duration() {
       get_stop_time();
       if (start_time_ != 0 && stop_time_ != 0) {
-	return stop_time_ - start_time_;
+	return Nanoseconds(stop_time_ - start_time_);
       } else {
-	return 0;
+	return Nanoseconds::zero();
       }
     }
 
@@ -216,8 +216,8 @@ public:
     if (!sync_latency_key_) { sync_latency_key_ = dictionary.define("Sync latency", 1000); }
 
     auto render_latency_ns = render_timers_[render_result_idx_].duration();
-    if (render_latency_ns != 0) {
-      Probe::Value render_latency = render_latency_ns / 1000;
+    if (render_latency_ns != Nanoseconds::zero()) {
+      Probe::Value render_latency = render_latency_ns.count() / 1000;
       probe.meter(*render_latency_key_, Probe::VALUE, 0, render_latency);
 
       next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_timers_.size();
@@ -232,8 +232,8 @@ public:
 
     auto sync_latency_ns = sync_timers_[sync_result_idx_].duration();
 
-    if (sync_latency_ns != 0) {
-      Probe::Value sync_latency = sync_latency_ns / 1000;
+    if (sync_latency_ns != Nanoseconds::zero()) {
+      Probe::Value sync_latency = sync_latency_ns.count() / 1000;
       probe.meter(*sync_latency_key_, Probe::VALUE, 0, sync_latency);
 
       sync_result_idx_ = (sync_result_idx_ + 1) % sync_timers_.size();
