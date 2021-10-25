@@ -43,8 +43,8 @@ public:
   Frontend(std::string const & title, Core & core, Config const & config)
     : config_(config)
     , core_(core)
-    , registry_()
     , window_(title, core, config_)
+    , registry_()
     , gamepad_(config_)
     , probe_dict_()
   {
@@ -215,8 +215,8 @@ public:
 private:
   Config const & config_;
   Core & core_;
-  Registry registry_;
   Window window_;
+  Registry registry_;
   Gamepad gamepad_;
   Probe probe_;
 
