@@ -14,6 +14,7 @@ using Seconds = std::chrono::duration<double>;
 // TODO: Use std::chrono::time_point (but this requires chosing a clock)
 struct __attribute__((packed)) Timestamp {
   Timestamp(Nanoseconds nanos = Nanoseconds::zero()) : nanos_(nanos.count()) { }
+  static auto zero() { return Timestamp(Nanoseconds::zero()); }
   std::int64_t nanos_;
 };
 
@@ -52,7 +53,7 @@ inline Timestamp operator+(Timestamp ts, std::chrono::duration<Rep, Period> delt
 
 template<typename Rep, typename Period>
 inline Timestamp operator-(Timestamp ts, std::chrono::duration<Rep, Period> delta) {
-  return Timestamp(ts.nanos_ - std::chrono::duration_cast<Nanoseconds>(delta));
+  return Timestamp(Nanoseconds(ts.nanos_) - std::chrono::duration_cast<Nanoseconds>(delta));
 }
 
 inline timespec to_timespec(Nanoseconds nanos) {
