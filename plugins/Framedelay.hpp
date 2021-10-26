@@ -76,7 +76,7 @@ public:
       Seconds delay_before_swap = Milliseconds(16.7) - frame_delay_;
       glXDelayBeforeSwapNV(glXGetCurrentDisplay(), glXGetCurrentDrawable(), delay_before_swap.count());
     } else {
-      Clock::nanosleep_until(last_refresh_ + frame_delay_, CLOCK_MONOTONIC);
+      Clock::nanosleep_until(next_delay_time_, CLOCK_MONOTONIC);
     }
   }
 
@@ -88,7 +88,9 @@ public:
       glFinish();
     }
 
-    last_refresh_ = Clock::gettime(CLOCK_MONOTONIC);
+    auto now = Clock::gettime(CLOCK_MONOTONIC);
+    next_delay_time_ = now + frame_delay_;
+    last_refresh_ = now;
   }
 
 private:
@@ -96,7 +98,8 @@ private:
   bool & nv_delay_before_swap_;
   bool & glfinish_sync_;
 
-  Timestamp last_refresh_;
+  Timestamp last_refresh_ = Timestamp::zero();
+  Timestamp next_delay_time_ = Timestamp::zero();
 };
 
 }

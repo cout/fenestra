@@ -52,6 +52,11 @@ inline Timestamp operator+(Timestamp ts, std::chrono::duration<Rep, Period> delt
 }
 
 template<typename Rep, typename Period>
+inline Timestamp operator+(std::chrono::duration<Rep, Period> delta, Timestamp ts) {
+  return Timestamp(std::chrono::duration_cast<Nanoseconds>(delta) + Nanoseconds(ts.nanos_));
+}
+
+template<typename Rep, typename Period>
 inline Timestamp operator-(Timestamp ts, std::chrono::duration<Rep, Period> delta) {
   return Timestamp(Nanoseconds(ts.nanos_) - std::chrono::duration_cast<Nanoseconds>(delta));
 }
