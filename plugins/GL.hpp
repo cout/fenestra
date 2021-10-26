@@ -62,6 +62,19 @@ private:
       stopping_ = true;
     }
 
+    void stop_immediately() {
+      if (!running_) {
+        throw std::runtime_error("Cannot stop stopwatch before it is started");
+      }
+
+      if (stopping_) {
+        throw std::runtime_error("Cannot stop stopwatch while it is already stopping");
+      }
+
+      glGetInteger64v(GL_TIMESTAMP, &stop_time_);
+      running_ = false;
+    }
+
     bool running() const { return running_; }
     bool stopping() const { return stopping_; }
 
@@ -260,7 +273,7 @@ public:
 
     if (sync_timers_[sync_query_idx_].running()) {
       flush_errors();
-      sync_timers_[sync_query_idx_].stop();
+      sync_timers_[sync_query_idx_].stop_immediately();
       log_errors("glQueryCounter");
       sync_query_idx_ = next_sync_query_idx_;
     }
