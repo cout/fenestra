@@ -12,7 +12,7 @@ class Sync
 public:
   Sync(Config const & config)
     : vsync_(config.fetch<bool>("sync.vsync", true))
-    , adaptive_vsync_(config.fetch<bool>("sync.adaptive_vsync", true))
+    , adaptive_sync_(config.fetch<bool>("sync.adaptive", true))
     , glfinish_draw_(config.fetch<bool>("sync.glfinish_draw", false))
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
@@ -30,7 +30,7 @@ public:
   }
 
   virtual void window_created() override {
-    if (adaptive_vsync_) {
+    if (vsync_ && adaptive_sync_) {
       if (epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_EXT_swap_control_tear")) {
         glfwSwapInterval(-1);
         return;
@@ -43,15 +43,16 @@ public:
     // rate or using audio sync.  The portaudio plugin does blocking, so
     // it will sync, but the pulseaudio plugin does not block, so it
     // will not sync.
-    bool vsync = vsync_ || adaptive_vsync_;
-    glfwSwapInterval(vsync ? 1 : 0);
+    glfwSwapInterval(vsync_ ? 1 : 0);
   }
 
   virtual void pre_frame_delay() override {
     if (oml_sync_) {
       glXGetSyncValuesOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), &ust_, &msc_, &sbc_);
     } else if (sgi_sync_) {
-      glXGetVideoSyncSGI(&vsc_);
+      if (vsc_ == 0 || !adaptive_sync_) {
+        glXGetVideoSyncSGI(&vsc_);
+      }
     }
   }
 
@@ -79,7 +80,16 @@ public:
       auto now = Clock::gettime(CLOCK_MONOTONIC);
       probe_->mark(swap_key_, Probe::END, 1, now);
       probe_->mark(sync_key_, Probe::START, 1, now);
-      glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc_);
+      if (adaptive_sync_) {
+        unsigned int vsc = vsc_;
+        glXGetVideoSyncSGI(&vsc);
+        if (vsc < vsc_ + 1) {
+          glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc);
+        }
+        vsc_ = vsc;
+      } else {
+        glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc_);
+      }
       probe_->mark(sync_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     } else {
       // TODO: This should be glfwSwapBuffers for maximum compatibility,
@@ -107,7 +117,7 @@ public:
 
 private:
   bool const & vsync_;
-  bool const & adaptive_vsync_;
+  bool const & adaptive_sync_;
   bool const & glfinish_draw_;
   bool const & glfinish_sync_;
   bool const & oml_sync_;
