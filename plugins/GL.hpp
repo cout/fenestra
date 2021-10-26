@@ -35,7 +35,7 @@ private:
     Stopwatch() {
       glGenQueries(1, &query_id_);
       if (query_id_ == 0) {
-	throw std::runtime_error("glGenQueries failed");
+        throw std::runtime_error("glGenQueries failed");
       }
     }
 
@@ -55,7 +55,7 @@ private:
 
     void stop() {
       if (!running_) {
-	throw std::runtime_error("Cannot stop stopwatch before it is started");
+        throw std::runtime_error("Cannot stop stopwatch before it is started");
       }
 
       glQueryCounter(query_id_, GL_TIMESTAMP);
@@ -77,15 +77,15 @@ private:
     Nanoseconds duration() {
       get_stop_time();
       if (start_time_ != 0 && stop_time_ != 0) {
-	return Nanoseconds(stop_time_ - start_time_);
+        return Nanoseconds(stop_time_ - start_time_);
       } else {
-	return Nanoseconds::zero();
+        return Nanoseconds::zero();
       }
     }
 
     void reset() {
       if (stopping_) {
-	throw std::runtime_error("Cannot reset stopwatch while in progress");
+        throw std::runtime_error("Cannot reset stopwatch while in progress");
       }
 
       running_ = false;
@@ -96,17 +96,17 @@ private:
   private:
     void get_stop_time() {
       if (stopping_) {
-	GLint available = 0;
-	glGetQueryObjectiv(query_id_, GL_QUERY_RESULT_AVAILABLE, &available);
+        GLint available = 0;
+        glGetQueryObjectiv(query_id_, GL_QUERY_RESULT_AVAILABLE, &available);
 
-	if (available) {
-	  glGetQueryObjecti64v(query_id_, GL_QUERY_RESULT, &stop_time_);
-	}
+        if (available) {
+          glGetQueryObjecti64v(query_id_, GL_QUERY_RESULT, &stop_time_);
+        }
 
-	if (stop_time_ != 0) {
-	  running_ = false;
-	  stopping_ = false;
-	}
+        if (stop_time_ != 0) {
+          running_ = false;
+          stopping_ = false;
+        }
       }
     }
 
@@ -159,7 +159,7 @@ public:
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, geom.max_width(), geom.max_height(), 0,
-	pixel_format_.format, pixel_format_.type, 0);
+        pixel_format_.format, pixel_format_.type, 0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -233,8 +233,8 @@ public:
       // before sync was complete that we made it "in time", but this is
       // not necessarily the case.
       while (renders_to_sync_.size() > 0 && renders_to_sync_.front() < sync_timers_[sync_result_idx_].start_time()) {
-	sync_latency_ns = sync_timers_[sync_result_idx_].stop_time() - renders_to_sync_.front();
-	renders_to_sync_.pop_front();
+        sync_latency_ns = sync_timers_[sync_result_idx_].stop_time() - renders_to_sync_.front();
+        renders_to_sync_.pop_front();
       }
 
       sync_timers_[sync_result_idx_].reset();
