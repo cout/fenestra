@@ -243,7 +243,7 @@ public:
       // the sync time and assume that is the frame that was copied.
       //
       // TODO: For now, we assume that as long as the frame was rendered
-      // before sync was complete that we made it "in time", but this is
+      // before sync was started that we made it "in time", but this is
       // not necessarily the case.
       while (renders_to_sync_.size() > 0 && renders_to_sync_.front() < sync_timers_[sync_result_idx_].start_time()) {
         sync_latency_ns = sync_timers_[sync_result_idx_].stop_time() - renders_to_sync_.front();
