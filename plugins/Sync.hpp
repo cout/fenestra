@@ -86,6 +86,7 @@ public:
       probe_->mark(glfinish_draw_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
 
+    probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (oml_sync_) {
       // TODO: Obviously this is not ideal.  One problem is we don't
       // know how long it takes to swap buffers, so we can't push the
@@ -94,20 +95,15 @@ public:
       //
       // This also doesn't achieve the goal of preferring visual
       // artifacts over jitter.
-      probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glXSwapBuffersMscOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), msc_ + 1, 0, 0);
-      probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     } else if (sgi_sync_) {
-      probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
-      probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     } else {
       // TODO: This should be glfwSwapBuffers for maximum compatibility,
       // but we need access to the Window object
-      probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
-      probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
+    probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
   }
 
   virtual void window_sync(State & state) override {
