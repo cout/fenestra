@@ -78,8 +78,6 @@ public:
   bool paused() const { return window_.paused(); }
   bool done() const { return window_.done(); }
 
-  auto & gamepad() { return gamepad_; }
-
   void init(retro_system_av_info const & av) {
     Geometry geom(av.geometry, config_.scale_factor());
     window_.init(geom);
@@ -193,7 +191,7 @@ public:
   }
 
   void poll_input() {
-    gamepad().poll_input();
+    gamepad_.poll_input();
   }
 
   std::int16_t input_state(unsigned int port, unsigned int device, unsigned int index, unsigned int id) {
@@ -201,7 +199,7 @@ public:
       return 0;
     }
 
-    return gamepad().pressed(id);
+    return gamepad_.pressed(id);
   }
 
   void audio_sample(std::int16_t left, std::int16_t right) {
