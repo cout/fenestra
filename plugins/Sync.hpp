@@ -18,6 +18,7 @@ public:
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
     , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
     , fence_sync_(config.fetch<bool>("sync.fence_sync", true))
+    , swap_delay_(config.fetch<bool>("sync.swap_delay", false))
     , probe_(&dummy_probe_)
   {
   }
@@ -27,6 +28,7 @@ public:
     swap_key_ = dictionary["Swap buffers"];
     sync_key_ = dictionary["Sync"];
     glfinish_draw_key_ = dictionary["Glfinish draw"];
+    swap_delay_key_ = dictionary["Swap delay"];
     glfinish_sync_key_ = dictionary["Glfinish sync"];
   }
 
@@ -86,6 +88,15 @@ public:
       probe_->mark(glfinish_draw_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
 
+    if (swap_delay_) {
+      glFlush();
+      probe_->mark(swap_delay_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
+      if (synchronized_) {
+        Clock::nanosleep_until(last_sync_time_ + Milliseconds(16.7) - Milliseconds(2.0), CLOCK_MONOTONIC);
+      }
+      probe_->mark(swap_delay_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
+    }
+
     probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (oml_sync_) {
       // TODO: Obviously this is not ideal.  One problem is we don't
@@ -137,6 +148,9 @@ public:
       glFinish();
       probe_->mark(glfinish_sync_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
+
+    last_sync_time_ = Clock::gettime(CLOCK_MONOTONIC);
+    synchronized_ = state.synchronized;
   }
 
 private:
@@ -147,10 +161,12 @@ private:
   bool const & oml_sync_;
   bool & sgi_sync_;
   bool const & fence_sync_;
+  bool const & swap_delay_;
 
   Probe::Key swap_key_;
   Probe::Key sync_key_;
   Probe::Key glfinish_draw_key_;
+  Probe::Key swap_delay_key_;
   Probe::Key glfinish_sync_key_;
   Probe dummy_probe_;
   Probe * probe_;
@@ -160,6 +176,9 @@ private:
   std::int64_t sbc_ = 0;
   unsigned int vsc_ = 0;
   GLsync fence_ = 0;
+
+  Timestamp last_sync_time_ = Timestamp::zero();
+  bool synchronized_ = true;
 };
 
 }
