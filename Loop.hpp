@@ -30,7 +30,7 @@ public:
   }
 
   void run_core(Probe & probe) {
-    if (!frontend_.window().paused()) {
+    if (!frontend_.paused()) {
       frontend_.probe().clear();
       ctx_.run_core();
       probe.append(frontend_.probe());
@@ -55,9 +55,9 @@ public:
     // that happened in this loop iteration.
     probe.mark(perf_metrics_key, 0, Clock::gettime(CLOCK_MONOTONIC));
 
-    while (!frontend_.window().done()) {
+    while (!frontend_.done()) {
       step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
-      step(probe, poll_window_events_key, [&] { frontend_.window().poll_events(); });
+      step(probe, poll_window_events_key, [&] { frontend_.poll_window_events();   });
       step(probe, frame_delay_key,        [&] { frontend_.frame_delay();          });
       step(probe, core_run_key,           [&] { run_core(probe);                  });
       step(probe, video_render_key,       [&] { frontend_.video_render();         });

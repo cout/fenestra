@@ -75,7 +75,9 @@ public:
     }
   }
 
-  auto & window() { return window_; }
+  bool paused() const { return window_.paused(); }
+  bool done() const { return window_.done(); }
+
   auto & gamepad() { return gamepad_; }
 
   void init(retro_system_av_info const & av) {
@@ -152,6 +154,10 @@ public:
     for (auto const & plugin : plugins_) {
       plugin->pre_frame_delay();
     }
+  }
+
+  void poll_window_events() {
+    window_.poll_events();
   }
 
   void frame_delay() {
