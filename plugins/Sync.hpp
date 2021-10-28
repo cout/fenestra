@@ -17,6 +17,7 @@ public:
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
     , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
+    , fence_sync_(config.fetch<bool>("sync.fence_sync", true))
     , probe_(&dummy_probe_)
   {
   }
@@ -46,6 +47,12 @@ public:
     glfwSwapInterval(vsync_ ? 1 : 0);
   }
 
+  virtual void video_rendered() override {
+    if (fence_sync_) {
+      fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    }
+  }
+
   virtual void pre_frame_delay() override {
     if (oml_sync_) {
       glXGetSyncValuesOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), &ust_, &msc_, &sbc_);
@@ -57,6 +64,10 @@ public:
   }
 
   virtual void window_refresh(State & state) override {
+    if (fence_sync_) {
+      glClientWaitSync(fence_, 0, 16700000);
+    }
+
     if (glfinish_draw_) {
       probe_->mark(glfinish_draw_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glFinish();
@@ -123,6 +134,7 @@ private:
   bool const & glfinish_sync_;
   bool const & oml_sync_;
   bool const & sgi_sync_;
+  bool const & fence_sync_;
 
   Probe::Key swap_key_;
   Probe::Key sync_key_;
@@ -135,6 +147,7 @@ private:
   std::int64_t msc_ = 0;
   std::int64_t sbc_ = 0;
   unsigned int vsc_ = 0;
+  GLsync fence_ = 0;
 };
 
 }

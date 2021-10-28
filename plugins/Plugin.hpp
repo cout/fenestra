@@ -29,6 +29,7 @@ public:
   virtual void set_geometry(Geometry const & geom) { }
   virtual void video_refresh(void const * data, unsigned int width, unsigned int height, std::size_t pitch) { }
   virtual void video_render() { }
+  virtual void video_rendered() { }
 
   virtual void window_created() { }
   virtual void window_refresh(State & state) { }
