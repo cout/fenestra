@@ -263,7 +263,7 @@ public:
     log_errors("GL");
   }
 
-  virtual void window_refreshed() override {
+  virtual void window_refreshed(State const & state) override {
     next_sync_query_idx_ = (sync_query_idx_ + 1) % sync_timers_.size();
     if (next_sync_query_idx_ != sync_result_idx_ && !sync_timers_[sync_query_idx_].running()) {
       flush_errors();

@@ -182,11 +182,11 @@ public:
 
   void window_refresh() {
     for (auto const & plugin : plugins_) {
-      plugin->window_refresh();
+      plugin->window_refresh(state_);
     }
 
     for (auto const & plugin : plugins_) {
-      plugin->window_refreshed();
+      plugin->window_refreshed(state_);
     }
   }
 

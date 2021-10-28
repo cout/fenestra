@@ -6,6 +6,7 @@
 #include "../Geometry.hpp"
 #include "../Core.hpp"
 #include "../Config.hpp"
+#include "../State.hpp"
 
 #include <cstddef>
 #include <cstdarg>
@@ -30,8 +31,8 @@ public:
   virtual void video_render() { }
 
   virtual void window_created() { }
-  virtual void window_refresh() { }
-  virtual void window_refreshed() { }
+  virtual void window_refresh(State & state) { }
+  virtual void window_refreshed(State const & state) { }
 
   virtual void pre_frame_delay() { }
   virtual void frame_delay() { }

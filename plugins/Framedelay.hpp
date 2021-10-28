@@ -12,6 +12,7 @@ class Framedelay
 public:
   Framedelay(Config const & config)
     : frame_delay_(config.fetch<Milliseconds>("framedelay.milliseconds", Milliseconds(4)))
+    , adaptive_(config.fetch<bool>("framedelay.adaptive", true))
     , nv_delay_before_swap_(config.fetch<bool>("framedelay.nv_delay_before_swap", false))
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
   {
@@ -80,7 +81,7 @@ public:
     }
   }
 
-  virtual void window_refreshed() override {
+  virtual void window_refreshed(State const & state) override {
     // TODO: I do not understand why the glFinish call is needed here;
     // without it, sync latency shows as 15.8ms, but with it, sync
     // latency is close to 16.67ms - frame_delay.
@@ -89,12 +90,17 @@ public:
     }
 
     auto now = Clock::gettime(CLOCK_MONOTONIC);
-    next_delay_time_ = now + frame_delay_;
+    if (adaptive_) {
+      next_delay_time_ = state.synchronized ? now + frame_delay_ : now;
+    } else {
+      next_delay_time_ = now + frame_delay_;
+    }
     last_refresh_ = now;
   }
 
 private:
   Milliseconds const & frame_delay_;
+  bool const & adaptive_;
   bool & nv_delay_before_swap_;
   bool & glfinish_sync_;
 

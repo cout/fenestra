@@ -56,7 +56,7 @@ public:
     }
   }
 
-  virtual void window_refresh() override {
+  virtual void window_refresh(State & state) override {
     if (glfinish_draw_) {
       probe_->mark(glfinish_draw_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glFinish();
@@ -83,7 +83,8 @@ public:
       if (adaptive_sync_) {
         unsigned int vsc = vsc_;
         glXGetVideoSyncSGI(&vsc);
-        if (vsc < vsc_ + 1) {
+        state.synchronized = vsc < vsc_ + 1;
+        if (state.synchronized) {
           glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc);
         }
         vsc_ = vsc;
