@@ -63,7 +63,7 @@ public:
     }
   }
 
-  virtual void window_refresh(State & state) override {
+  virtual void window_refresh() override {
     if (fence_sync_) {
       glClientWaitSync(fence_, 0, 16700000);
     }
@@ -88,9 +88,19 @@ public:
     } else if (sgi_sync_) {
       probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
-      auto now = Clock::gettime(CLOCK_MONOTONIC);
-      probe_->mark(swap_key_, Probe::END, 1, now);
-      probe_->mark(sync_key_, Probe::START, 1, now);
+      probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
+    } else {
+      // TODO: This should be glfwSwapBuffers for maximum compatibility,
+      // but we need access to the Window object
+      probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
+      glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
+      probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
+    }
+  }
+
+  virtual void window_sync(State & state) override {
+    if (sgi_sync_) {
+      probe_->mark(sync_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       if (adaptive_sync_) {
         unsigned int vsc = vsc_;
         glXGetVideoSyncSGI(&vsc);
@@ -103,12 +113,6 @@ public:
         glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc_);
       }
       probe_->mark(sync_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
-    } else {
-      // TODO: This should be glfwSwapBuffers for maximum compatibility,
-      // but we need access to the Window object
-      probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
-      glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
-      probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
 
     // TODO: The glFinish is required to make glXDelayBeforeSwapNV work

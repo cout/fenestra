@@ -81,7 +81,7 @@ public:
     }
   }
 
-  virtual void window_refreshed(State const & state) override {
+  virtual void window_synced(State const & state) override {
     // TODO: I do not understand why the glFinish call is needed here;
     // without it, sync latency shows as 15.8ms, but with it, sync
     // latency is close to 16.67ms - frame_delay.
