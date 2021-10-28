@@ -4,6 +4,7 @@
 #include "Geometry.hpp"
 #include "Clock.hpp"
 #include "Core.hpp"
+#include "State.hpp"
 
 #include <epoxy/glx.h>
 
@@ -53,10 +54,13 @@ public:
               << " Version: "   << glGetString(GL_VERSION) << std::endl;
   }
 
-  void poll_events() {
+  void poll_events(State & state) {
     current_ = this;
 
     glfwPollEvents();
+
+    state.paused = paused();
+    state.done = done();
   }
 
   bool done() const {

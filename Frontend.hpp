@@ -75,8 +75,8 @@ public:
     }
   }
 
-  bool paused() const { return window_.paused(); }
-  bool done() const { return window_.done(); }
+  bool paused() const { return state_.paused; }
+  bool done() const { return state_.done; }
 
   void init(retro_system_av_info const & av) {
     Geometry geom(av.geometry, config_.scale_factor());
@@ -155,7 +155,7 @@ public:
   }
 
   void poll_window_events() {
-    window_.poll_events();
+    window_.poll_events(state_);
   }
 
   void frame_delay() {
@@ -219,6 +219,9 @@ public:
 private:
   Config const & config_;
   Core & core_;
+
+  State state_;
+
   Window window_;
   Registry registry_;
   Gamepad gamepad_;
