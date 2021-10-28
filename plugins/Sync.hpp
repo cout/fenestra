@@ -31,6 +31,18 @@ public:
   }
 
   virtual void window_created() override {
+    if (sgi_sync_) {
+      if (!epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_SGI_video_sync")) {
+        sgi_sync_ = false;
+        if (vsync_) {
+          std::cout << "GLX_SGI_video_sync not found; not using sgi_sync" << std::endl;
+        } else {
+          vsync_ = true;
+          std::cout << "GLX_SGI_video_sync not found; using vsync instead" << std::endl;
+        }
+      }
+    }
+
     if (vsync_ && adaptive_sync_) {
       if (epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_EXT_swap_control_tear")) {
         glfwSwapInterval(-1);
@@ -132,12 +144,12 @@ public:
   }
 
 private:
-  bool const & vsync_;
+  bool & vsync_;
   bool const & adaptive_sync_;
   bool const & glfinish_draw_;
   bool const & glfinish_sync_;
   bool const & oml_sync_;
-  bool const & sgi_sync_;
+  bool & sgi_sync_;
   bool const & fence_sync_;
 
   Probe::Key swap_key_;
