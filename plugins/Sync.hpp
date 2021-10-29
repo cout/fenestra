@@ -13,12 +13,12 @@ public:
   Sync(Config const & config)
     : vsync_(config.fetch<bool>("sync.vsync", true))
     , adaptive_sync_(config.fetch<bool>("sync.adaptive", true))
-    , glfinish_draw_(config.fetch<bool>("sync.glfinish_draw", false))
+    , delay_with_fence_(config.fetch<bool>("sync.delay.fence", true))
+    , delay_with_glfinish_(config.fetch<bool>("sync.delay.glfinish", false))
+    , delay_with_nanosleep_(config.fetch<bool>("sync.delay.nanosleep", false))
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
     , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
-    , fence_sync_(config.fetch<bool>("sync.fence_sync", true))
-    , swap_delay_(config.fetch<bool>("sync.swap_delay", false))
     , probe_(&dummy_probe_)
   {
   }
@@ -59,7 +59,7 @@ public:
   }
 
   virtual void video_rendered() override {
-    if (fence_sync_) {
+    if (delay_with_fence_) {
       fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
   }
@@ -78,17 +78,17 @@ public:
     auto next_sync_time = last_sync_time_ + Milliseconds(16.7);
     auto delay_time = next_sync_time - Milliseconds(2.0);
 
-    if (fence_sync_) {
+    if (delay_with_fence_) {
       auto now = Clock::gettime(CLOCK_MONOTONIC);
       auto duration = delay_time > now ? (delay_time - now).count() : 0;
       glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, duration);
     }
 
-    if (glfinish_draw_) {
+    if (delay_with_glfinish_) {
       glFinish();
     }
 
-    if (swap_delay_) {
+    if (delay_with_nanosleep_) {
       glFlush();
       if (synchronized_) {
         Clock::nanosleep_until(delay_time, CLOCK_MONOTONIC);
@@ -154,12 +154,12 @@ public:
 private:
   bool & vsync_;
   bool const & adaptive_sync_;
-  bool const & glfinish_draw_;
+  bool const & delay_with_fence_;
+  bool const & delay_with_glfinish_;
+  bool const & delay_with_nanosleep_;
   bool const & glfinish_sync_;
   bool const & oml_sync_;
   bool & sgi_sync_;
-  bool const & fence_sync_;
-  bool const & swap_delay_;
 
   Probe::Key sync_key_;
   Probe::Key glfinish_sync_key_;
