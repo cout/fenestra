@@ -180,13 +180,13 @@ public:
     }
   }
 
-  void window_refresh() {
+  void window_update() {
     for (auto const & plugin : plugins_) {
-      plugin->window_refresh();
+      plugin->window_update();
     }
 
     for (auto const & plugin : plugins_) {
-      plugin->window_refreshed();
+      plugin->window_updated();
     }
   }
 

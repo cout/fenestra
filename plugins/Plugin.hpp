@@ -32,8 +32,9 @@ public:
   virtual void video_rendered() { }
 
   virtual void window_created() { }
-  virtual void window_refresh() { }
-  virtual void window_refreshed() { }
+
+  virtual void window_update() { }
+  virtual void window_updated() { }
 
   virtual void window_sync(State & state) { }
   virtual void window_synced(State const & state) { }

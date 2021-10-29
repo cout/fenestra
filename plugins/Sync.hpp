@@ -77,7 +77,7 @@ public:
     }
   }
 
-  virtual void window_refresh() override {
+  virtual void window_update() override {
     if (fence_sync_) {
       glClientWaitSync(fence_, 0, 16700000);
     }
