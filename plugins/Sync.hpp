@@ -25,10 +25,7 @@ public:
 
   virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) {
     probe_ = &probe;
-    swap_key_ = dictionary["Swap buffers"];
     sync_key_ = dictionary["Sync"];
-    glfinish_draw_key_ = dictionary["Glfinish draw"];
-    swap_delay_key_ = dictionary["Swap delay"];
     glfinish_sync_key_ = dictionary["Glfinish sync"];
   }
 
@@ -83,23 +80,18 @@ public:
     }
 
     if (glfinish_draw_) {
-      probe_->mark(glfinish_draw_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       glFinish();
-      probe_->mark(glfinish_draw_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
 
     if (swap_delay_) {
       glFlush();
-      probe_->mark(swap_delay_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
       if (synchronized_) {
         Clock::nanosleep_until(last_sync_time_ + Milliseconds(16.7) - Milliseconds(2.0), CLOCK_MONOTONIC);
       }
-      probe_->mark(swap_delay_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
   }
 
   virtual void window_update() override {
-    probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (oml_sync_) {
       // TODO: Obviously this is not ideal.  One problem is we don't
       // know how long it takes to swap buffers, so we can't push the
@@ -116,7 +108,6 @@ public:
       // but we need access to the Window object
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
     }
-    probe_->mark(swap_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
   }
 
   virtual void window_sync(State & state) override {
@@ -165,10 +156,7 @@ private:
   bool const & fence_sync_;
   bool const & swap_delay_;
 
-  Probe::Key swap_key_;
   Probe::Key sync_key_;
-  Probe::Key glfinish_draw_key_;
-  Probe::Key swap_delay_key_;
   Probe::Key glfinish_sync_key_;
   Probe dummy_probe_;
   Probe * probe_;
