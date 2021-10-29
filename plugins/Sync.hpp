@@ -13,7 +13,7 @@ public:
   Sync(Config const & config)
     : vsync_(config.fetch<bool>("sync.vsync", true))
     , adaptive_sync_(config.fetch<bool>("sync.adaptive", true))
-    , delay_with_fence_(config.fetch<bool>("sync.delay.fence", true))
+    , delay_with_fence_(config.fetch<bool>("sync.delay.fence", false))
     , delay_with_glfinish_(config.fetch<bool>("sync.delay.glfinish", false))
     , delay_with_nanosleep_(config.fetch<bool>("sync.delay.nanosleep", false))
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
