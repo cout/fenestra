@@ -15,12 +15,19 @@ public:
     , adaptive_sync_(config.fetch<bool>("sync.adaptive", true))
     , delay_with_fence_(config.fetch<bool>("sync.delay.fence", false))
     , delay_with_glfinish_(config.fetch<bool>("sync.delay.glfinish", false))
+    , delay_with_query_object_(config.fetch<bool>("sync.delay.query_object", false))
     , delay_with_nanosleep_(config.fetch<bool>("sync.delay.nanosleep", false))
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
     , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
     , probe_(&dummy_probe_)
   {
+  }
+
+  ~Sync() {
+    if (query_id_ != 0) {
+      glDeleteQueries(1, &query_id_);
+    }
   }
 
   virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) {
@@ -30,6 +37,13 @@ public:
   }
 
   virtual void window_created() override {
+    if (delay_with_query_object_) {
+      glGenQueries(1, &query_id_);
+      if (query_id_ == 0) {
+        throw std::runtime_error("glGenQueries failed");
+      }
+    }
+
     if (sgi_sync_) {
       if (!epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_SGI_video_sync")) {
         sgi_sync_ = false;
@@ -86,6 +100,20 @@ public:
 
     if (delay_with_glfinish_) {
       glFinish();
+    }
+
+    if (delay_with_query_object_) {
+      glQueryCounter(query_id_, GL_TIMESTAMP);
+
+      GLint available = 0;
+      glGetQueryObjectiv(query_id_, GL_QUERY_RESULT_AVAILABLE, &available);
+      while (!available && Clock::gettime(CLOCK_MONOTONIC) < delay_time) {
+        Clock::nanosleep(Milliseconds(0.1), CLOCK_MONOTONIC);
+        glGetQueryObjectiv(query_id_, GL_QUERY_RESULT_AVAILABLE, &available);
+      }
+
+      GLint64 timestamp;
+      glGetQueryObjecti64v(query_id_, GL_QUERY_RESULT, &timestamp);
     }
 
     if (delay_with_nanosleep_) {
@@ -156,6 +184,7 @@ private:
   bool const & adaptive_sync_;
   bool const & delay_with_fence_;
   bool const & delay_with_glfinish_;
+  bool const & delay_with_query_object_;
   bool const & delay_with_nanosleep_;
   bool const & glfinish_sync_;
   bool const & oml_sync_;
@@ -171,6 +200,7 @@ private:
   std::int64_t sbc_ = 0;
   unsigned int vsc_ = 0;
   GLsync fence_ = 0;
+  GLuint query_id_ = 0;
 
   Timestamp last_sync_time_ = Timestamp::zero();
   bool synchronized_ = true;
