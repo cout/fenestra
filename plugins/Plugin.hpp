@@ -33,6 +33,7 @@ public:
 
   virtual void window_created() { }
 
+  virtual void window_update_delay() { }
   virtual void window_update() { }
   virtual void window_updated() { }
 

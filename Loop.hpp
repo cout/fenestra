@@ -45,6 +45,7 @@ public:
     auto frame_delay_key = frontend_.probe_dict()["Frame delay"];
     auto core_run_key = frontend_.probe_dict()["Core run"];
     auto video_render_key = frontend_.probe_dict()["Video render"];
+    auto window_update_delay_key = frontend_.probe_dict()["Update delay"];
     auto window_update_key = frontend_.probe_dict()["Window update"];
     auto window_sync_key = frontend_.probe_dict()["Window sync"];
 
@@ -57,13 +58,14 @@ public:
     probe.mark(perf_metrics_key, 0, Clock::gettime(CLOCK_MONOTONIC));
 
     while (!frontend_.done()) {
-      step(probe, pre_frame_delay_key,    [&] { frontend_.pre_frame_delay();      });
-      step(probe, poll_window_events_key, [&] { frontend_.poll_window_events();   });
-      step(probe, frame_delay_key,        [&] { frontend_.frame_delay();          });
-      step(probe, core_run_key,           [&] { run_core(probe);                  });
-      step(probe, video_render_key,       [&] { frontend_.video_render();         });
-      step(probe, window_update_key,      [&] { frontend_.window_update();        });
-      step(probe, window_sync_key,        [&] { frontend_.window_sync();          });
+      step(probe, pre_frame_delay_key,     [&] { frontend_.pre_frame_delay();     });
+      step(probe, poll_window_events_key,  [&] { frontend_.poll_window_events();  });
+      step(probe, frame_delay_key,         [&] { frontend_.frame_delay();         });
+      step(probe, core_run_key,            [&] { run_core(probe);                 });
+      step(probe, video_render_key,        [&] { frontend_.video_render();        });
+      step(probe, window_update_delay_key, [&] { frontend_.window_update_delay(); });
+      step(probe, window_update_key,       [&] { frontend_.window_update();       });
+      step(probe, window_sync_key,         [&] { frontend_.window_sync();         });
 
       auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
       probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);

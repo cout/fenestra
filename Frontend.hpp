@@ -180,6 +180,12 @@ public:
     }
   }
 
+  void window_update_delay() {
+    for (auto const & plugin : plugins_) {
+      plugin->window_update_delay();
+    }
+  }
+
   void window_update() {
     for (auto const & plugin : plugins_) {
       plugin->window_update();

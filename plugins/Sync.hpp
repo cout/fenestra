@@ -77,7 +77,7 @@ public:
     }
   }
 
-  virtual void window_update() override {
+  virtual void window_update_delay() override {
     if (fence_sync_) {
       glClientWaitSync(fence_, 0, 16700000);
     }
@@ -96,7 +96,9 @@ public:
       }
       probe_->mark(swap_delay_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
+  }
 
+  virtual void window_update() override {
     probe_->mark(swap_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
     if (oml_sync_) {
       // TODO: Obviously this is not ideal.  One problem is we don't
