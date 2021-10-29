@@ -75,8 +75,13 @@ public:
   }
 
   virtual void window_update_delay() override {
+    auto next_sync_time = last_sync_time_ + Milliseconds(16.7);
+    auto delay_time = next_sync_time - Milliseconds(2.0);
+
     if (fence_sync_) {
-      glClientWaitSync(fence_, 0, 16700000);
+      auto now = Clock::gettime(CLOCK_MONOTONIC);
+      auto duration = delay_time > now ? (delay_time - now).count() : 0;
+      glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, duration);
     }
 
     if (glfinish_draw_) {
@@ -86,7 +91,7 @@ public:
     if (swap_delay_) {
       glFlush();
       if (synchronized_) {
-        Clock::nanosleep_until(last_sync_time_ + Milliseconds(16.7) - Milliseconds(2.0), CLOCK_MONOTONIC);
+        Clock::nanosleep_until(delay_time, CLOCK_MONOTONIC);
       }
     }
   }
