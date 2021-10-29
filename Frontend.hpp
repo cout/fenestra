@@ -178,6 +178,10 @@ public:
     for (auto const & plugin : plugins_) {
       plugin->video_render();
     }
+
+    for (auto const & plugin : plugins_) {
+      plugin->video_rendered();
+    }
   }
 
   void window_update_delay() {
