@@ -23,6 +23,9 @@ public:
     , core_(core)
     , config_(config)
   {
+    SDL_JoystickEventState(SDL_IGNORE);
+    SDL_GameControllerEventState(SDL_IGNORE);
+    SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
   }
 
   ~Window() {

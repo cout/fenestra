@@ -26,8 +26,6 @@ public:
       SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
     }
 
-    SDL_GameControllerEventState(SDL_IGNORE);
-
     gamecontroller_ = SDL_GameControllerOpen(index);
   }
 
