@@ -58,7 +58,7 @@ public:
 
     if (vsync_ && adaptive_sync_) {
       if (epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_EXT_swap_control_tear")) {
-        glfwSwapInterval(-1);
+        SDL_GL_SetSwapInterval(-1);
         return;
       } else {
         std::cout << "GLX_EXT_swap_control_tear not found; not using adaptive vsync" << std::endl;
@@ -69,7 +69,7 @@ public:
     // rate or using audio sync.  The portaudio plugin does blocking, so
     // it will sync, but the pulseaudio plugin does not block, so it
     // will not sync.
-    glfwSwapInterval(vsync_ ? 1 : 0);
+    SDL_GL_SetSwapInterval(vsync_ ? 1 : 0);
   }
 
   virtual void video_rendered() override {
@@ -137,8 +137,7 @@ public:
     } else if (sgi_sync_) {
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
     } else {
-      // TODO: This should be glfwSwapBuffers for maximum compatibility,
-      // but we need access to the Window object
+      // TODO: Do something more portable here
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
     }
   }

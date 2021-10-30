@@ -2,9 +2,9 @@
 
 #include "Config.hpp"
 
-#include <vector>
+#include <SDL_gamecontroller.h>
 
-#include <GLFW/glfw3.h>
+#include <vector>
 
 namespace fenestra {
 
@@ -19,10 +19,16 @@ private:
 
 class Gamepad {
 public:
-  Gamepad(Config const & config, unsigned int joystick = 0)
+  Gamepad(Config const & config, unsigned int index = 0)
     : config_(config)
-    , joystick_(joystick)
   {
+    if (SDL_WasInit(SDL_INIT_GAMECONTROLLER) != 1) {
+      SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
+    }
+
+    SDL_GameControllerEventState(SDL_IGNORE);
+
+    gamecontroller_ = SDL_GameControllerOpen(index);
   }
 
   virtual std::string_view name() const { return "Gamepad"; }
@@ -30,21 +36,20 @@ public:
   auto const & state() const { return state_; }
 
   void poll_input() {
-    GLFWgamepadstate state;
+    SDL_GameControllerUpdate();
 
-    if (glfwGetGamepadState(joystick_, &state)) {
-      for (auto const & binding : config_.button_bindings()) {
-        auto pressed = state.buttons[binding.button];
-        state_.pressed()[binding.retro_button] = pressed;
-      }
-
-      for (auto const & binding : config_.axis_bindings()) {
-        auto pos = state.axes[binding.axis];
-        auto thresh = binding.threshold;
-        auto pressed = thresh > 0 ? pos >= thresh : pos <= thresh;
-        state_.pressed()[binding.retro_button] = pressed;
-      }
-    }
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_A] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_B);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_B] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_A);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_X] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_Y);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_Y] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_X);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_L] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_R] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_SELECT] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_GUIDE);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_START] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_START);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_UP] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_DPAD_UP);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_DOWN] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_LEFT] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+    state_.pressed()[RETRO_DEVICE_ID_JOYPAD_RIGHT] = SDL_GameControllerGetButton(gamecontroller_, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
   }
 
   bool pressed(unsigned int id) {
@@ -53,7 +58,7 @@ public:
 
 private:
   Config const & config_;
-  unsigned int joystick_;
+  SDL_GameController * gamecontroller_ = nullptr;
   InputState state_;
 };
 

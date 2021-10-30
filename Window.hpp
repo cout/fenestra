@@ -8,11 +8,7 @@
 
 #include <epoxy/glx.h>
 
-#include <GLFW/glfw3.h>
-
-#define GLFW_EXPOSE_NATIVE_X11
-#define GLFW_EXPOSE_NATIVE_GLX
-#include <GLFW/glfw3native.h>
+#include <SDL.h>
 
 #include <memory>
 #include <string>
@@ -27,27 +23,23 @@ public:
     , core_(core)
     , config_(config)
   {
-    if (!glfwInit()) {
-      throw std::runtime_error("glfwInit failed");
-    }
   }
 
   ~Window() {
-    glfwTerminate();
   }
 
   void init(Geometry const & geom) {
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-    if (!(win_ = glfwCreateWindow(geom.scaled_width(), geom.scaled_height(), title_.c_str(), nullptr, nullptr))) {
-      throw std::runtime_error("Failed to create window.");
+    win_ = SDL_CreateWindow("sdlarch", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, geom.scaled_width(), geom.scaled_height(), SDL_WINDOW_OPENGL);
+    if (!win_) {
+      throw std::runtime_error("SDL_CreateWindow failed");
     }
 
-    glfwSetKeyCallback(win_, key_callback_);
+    ctx_ = SDL_GL_CreateContext(win_);
+    if (!ctx_) {
+      throw std::runtime_error("SDL_GL_CreateContext failed");
+    }
 
-    glfwMakeContextCurrent(win_);
+    SDL_GL_MakeCurrent(win_, ctx_);
 
     std::cout << "GL: Vendor: " << glGetString(GL_VENDOR)
               << " Renderer: "  << glGetString(GL_RENDERER)
@@ -55,31 +47,33 @@ public:
   }
 
   void poll_events(State & state) {
-    current_ = this;
+    SDL_Event ev;
+    while (SDL_PollEvent(&ev)) {
+      switch(ev.type) {
+        case SDL_QUIT:
+          done_ = true;
+          break;
 
-    glfwPollEvents();
+        case SDL_WINDOWEVENT:
+          switch(ev.window.event) {
+            case SDL_WINDOWEVENT_CLOSE:
+              done_ = true;
+              break;
+          }
+
+        case SDL_KEYDOWN:
+          key_pressed(ev.key.keysym.sym, ev.key.keysym.scancode, ev.key.keysym.mod);
+      }
+    }
 
     state.paused = paused();
     state.done = done();
   }
 
-  bool done() const {
-    return glfwWindowShouldClose(win_);
-  }
-
   bool paused() const { return paused_; }
+  bool done() const { return done_; }
 
 private:
-  static void key_callback_(GLFWwindow * window, int key, int scancode, int action, int mods) {
-    current_->key_callback(key, scancode, action, mods);
-  }
-
-  void key_callback(int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS) {
-      key_pressed(key, scancode, mods);
-    }
-  }
-
   void key_pressed(int key, int scancode, int mods) {
     // TODO: This is quick&dirty, but I think there should be some sort
     // of event system, rather than having the Window know about the
@@ -99,9 +93,9 @@ private:
     auto now = Clock::gettime(CLOCK_REALTIME);
 
     switch(key) {
-      case GLFW_KEY_ESCAPE:
+      case SDLK_ESCAPE:
         if (close_requested_ && now - close_requested_time_ < Seconds(1)) {
-          glfwSetWindowShouldClose(win_, true);
+          done_ = true;
           close_requested_ = false;
         } else {
           std::cout << "Close requested, press ESC within 1s to confirm" << std::endl;
@@ -110,7 +104,7 @@ private:
         }
         break;
 
-      case GLFW_KEY_R:
+      case SDLK_r:
         if (reset_requested_ && now - reset_requested_time_ < Seconds(1)) {
           core_.reset();
           reset_requested_ = false;
@@ -121,7 +115,7 @@ private:
         }
         break;
 
-      case GLFW_KEY_P:
+      case SDLK_p:
         // TODO: Stop audio when emulator is paused, otherwise we get
         // underflow errors
         paused_ = !paused_;
@@ -136,7 +130,8 @@ private:
   std::string title_;
   Core & core_;
   Config const & config_;
-  GLFWwindow * win_ = nullptr;
+  SDL_Window * win_ = NULL;
+  SDL_GLContext ctx_ = NULL;
 
   bool close_requested_ = false;
   Timestamp close_requested_time_;
@@ -145,6 +140,7 @@ private:
   Timestamp reset_requested_time_;
 
   bool paused_ = false;
+  bool done_ = false;
 };
 
 }
