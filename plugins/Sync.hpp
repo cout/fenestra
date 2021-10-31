@@ -17,6 +17,7 @@ public:
     , delay_with_glfinish_(config.fetch<bool>("sync.delay.glfinish", false))
     , delay_with_query_object_(config.fetch<bool>("sync.delay.query_object", false))
     , delay_with_nanosleep_(config.fetch<bool>("sync.delay.nanosleep", false))
+    , delay_margin_(config.fetch<float>("sync.delay.magin", 2.0f))
     , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
     , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
     , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
@@ -89,8 +90,8 @@ public:
   }
 
   virtual void window_update_delay() override {
-    auto next_sync_time = last_sync_time_ + Milliseconds(16.7);
-    auto delay_time = next_sync_time - Milliseconds(2.0);
+    auto next_sync_time = last_sync_time_ + Milliseconds(16.667);
+    auto delay_time = next_sync_time - Milliseconds(delay_margin_);
 
     if (delay_with_fence_) {
       auto now = Clock::gettime(CLOCK_MONOTONIC);
@@ -182,6 +183,7 @@ private:
   bool const & delay_with_glfinish_;
   bool const & delay_with_query_object_;
   bool const & delay_with_nanosleep_;
+  float const & delay_margin_;
   bool const & glfinish_sync_;
   bool const & oml_sync_;
   bool & sgi_sync_;
