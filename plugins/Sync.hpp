@@ -126,13 +126,9 @@ public:
 
   virtual void window_update() override {
     if (oml_sync_) {
-      // TODO: Obviously this is not ideal.  One problem is we don't
-      // know how long it takes to swap buffers, so we can't push the
-      // frame delay too for or we might miss deadline for swapping even
-      // if we attempt to swap before the vertical retrace.
-      //
-      // This also doesn't achieve the goal of preferring visual
-      // artifacts over jitter.
+      // TODO: I do not have hardware to test this on; it should
+      // probably be updated to work similar to glXGetVideoSyncSGI with
+      // adaptive_sync_.
       glXSwapBuffersMscOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), msc_ + 1, 0, 0);
     } else if (sgi_sync_) {
       glXSwapBuffers(glXGetCurrentDisplay(), glXGetCurrentDrawable());
