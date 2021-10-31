@@ -75,6 +75,7 @@ public:
 
   virtual void video_rendered() override {
     if (delay_with_fence_) {
+      if (fence_) glDeleteSync(fence_);
       fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
   }
