@@ -513,7 +513,7 @@ private:
   FTGLPixmapFont font_;
   GLFWwindow * win_ = nullptr;
 
-  std::uint32_t width_ = 768;
+  std::uint32_t width_ = 752;
   std::uint32_t height_ = 900;
   std::uint64_t last_time_ = 0;
   bool need_redraw_ = false;
