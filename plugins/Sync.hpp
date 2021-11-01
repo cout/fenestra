@@ -77,6 +77,7 @@ public:
     if (delay_with_fence_) {
       if (fence_) glDeleteSync(fence_);
       fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+      glFlush();
     }
   }
 
@@ -97,7 +98,7 @@ public:
     if (delay_with_fence_) {
       auto now = Clock::gettime(CLOCK_MONOTONIC);
       auto duration = delay_time > now ? (delay_time - now).count() : 0;
-      glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, duration);
+      glClientWaitSync(fence_, 0, duration);
     }
 
     if (delay_with_glfinish_) {
