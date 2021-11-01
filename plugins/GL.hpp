@@ -229,16 +229,18 @@ public:
     if (!sync_latency_key_) { sync_latency_key_ = dictionary.define("Sync latency", 1000); }
 
     auto render_latency_ns = render_timers_[render_result_idx_].duration();
-    if (render_latency_ns != Nanoseconds::zero()) {
+    while (render_latency_ns != Nanoseconds::zero()) {
       renders_to_sync_.push_back(render_timers_[render_result_idx_].stop_time());
 
       render_timers_[render_result_idx_].reset();
       render_result_idx_ = (render_result_idx_ + 1) % render_timers_.size();
+
+      render_latency_ns = render_timers_[render_result_idx_].duration();
     }
 
     auto sync_latency_ns = Nanoseconds::zero();
     auto sync_duration_ns = sync_timers_[sync_result_idx_].duration();
-    if (sync_duration_ns != Nanoseconds::zero()) {
+    while (sync_duration_ns != Nanoseconds::zero()) {
       // Find the most recent rendered-but-unsynchronized frame before
       // the sync time and assume that is the frame that was copied.
       //
@@ -252,6 +254,8 @@ public:
 
       sync_timers_[sync_result_idx_].reset();
       sync_result_idx_ = (sync_result_idx_ + 1) % sync_timers_.size();
+
+      sync_duration_ns = sync_timers_[sync_result_idx_].duration();
     }
 
     Probe::Value render_latency = render_latency_ns.count() / 1000;
