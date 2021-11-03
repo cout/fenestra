@@ -64,7 +64,7 @@ public:
     sync(saveram_->data(), saveram_->size());
   }
 
-  virtual void pre_frame_delay() override {
+  virtual void pre_frame_delay(State const & state) override {
     sync_if_changed(saveram_->data(), saveram_->size());
   }
 

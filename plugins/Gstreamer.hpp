@@ -103,7 +103,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() override {
+  virtual void pre_frame_delay(State const & state) override {
     if (buf_ && appsrc_) {
       Glib::RefPtr<Gst::Buffer> buf(buf_.release());
       auto ret = appsrc_->push_buffer(buf);

@@ -81,7 +81,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() override {
+  virtual void pre_frame_delay(State const & state) override {
     if (oml_sync_) {
       glXGetSyncValuesOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), &ust_, &msc_, &sbc_);
     } else if (sgi_sync_) {

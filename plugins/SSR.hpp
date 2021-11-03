@@ -74,7 +74,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() {
+  virtual void pre_frame_delay(State const & state) {
     if (!ssr_) return;
 
     bool captured = ptr_;

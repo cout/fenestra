@@ -54,7 +54,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() override {
+  virtual void pre_frame_delay(State const & state) override {
     poll();
   }
 

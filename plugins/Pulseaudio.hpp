@@ -61,7 +61,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() override {
+  virtual void pre_frame_delay(State const & state) override {
     int ret;
     while (pa_mainloop_iterate(loop_, false, &ret) > 0) { }
 

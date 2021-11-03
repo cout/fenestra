@@ -96,7 +96,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() {
+  virtual void pre_frame_delay(State const & state) {
     if (fd_ < 0) {
       return;
     }

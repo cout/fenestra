@@ -20,7 +20,14 @@ public:
     }
   }
 
-  virtual void pre_frame_delay() override {
+  virtual void pre_frame_delay(State const & state) override {
+    if (!state.paused) {
+      reset_screensaver();
+    }
+  }
+
+private:
+  void reset_screensaver() {
     if (xresetscreensaver_) {
       auto * dpy = glXGetCurrentDisplay();
       if (dpy) {
