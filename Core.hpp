@@ -4,11 +4,13 @@
 
 #include "DL.hpp"
 
+#include <string>
+
 namespace fenestra {
 
 class Core {
 public:
-  Core(const char * sofile)
+  Core(std::string const & sofile)
     : dl_(sofile, RTLD_LAZY)
   {
     *(void **)&set_environment = dl_.sym("retro_set_environment");

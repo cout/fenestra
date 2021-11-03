@@ -21,6 +21,8 @@
 #include "plugins/Netcmds.hpp"
 #include "plugins/Rusage.hpp"
 
+#include "popl.hpp"
+
 #include <iostream>
 
 int main(int argc, char *argv[]) {
@@ -28,13 +30,21 @@ int main(int argc, char *argv[]) {
 
   Gst::init(argc, argv);
 
-  if (argc < 3) {
-    std::stringstream strm;
-    strm << "usage: " << argv[0] << " <core> <game>";
-    throw std::runtime_error(strm.str());
+  popl::OptionParser op("Allowed options");
+  auto core_option = op.add<popl::Value<std::string>>("", "core", "Path to libretro core");
+  auto game_option = op.add<popl::Value<std::string>>("", "game", "Path to game to load");
+  auto help_option = op.add<popl::Switch>("h", "help", "Show this help message");
+  op.parse(argc, argv);
+
+  if (help_option->is_set()) {
+    std::cout << op << std::endl;
+    return 0;
   }
 
-  Core core(argv[1]);
+  auto core_filename = core_option->value();
+  auto game_filename = game_option->value();
+
+  Core core(core_filename);
 
   Config config("fenestra.cfg");
   Frontend frontend("Fenestra", core, config);
@@ -55,7 +65,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Rusage>("rusage");
 
   Context ctx(frontend, core, config);
-  ctx.load_game(argv[2]);
+  ctx.load_game(game_filename);
   ctx.init();
 
   Loop loop(frontend, ctx);
