@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
   popl::OptionParser op("Allowed options");
   auto core_option = op.add<popl::Value<std::string>>("", "core", "Path to libretro core");
   auto game_option = op.add<popl::Value<std::string>>("", "game", "Path to game to load");
+  auto config_option = op.add<popl::Value<std::string>>("", "config", "Path to config file", "fenestra.cfg");
   auto help_option = op.add<popl::Switch>("h", "help", "Show this help message");
   op.parse(argc, argv);
 
@@ -44,9 +45,10 @@ int main(int argc, char *argv[]) {
   auto core_filename = core_option->value();
   auto game_filename = game_option->value();
 
+  Config config(config_option->value());
+
   Core core(core_filename);
 
-  Config config("fenestra.cfg");
   Frontend frontend("Fenestra", core, config);
 
   frontend.add_plugin<Logger>("logger");
