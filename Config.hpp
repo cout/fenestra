@@ -14,6 +14,7 @@
 #include <fstream>
 #include <functional>
 #include <memory>
+#include <iostream>
 
 namespace fenestra {
 
@@ -88,6 +89,7 @@ public:
         auto cfg_value = find(&cfg, name);
         if (cfg_value) {
           assign(setting->value, *cfg_value);
+          log_value(name, setting->value);
         }
       });
       setters_.back()(cfg_);
@@ -173,6 +175,23 @@ private:
 
   static void assign(Milliseconds & dest, Json::Value const & src) {
     dest = Milliseconds(src.asDouble());
+  }
+
+  template <typename T>
+  static void log_value(std::string const & name, std::vector<T> const & value) {
+  }
+
+  template <typename T>
+  static void log_value(std::string const & name, std::set<T> const & value) {
+  }
+
+  static void log_value(std::string const & name, Milliseconds const & value) {
+    std::cout << "[INFO config] " << name << ": " << value.count() << std::endl;
+  }
+
+  template <typename T>
+  static void log_value(std::string const & name, T const & value) {
+    std::cout << "[INFO config] " << name << ": " << value << std::endl;
   }
 
 private:
