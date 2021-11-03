@@ -12,33 +12,37 @@ class Core {
 public:
   Core(std::string const & sofile)
     : dl_(sofile, RTLD_LAZY)
+    , set_environment(dl_.sym<decltype(set_environment)>("retro_set_environment"))
+    , set_video_refresh(dl_.sym<decltype(set_video_refresh)>("retro_set_video_refresh"))
+    , set_audio_sample(dl_.sym<decltype(set_audio_sample)>("retro_set_audio_sample"))
+    , set_audio_sample_batch(dl_.sym<decltype(set_audio_sample_batch)>("retro_set_audio_sample_batch"))
+    , set_input_poll(dl_.sym<decltype(set_input_poll)>("retro_set_input_poll"))
+    , set_input_state(dl_.sym<decltype(set_input_state)>("retro_set_input_state"))
+    , init(dl_.sym<decltype(init)>("retro_init"))
+    , deinit(dl_.sym<decltype(deinit)>("retro_deinit"))
+    , api_version(dl_.sym<decltype(api_version)>("retro_api_version"))
+    , get_system_info(dl_.sym<decltype(get_system_info)>("retro_get_system_info"))
+    , get_system_av_info(dl_.sym<decltype(get_system_av_info)>("retro_get_system_av_info"))
+    , set_controller_port_device(dl_.sym<decltype(set_controller_port_device)>("retro_set_controller_port_device"))
+    , reset(dl_.sym<decltype(reset)>("retro_reset"))
+    , run(dl_.sym<decltype(run)>("retro_run"))
+    , serialize_size(dl_.sym<decltype(serialize_size)>("retro_serialize_size"))
+    , serialize(dl_.sym<decltype(serialize)>("retro_serialize"))
+    , unserialize(dl_.sym<decltype(unserialize)>("retro_unserialize"))
+    , cheat_reset(dl_.sym<decltype(cheat_reset)>("retro_cheat_reset"))
+    , cheat_set(dl_.sym<decltype(cheat_set)>("retro_cheat_set"))
+    , load_game(dl_.sym<decltype(load_game)>("retro_load_game"))
+    , unload_game(dl_.sym<decltype(unload_game)>("retro_unload_game"))
+    , get_region(dl_.sym<decltype(get_region)>("retro_get_region"))
+    , get_memory_data(dl_.sym<decltype(get_memory_data)>("retro_get_memory_data"))
+    , get_memory_size(dl_.sym<decltype(get_memory_size)>("retro_get_memory_size"))
   {
-    *(void **)&set_environment = dl_.sym("retro_set_environment");
-    *(void **)&set_video_refresh = dl_.sym("retro_set_video_refresh");
-    *(void **)&set_audio_sample = dl_.sym("retro_set_audio_sample");
-    *(void **)&set_audio_sample_batch = dl_.sym("retro_set_audio_sample_batch");
-    *(void **)&set_input_poll = dl_.sym("retro_set_input_poll");
-    *(void **)&set_input_state = dl_.sym("retro_set_input_state");
-    *(void **)&init = dl_.sym("retro_init");
-    *(void **)&deinit = dl_.sym("retro_deinit");
-    *(void **)&api_version = dl_.sym("retro_api_version");
-    *(void **)&get_system_info = dl_.sym("retro_get_system_info");
-    *(void **)&get_system_av_info = dl_.sym("retro_get_system_av_info");
-    *(void **)&set_controller_port_device = dl_.sym("retro_set_controller_port_device");
-    *(void **)&reset = dl_.sym("retro_reset");
-    *(void **)&run = dl_.sym("retro_run");
-    *(void **)&serialize_size = dl_.sym("retro_serialize_size");
-    *(void **)&serialize = dl_.sym("retro_serialize");
-    *(void **)&unserialize = dl_.sym("retro_unserialize");
-    *(void **)&cheat_reset = dl_.sym("retro_cheat_reset");
-    *(void **)&cheat_set = dl_.sym("retro_cheat_set");
-    *(void **)&load_game = dl_.sym("retro_load_game");
-    *(void **)&unload_game = dl_.sym("retro_unload_game");
-    *(void **)&get_region = dl_.sym("retro_get_region");
-    *(void **)&get_memory_data = dl_.sym("retro_get_memory_data");
-    *(void **)&get_memory_size = dl_.sym("retro_get_memory_size");
   }
 
+private:
+  DL dl_;
+
+public:
   decltype(::retro_set_environment) * set_environment;
   decltype(::retro_set_video_refresh) * set_video_refresh;
   decltype(::retro_set_audio_sample) * set_audio_sample;
@@ -63,9 +67,6 @@ public:
   decltype(::retro_get_region) * get_region;
   decltype(::retro_get_memory_data) * get_memory_data;
   decltype(::retro_get_memory_size) * get_memory_size;
-
-private:
-  DL dl_;
 };
 
 }
