@@ -9,8 +9,8 @@ namespace fenestra {
 
 class DL {
 public:
-  DL(std::string const & filename, int flag)
-    : handle_(dlopen(filename.c_str(), flag))
+  DL(char const * filename, int flag)
+    : handle_(dlopen(filename, flag))
   {
     if (!handle_)
     {   
@@ -18,6 +18,16 @@ public:
       strm << "dlopen failed: " << dlerror();
       throw std::runtime_error(strm.str());
     }   
+  }
+
+  DL(std::string const & filename, int flag)
+    : DL(filename.c_str(), flag)
+  {
+  }
+
+  DL(int flag)
+    : DL(nullptr, flag)
+  {
   }
 
   ~DL() {
@@ -32,9 +42,9 @@ public:
   auto handle() { return handle_; }
 
   template<typename P = void*>
-  P sym(std::string const & symbol) {
+  P sym(std::string const & symbol, bool throw_exception_on_failure = true) {
     void * p = dlsym(handle_, symbol.c_str());
-    if (!p)
+    if (!p && throw_exception_on_failure)
     {
       std::stringstream strm;
       strm << "dlsym failed: " << dlerror();

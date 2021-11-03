@@ -20,6 +20,7 @@
 #include "plugins/SSR.hpp"
 #include "plugins/Netcmds.hpp"
 #include "plugins/Rusage.hpp"
+#include "plugins/Screensaver.hpp"
 
 #include "popl.hpp"
 
@@ -70,6 +71,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<SSR>("ssr");
   frontend.add_plugin<Netcmds>("netcmds");
   frontend.add_plugin<Rusage>("rusage");
+  frontend.add_plugin<Screensaver>("screensaver");
 
   Context ctx(frontend, core, config);
   ctx.load_game(game_filename);
