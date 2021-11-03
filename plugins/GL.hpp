@@ -228,14 +228,16 @@ public:
     if (!render_latency_key_) { render_latency_key_ = dictionary.define("Render latency", 1000); }
     if (!sync_latency_key_) { sync_latency_key_ = dictionary.define("Sync latency", 1000); }
 
-    auto render_latency_ns = render_timers_[render_result_idx_].duration();
-    while (render_latency_ns != Nanoseconds::zero()) {
+    auto render_latency_ns = Nanoseconds::zero();
+    auto render_duration_ns = render_timers_[render_result_idx_].duration();
+    while (render_duration_ns != Nanoseconds::zero()) {
+      render_latency_ns = render_duration_ns;
       renders_to_sync_.push_back(render_timers_[render_result_idx_].stop_time());
 
       render_timers_[render_result_idx_].reset();
       render_result_idx_ = (render_result_idx_ + 1) % render_timers_.size();
 
-      render_latency_ns = render_timers_[render_result_idx_].duration();
+      render_duration_ns = render_timers_[render_result_idx_].duration();
     }
 
     auto sync_latency_ns = Nanoseconds::zero();
