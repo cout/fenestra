@@ -61,7 +61,7 @@ public:
     std::ifstream file(filename);
     file >> v;
 
-    cfg_ = v;
+    merge(v, cfg_);
 
     for (auto const & setter : setters_) {
       setter(cfg_);
@@ -98,6 +98,17 @@ public:
   }
 
 private:
+  static void merge(Json::Value v, Json::Value & target) {
+    for (auto it = v.begin(); it != v.end(); ++it) {
+      auto & t = target[it.name()];
+      if (it->type() == Json::objectValue && t.type() == Json::objectValue) {
+        merge(*it, t);
+      } else {
+        t = *it;
+      }
+    }
+  }
+
   static Json::Value const * find(Json::Value const * v, std::string const & name) {
     auto it = name.begin();
     auto begin_word = it;
