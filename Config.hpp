@@ -44,7 +44,7 @@ struct Setting : Abstract_Setting {
 class Config {
 public:
   Config()
-    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "portaudio", "gl", "sync", "framedelay", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
+    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "gamepad", "portaudio", "gl", "sync", "framedelay", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
     , scale_factor_(fetch<float>("scale_factor", 6.0f))
     , system_directory_(fetch<std::string>("system_directory", "."))
     , save_directory_(fetch<std::string>("save_directory", "."))
