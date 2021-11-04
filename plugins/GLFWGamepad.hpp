@@ -13,7 +13,6 @@ public:
   GLFWGamepad(Config const & config)
     : joystick_(config.fetch<unsigned int>("glfw-gamepad.joystick", 0))
     , port_(config.fetch<unsigned int>("glfw-gamepad.port", 0))
-    , enabled_(config.fetch<bool>("glfw-gamepad.enabled", true))
   {
   }
 
@@ -75,7 +74,6 @@ private:
 
   unsigned int const & joystick_;
   unsigned int const & port_;
-  bool const & enabled_;
 };
 
 }
