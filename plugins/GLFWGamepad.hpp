@@ -2,8 +2,6 @@
 
 #include "Plugin.hpp"
 
-#include <vector>
-
 #include <GLFW/glfw3.h>
 
 namespace fenestra {
