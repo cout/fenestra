@@ -9,7 +9,7 @@
 #include "plugins/Logger.hpp"
 #include "plugins/Perflog.hpp"
 #include "plugins/Savefile.hpp"
-#include "plugins/Gamepad.hpp"
+#include "plugins/GLFWGamepad.hpp"
 #include "plugins/Portaudio.hpp"
 #include "plugins/ALSA.hpp"
 #include "plugins/Pulseaudio.hpp"
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Logger>("logger");
   frontend.add_plugin<Perflog>("perflog");
   frontend.add_plugin<Savefile>("savefile");
-  frontend.add_plugin<Gamepad>("gamepad");
+  frontend.add_plugin<GLFWGamepad>("glfw-gamepad");
   frontend.add_plugin<Portaudio>("portaudio");
   frontend.add_plugin<ALSA>("alsa");
   frontend.add_plugin<Pulseaudio>("pulseaudio");

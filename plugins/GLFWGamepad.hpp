@@ -8,11 +8,11 @@
 
 namespace fenestra {
 
-class Gamepad
+class GLFWGamepad
   : public Plugin
 {
 public:
-  Gamepad(Config const & config)
+  GLFWGamepad(Config const & config)
     : config_(config)
     , joystick_(config.fetch<unsigned int>("joystick", 0))
     , port_(config.fetch<unsigned int>("port", 0))
