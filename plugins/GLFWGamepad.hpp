@@ -14,8 +14,8 @@ class GLFWGamepad
 public:
   GLFWGamepad(Config const & config)
     : config_(config)
-    , joystick_(config.fetch<unsigned int>("joystick", 0))
-    , port_(config.fetch<unsigned int>("port", 0))
+    , joystick_(config.fetch<unsigned int>("glfw-gamepad.joystick", 0))
+    , port_(config.fetch<unsigned int>("glfw-gamepad.port", 0))
   {
   }
 
