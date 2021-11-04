@@ -5,7 +5,6 @@
 #include "Config.hpp"
 #include "Registry.hpp"
 #include "Window.hpp"
-#include "Gamepad.hpp"
 #include "Geometry.hpp"
 #include "plugins/Plugin.hpp"
 #include "Probe.hpp"
@@ -22,6 +21,7 @@ public:
   PluginSlot(Probe::Dictionary & probe_dict, Plugin & plugin, std::string const & name)
     : plugin_(plugin)
     , probe_key_(probe_dict[name])
+    , name_(name)
   {
   }
 
@@ -33,9 +33,12 @@ public:
 
   Probe::Key probe_key() const { return probe_key_; }
 
+  auto const & name() const { return name_; }
+
 private:
   Plugin & plugin_;
   Probe::Key probe_key_;
+  std::string name_;
 };
 
 class Frontend {
@@ -45,7 +48,6 @@ public:
     , core_(core)
     , window_(title, core, config_)
     , registry_()
-    , gamepad_(config_)
     , probe_dict_()
   {
   }
@@ -72,6 +74,10 @@ public:
 
     if (!std::is_same_v<decltype(&T::write_audio_sample), decltype(&Plugin::write_audio_sample)>) {
       audio_sample_plugins_.emplace_back(probe_dict_, plugin, "Audio: " + name);
+    }
+
+    if (!std::is_same_v<decltype(&T::poll_input), decltype(&Plugin::poll_input)>) {
+      poll_input_plugins_.emplace_back(probe_dict_, plugin, "Input: " + name);
     }
   }
 
@@ -211,15 +217,17 @@ public:
   }
 
   void poll_input() {
-    gamepad_.poll_input(state_);
+    for (auto const & plugin : poll_input_plugins_) {
+      plugin->poll_input(state_);
+    }
   }
 
   std::int16_t input_state(unsigned int port, unsigned int device, unsigned int index, unsigned int id) {
-    if (port > 0 || index > 0 || device != RETRO_DEVICE_JOYPAD) {
+    if (port >= state_.input_state.size() || index > 0 || device != RETRO_DEVICE_JOYPAD) {
       return 0;
     }
 
-    return state_.input_state.pressed[id];
+    return state_.input_state[port].pressed[id];
   }
 
   void audio_sample(std::int16_t left, std::int16_t right) {
@@ -244,13 +252,13 @@ private:
 
   Window window_;
   Registry registry_;
-  Gamepad gamepad_;
   Probe probe_;
 
   Probe::Dictionary probe_dict_;
   std::vector<PluginSlot> plugins_;
   std::vector<PluginSlot> video_refresh_plugins_;
   std::vector<PluginSlot> audio_sample_plugins_;
+  std::vector<PluginSlot> poll_input_plugins_;
 };
 
 }

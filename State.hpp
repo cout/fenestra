@@ -11,7 +11,7 @@ struct State {
   bool done = false;
   bool synchronized = true;
 
-  InputState input_state;
+  std::vector<InputState> input_state;
 };
 
 }

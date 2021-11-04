@@ -48,6 +48,8 @@ public:
   virtual void game_loaded(Core const & core, std::string const & filename) { }
   virtual void unloading_game(Core const & core) { }
   virtual void game_unloaded(Core const & core) { }
+
+  virtual void poll_input(State & state) { }
 };
 
 }

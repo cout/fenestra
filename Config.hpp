@@ -161,6 +161,10 @@ private:
     dest = src.asInt();
   }
 
+  static void assign(unsigned int & dest, Json::Value const & src) {
+    dest = src.asUInt();
+  }
+
   static void assign(float & dest, Json::Value const & src) {
     dest = src.asFloat();
   }
