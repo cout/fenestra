@@ -200,8 +200,10 @@ private:
       return Context::current()->frontend().input_state(port, device, index, id);
     } catch(std::exception const & ex) {
       std::cout << "ERROR: " << ex.what() << std::endl;
+      return 0;
     } catch(...) {
       std::cout << "Unexpected error" << std::endl;
+      return 0;
     }
   }
 
