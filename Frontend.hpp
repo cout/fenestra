@@ -211,7 +211,7 @@ public:
   }
 
   void poll_input() {
-    gamepad_.poll_input();
+    gamepad_.poll_input(state_);
   }
 
   std::int16_t input_state(unsigned int port, unsigned int device, unsigned int index, unsigned int id) {
@@ -219,7 +219,7 @@ public:
       return 0;
     }
 
-    return gamepad_.pressed(id);
+    return state_.input_state.pressed[id];
   }
 
   void audio_sample(std::int16_t left, std::int16_t right) {
