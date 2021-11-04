@@ -33,7 +33,12 @@ struct Setting : Abstract_Setting {
 class Config {
 public:
   Config()
-    : plugins_(fetch<std::set<std::string>>("plugins", std::set<std::string>({ "logger", "perf", "savefile", "glfw-gamepad", "portaudio", "gl", "sync", "framedelay", "v4l2stream", "gstreamer", "ssr", "netcmds", "rusage" })))
+    : plugins_(fetch<std::map<std::string, bool>>("plugins", std::map<std::string, bool>({
+        { "logger", true }, { "perf", true }, { "savefile", true }, { "glfw-gamepad", true },
+        { "portaudio", true }, { "gl", true }, { "sync", true }, { "framedelay", true },
+        { "v4l2stream", true }, { "gstreamer", true }, { "ssr", true }, { "netcmds", true },
+        { "rusage", true }
+      })))
     , scale_factor_(fetch<float>("scale_factor", 6.0f))
     , system_directory_(fetch<std::string>("system_directory", "."))
     , save_directory_(fetch<std::string>("save_directory", "."))
@@ -139,6 +144,20 @@ private:
     dest = result;
   }
 
+  template <typename T>
+  static void assign(std::map<std::string, T> & dest, Json::Value const & src) {
+    std::map<std::string, T> result;
+    auto it = src.begin();
+    auto end = src.end();
+    while (it != end) {
+      T tmp;
+      assign(tmp, *it);
+      result[it.name()] = tmp;
+      ++it;
+    }
+    dest = result;
+  }
+
   static void assign(bool & dest, Json::Value const & src) {
     dest = src.asBool();
   }
@@ -175,6 +194,10 @@ private:
   static void log_value(std::string const & name, std::set<T> const & value) {
   }
 
+  template <typename T>
+  static void log_value(std::string const & name, std::map<std::string, T> const & value) {
+  }
+
   static void log_value(std::string const & name, Milliseconds const & value) {
     std::cout << "[INFO config] " << name << ": " << value.count() << std::endl;
   }
@@ -189,7 +212,7 @@ private:
   mutable std::map<std::string, std::shared_ptr<Abstract_Setting>> values_;
   mutable std::vector<std::function<void(Json::Value const &)>> setters_;
 
-  std::set<std::string> & plugins_;
+  std::map<std::string, bool> & plugins_;
 
   float & scale_factor_;
 

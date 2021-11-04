@@ -59,7 +59,8 @@ public:
 
   template<typename T>
   void add_plugin(std::string const & name) {
-    if (config_.plugins().find(name) == config_.plugins().end()) {
+    auto it = config_.plugins().find(name);
+    if (it == config_.plugins().end() || !it->second) {
       return;
     }
 
