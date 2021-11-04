@@ -26,6 +26,16 @@ public:
     }
   }
 
+  virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) {
+    input_latency_key_ = dictionary.define("Input latency", 1000);
+  }
+
+  virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) {
+    if (device_ != "") {
+      probe.meter(input_latency_key_, Probe::VALUE, 0, input_latency_.count() / 1000);
+    }
+  }
+
   virtual void pre_frame_delay(State const & state) override {
     if (fd_ < 0) {
       if (device_ != "") {
@@ -41,14 +51,19 @@ public:
       state.input_state.resize(port_ + 1);
     }
 
-    input_event ev;
+    Timestamp timestamp { };
 
     for (;;) {
+      input_event ev;
       auto n = ::read(fd_, &ev, sizeof(ev));
 
       // TODO: set fd_ to 0 if device is disconnected
 
       if (n < 0) break;
+
+      // TODO: Is there a way to get the latest timestamp without
+      // getting an event?
+      timestamp = Timestamp(Nanoseconds(ev.input_event_sec * 1'000'000'000) + Nanoseconds(ev.input_event_usec * 1000));
 
       switch (ev.type) {
         case EV_KEY: {
@@ -74,6 +89,11 @@ public:
         }
       }
     }
+
+    if (timestamp != Timestamp()) {
+      auto now = Clock::gettime(CLOCK_MONOTONIC);
+      input_latency_ = now - timestamp;
+    }
   }
 
 private:
@@ -84,7 +104,14 @@ private:
     }
 
     char name[128];
-    ioctl(fd_, EVIOCGNAME(sizeof(name)), name);
+    if (ioctl(fd_, EVIOCGNAME(sizeof(name)), name) < 0) {
+      throw std::runtime_error("ioctl(EVIOCGNAME) failed");
+    }
+
+    auto clock_id = CLOCK_MONOTONIC;
+    if (ioctl(fd_, EVIOCSCLOCKID, &clock_id) < 0) {
+      throw std::runtime_error("ioctl(EVIOCSCLOCKID) failed");
+    }
 
     // TODO: Verify # of buttons/axes
   }
@@ -145,7 +172,10 @@ private:
   std::string const & device_;
   unsigned int const & port_;
 
+  Probe::Key input_latency_key_;
+
   int fd_ = -1;
+  Nanoseconds input_latency_ = Nanoseconds::zero();
 };
 
 }
