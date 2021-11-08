@@ -11,18 +11,30 @@
 #include "plugins/Savefile.hpp"
 #include "plugins/GLFWGamepad.hpp"
 #include "plugins/EvdevGamepad.hpp"
-#include "plugins/Portaudio.hpp"
-#include "plugins/ALSA.hpp"
-#include "plugins/Pulseaudio.hpp"
 #include "plugins/GL.hpp"
 #include "plugins/Sync.hpp"
 #include "plugins/Framedelay.hpp"
 #include "plugins/V4l2Stream.hpp"
-#include "plugins/Gstreamer.hpp"
 #include "plugins/SSR.hpp"
 #include "plugins/Netcmds.hpp"
 #include "plugins/Rusage.hpp"
 #include "plugins/Screensaver.hpp"
+
+#ifdef HAVE_PORTAUDIO
+#include "plugins/Portaudio.hpp"
+#endif
+
+#ifdef HAVE_ALSA
+#include "plugins/ALSA.hpp"
+#endif
+
+#ifdef HAVE_LIBPULSE
+#include "plugins/Pulseaudio.hpp"
+#endif
+
+#ifdef HAVE_GSTREAMER
+#include "plugins/Gstreamer.hpp"
+#endif
 
 #include "popl.hpp"
 
@@ -64,18 +76,30 @@ int main(int argc, char *argv[]) {
   frontend.add_plugin<Savefile>("savefile");
   frontend.add_plugin<GLFWGamepad>("glfw-gamepad");
   frontend.add_plugin<EvdevGamepad>("evdev-gamepad");
-  frontend.add_plugin<Portaudio>("portaudio");
-  frontend.add_plugin<ALSA>("alsa");
-  frontend.add_plugin<Pulseaudio>("pulseaudio");
   frontend.add_plugin<GL>("gl");
   frontend.add_plugin<Sync>("sync");
   frontend.add_plugin<Framedelay>("framedelay");
   frontend.add_plugin<V4l2Stream>("v4l2stream");
-  frontend.add_plugin<Gstreamer>("gstreamer");
   frontend.add_plugin<SSR>("ssr");
   frontend.add_plugin<Netcmds>("netcmds");
   frontend.add_plugin<Rusage>("rusage");
   frontend.add_plugin<Screensaver>("screensaver");
+
+#ifdef HAVE_PORTAUDIO
+  frontend.add_plugin<Portaudio>("portaudio");
+#endif
+
+#ifdef HAVE_ALSA
+  frontend.add_plugin<ALSA>("alsa");
+#endif
+
+#ifdef HAVE_LIBPULSE
+  frontend.add_plugin<Pulseaudio>("pulseaudio");
+#endif
+
+#ifdef HAVE_GSTREAMER
+  frontend.add_plugin<Gstreamer>("gstreamer");
+#endif
 
   Context ctx(frontend, core, config);
   ctx.load_game(game_filename);
