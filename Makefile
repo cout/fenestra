@@ -3,7 +3,7 @@ OPTIONAL_PACKAGES = alsa portaudiocpp gstreamermm-1.0 libpulse
 PACKAGES = $(REQUIRED_PACKAGES) $(OPTIONAL_PACKAGES)
 
 CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og -pthread -I popl
-LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lepoxy -lpthread
+LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lSOIL -lepoxy -lpthread
 
 package_exists = $(shell pkg-config --short-errors --exists $(1) && echo $(1))
 have_definition = $(shell echo "-DHAVE_$(1)" | tr a-z A-Z | sed -e 's/-[0-9.]\+$$//')
@@ -28,8 +28,9 @@ PERFLOGVIEWER_OBJS = \
 OBJS = $(FENESTRA_OBJS) $(PERFLOGVIEWER_OBJS)
 
 BIN = fenestra tools/perflog-viewer
+ICONS = fenestra.png
 
-all: $(BIN)
+all: $(BIN) $(ICONS)
 
 fenestra: $(FENESTRA_OBJS)
 
@@ -46,6 +47,11 @@ endif
 
 $(BIN):
 	$(CXX) $^ -o $@ $(CPPFLAGS) $(LDFLAGS)
+
+fenestra.png: fenestra.svg
+
+$(ICONS):
+	inkscape $^ --export-png $@
 
 $(OBJS): Makefile
 

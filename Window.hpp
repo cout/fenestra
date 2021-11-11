@@ -9,6 +9,7 @@
 #include <epoxy/glx.h>
 
 #include <GLFW/glfw3.h>
+#include <SOIL/SOIL.h>
 
 #define GLFW_EXPOSE_NATIVE_X11
 #define GLFW_EXPOSE_NATIVE_GLX
@@ -44,6 +45,11 @@ public:
     if (!(win_ = glfwCreateWindow(geom.scaled_width(), geom.scaled_height(), title_.c_str(), nullptr, nullptr))) {
       throw std::runtime_error("Failed to create window.");
     }
+
+    GLFWimage icon;
+    icon.pixels = SOIL_load_image("fenestra.png", &icon.width, &icon.height, 0, SOIL_LOAD_RGBA);
+    glfwSetWindowIcon(win_, 1, &icon);
+    SOIL_free_image_data(icon.pixels);
 
     glfwSetKeyCallback(win_, key_callback_);
 
