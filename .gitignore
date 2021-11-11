@@ -5,3 +5,4 @@ tools/list-portaudio-devices
 tools/perflog-viewer
 core
 fenestra.png
+perf.log
