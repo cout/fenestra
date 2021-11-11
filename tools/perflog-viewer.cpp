@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <SOIL/SOIL.h>
 
 #include <ftgl.h>
 
@@ -241,6 +242,11 @@ public:
     if (!(win_ = glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr))) {
       throw std::runtime_error("Failed to create window.");
     }
+
+    GLFWimage icon;
+    icon.pixels = SOIL_load_image("perflog-viewer.png", &icon.width, &icon.height, 0, SOIL_LOAD_RGBA);
+    glfwSetWindowIcon(win_, 1, &icon);
+    SOIL_free_image_data(icon.pixels);
 
     glfwSetKeyCallback(win_, key_callback_);
     glfwSetWindowRefreshCallback(win_, refresh_callback_);
