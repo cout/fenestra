@@ -2,7 +2,7 @@ REQUIRED_PACKAGES = jsoncpp ftgl
 OPTIONAL_PACKAGES = alsa portaudiocpp gstreamermm-1.0 libpulse
 PACKAGES = $(REQUIRED_PACKAGES) $(OPTIONAL_PACKAGES)
 
-CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og -pthread -I popl
+CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og -pthread -I src
 LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lSOIL -lepoxy -lpthread
 
 package_exists = $(shell pkg-config --short-errors --exists $(1) && echo $(1))
@@ -19,8 +19,8 @@ CXXFLAGS += $(shell pkg-config --cflags $(installed_packages))
 LDFLAGS += $(shell pkg-config --libs $(installed_packages))
 
 FENESTRA_OBJS = \
-  fenestra.o \
-  plugins/ssr/SSRVideoStreamWriter.o
+  src/fenestra/fenestra.o \
+  src/fenestra/plugins/ssr/SSRVideoStreamWriter.o
 
 PERFLOGVIEWER_OBJS = \
   tools/perflog-viewer.o

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Plugin.hpp"
-#include "../DL.hpp"
+#include "fenestra/DL.hpp"
 
 namespace fenestra {
 

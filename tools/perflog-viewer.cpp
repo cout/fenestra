@@ -1,4 +1,4 @@
-#include "../Clock.hpp"
+#include "fenestra/Clock.hpp"
 
 #include <epoxy/glx.h>
 

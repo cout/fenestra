@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Plugin.hpp"
-#include "../Clock.hpp"
+#include "fenestra/Clock.hpp"
 
 #include <optional>
 

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../libretro.h"
+#include "libretro.h"
 
-#include "../Probe.hpp"
-#include "../Geometry.hpp"
-#include "../Core.hpp"
-#include "../Config.hpp"
-#include "../State.hpp"
+#include "fenestra/Probe.hpp"
+#include "fenestra/Geometry.hpp"
+#include "fenestra/Core.hpp"
+#include "fenestra/Config.hpp"
+#include "fenestra/State.hpp"
 
 #include <cstddef>
 #include <cstdarg>
