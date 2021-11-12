@@ -47,7 +47,7 @@ public:
     }
 
     GLFWimage icon;
-    icon.pixels = SOIL_load_image("fenestra.png", &icon.width, &icon.height, 0, SOIL_LOAD_RGBA);
+    icon.pixels = SOIL_load_image("icons/fenestra.png", &icon.width, &icon.height, 0, SOIL_LOAD_RGBA);
     glfwSetWindowIcon(win_, 1, &icon);
     SOIL_free_image_data(icon.pixels);
 

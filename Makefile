@@ -28,7 +28,7 @@ PERFLOGVIEWER_OBJS = \
 OBJS = $(FENESTRA_OBJS) $(PERFLOGVIEWER_OBJS)
 
 BIN = fenestra tools/perflog-viewer
-ICONS = fenestra.png perflog-viewer.png
+ICONS = icons/fenestra.png icons/perflog-viewer.png
 
 all: $(BIN) $(ICONS)
 
@@ -48,8 +48,8 @@ endif
 $(BIN):
 	$(CXX) $^ -o $@ $(CPPFLAGS) $(LDFLAGS)
 
-fenestra.png: fenestra.svg
-perflog-viewer.png: perflog-viewer.svg
+icons/fenestra.png: icons/fenestra.svg
+icons/perflog-viewer.png: icons/perflog-viewer.svg
 
 $(ICONS):
 	inkscape $^ --export-png $@
