@@ -39,7 +39,17 @@ public:
   virtual void pre_frame_delay(State const & state) override {
     if (fd_ < 0) {
       if (device_ != "") {
-        open(device_);
+        try {
+          open(device_);
+          std::cout << "Successfully re-opened gamepad device" << std::endl;
+          last_open_error_ = "";
+        } catch(std::exception const & ex) {
+          std::string err = ex.what();
+          if (err != last_open_error_) {
+            std::cout << "Error re-opening gamepad device: " << err << std::endl;
+            last_open_error_ = err;
+          }
+        }
       }
     }
   }
@@ -57,9 +67,13 @@ public:
       input_event ev;
       auto n = ::read(fd_, &ev, sizeof(ev));
 
-      // TODO: set fd_ to 0 if device is disconnected
-
-      if (n < 0) break;
+      if (n < 0) {
+        if (errno == ENODEV) {
+          ::close(fd_);
+          fd_ = -1;
+        }
+        break;
+      }
 
       // TODO: Is there a way to get the latest timestamp without
       // getting an event?
@@ -176,6 +190,8 @@ private:
 
   int fd_ = -1;
   Nanoseconds input_latency_ = Nanoseconds::zero();
+
+  std::string last_open_error_;
 };
 
 }
