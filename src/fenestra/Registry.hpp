@@ -51,7 +51,7 @@ public:
     std::string type_name = typeid(T).name();
     auto [ it, inserted ] = factories_.emplace(
         type_name,
-        std::make_shared<Factory_Function>([=](Name const & name) -> std::shared_ptr<void> { return factory(name.args()); }));
+        [=](Name const & name) -> std::shared_ptr<void> { return factory(name.args()); });
     if (!inserted) {
       throw std::runtime_error("Factory already exists: " + type_name);
     }
@@ -67,7 +67,7 @@ public:
       if (factory_it == factories_.end()) {
         throw std::runtime_error("Could not find factory for: " + type_name);
       }
-      auto & factory = *std::static_pointer_cast<Factory_Function>(factory_it->second);
+      auto & factory = factory_it->second;
       auto plugin = factory(name);
       bool inserted;
       std::tie(it, inserted) = values_.emplace(name, plugin);
@@ -76,7 +76,7 @@ public:
   }
 
 private:
-  std::map<std::string, std::shared_ptr<void>> factories_;
+  std::map<std::string, Factory_Function> factories_;
   std::map<Name, std::shared_ptr<void>> values_;
 };
 
