@@ -4,7 +4,12 @@
 
 #include <gst/gst.h>
 #include <gst/video/video.h>
-#include <gstreamermm.h>
+#include <gstreamermm/pipeline.h>
+#include <gstreamermm/elementfactory.h>
+#include <gstreamermm/parse.h>
+#include <gstreamermm/appsrc.h>
+#include <gstreamermm/element.h>
+#include <gstreamermm/buffer.h>
 
 #include <stdexcept>
 #include <map>

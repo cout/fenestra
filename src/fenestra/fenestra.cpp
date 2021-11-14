@@ -1,5 +1,3 @@
-#include <gstreamermm.h>
-
 #include "Config.hpp"
 #include "Core.hpp"
 #include "Frontend.hpp"
@@ -34,6 +32,7 @@
 
 #ifdef HAVE_GSTREAMER
 #include "plugins/Gstreamer.hpp"
+#include <gstreamermm/init.h>
 #endif
 
 #include "popl.hpp"
@@ -43,7 +42,9 @@
 int main(int argc, char *argv[]) {
   using namespace fenestra;
 
+#ifdef HAVE_GSTREAMER
   Gst::init(argc, argv);
+#endif
 
   popl::OptionParser op("Allowed options");
   auto core_option = op.add<popl::Value<std::string>>("", "core", "Path to libretro core");
