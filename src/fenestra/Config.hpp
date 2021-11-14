@@ -74,8 +74,8 @@ public:
   T & fetch(std::string const & name, Default dflt) const {
     auto it = values_.find(name);
     if (it == values_.end()) {
-      auto [ inserted_it, inserted ] = values_.emplace(name, std::make_shared<Setting<T>>(dflt));
-      auto setting = std::static_pointer_cast<Setting<T>>(inserted_it->second);
+      auto [ inserted_it, inserted ] = values_.emplace(name, new Setting<T>(dflt));
+      auto * setting = static_cast<Setting<T> *>(inserted_it->second.get());
       setters_.emplace_back([name, setting](Json::Value const & cfg) {
         auto cfg_value = find(&cfg, name);
         if (cfg_value) {
@@ -86,7 +86,7 @@ public:
       setters_.back()(cfg_);
       return setting->value;
     } else {
-      return std::dynamic_pointer_cast<Setting<T>>(it->second)->value;
+      return dynamic_cast<Setting<T> *>(it->second.get())->value;
     }
   }
 
@@ -209,7 +209,7 @@ private:
 
 private:
   Json::Value cfg_;
-  mutable std::map<std::string, std::shared_ptr<Abstract_Setting>> values_;
+  mutable std::map<std::string, std::unique_ptr<Abstract_Setting>> values_;
   mutable std::vector<std::function<void(Json::Value const &)>> setters_;
 
   std::map<std::string, bool> & plugins_;
