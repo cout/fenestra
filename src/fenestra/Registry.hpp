@@ -39,7 +39,7 @@ private:
     std::string stringified_args_;
   };
 
-  using Factory_Function = std::function<std::shared_ptr<void>(Name const &)>;
+  using Factory_Function = std::function<void * (Name const &)>;
 
 public:
   Registry()
@@ -51,7 +51,7 @@ public:
     std::string type_name = typeid(T).name();
     auto [ it, inserted ] = factories_.emplace(
         type_name,
-        [=](Name const & name) -> std::shared_ptr<void> { return factory(name.args()); });
+        [=](Name const & name) -> void * { return factory(name.args()); });
     if (!inserted) {
       throw std::runtime_error("Factory already exists: " + type_name);
     }
@@ -68,7 +68,7 @@ public:
         throw std::runtime_error("Could not find factory for: " + type_name);
       }
       auto & factory = factory_it->second;
-      auto plugin = factory(name);
+      std::shared_ptr<void> plugin(factory(name), [](void * p) { delete static_cast<T *>(p); });
       bool inserted;
       std::tie(it, inserted) = values_.emplace(name, plugin);
     }
