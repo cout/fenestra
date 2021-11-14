@@ -26,7 +26,6 @@ public:
   Window(std::string const & title, Core & core, Config const & config)
     : title_(title)
     , core_(core)
-    , config_(config)
   {
     if (!glfwInit()) {
       throw std::runtime_error("glfwInit failed");
@@ -141,7 +140,6 @@ private:
 
   std::string title_;
   Core & core_;
-  Config const & config_;
   GLFWwindow * win_ = nullptr;
 
   bool close_requested_ = false;
