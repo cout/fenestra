@@ -1,6 +1,6 @@
 *.o
 *.d
-fenestra
+./fenestra
 tools/list-portaudio-devices
 tools/perflog-viewer
 core
