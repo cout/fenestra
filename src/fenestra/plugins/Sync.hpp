@@ -31,7 +31,7 @@ public:
     }
   }
 
-  virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) {
+  virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
     probe_ = &probe;
     sync_key_ = dictionary["Sync"];
     glfinish_sync_key_ = dictionary["Glfinish sync"];

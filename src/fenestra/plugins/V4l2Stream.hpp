@@ -83,7 +83,7 @@ public:
     set_format(format_);
   }
 
-  virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) {
+  virtual void video_refresh(const void * data, unsigned int width, unsigned int height, std::size_t pitch) override {
     auto Bpp = pixel_format_.bpp / CHAR_BIT;
     buf_.clear();
     auto size = width * height * Bpp;
@@ -96,7 +96,7 @@ public:
     }
   }
 
-  virtual void pre_frame_delay(State const & state) {
+  virtual void pre_frame_delay(State const & state) override {
     if (fd_ < 0) {
       return;
     }

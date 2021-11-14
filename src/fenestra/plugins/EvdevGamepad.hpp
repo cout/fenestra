@@ -26,11 +26,11 @@ public:
     }
   }
 
-  virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) {
+  virtual void start_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
     input_latency_key_ = dictionary.define("Input latency", 1000);
   }
 
-  virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) {
+  virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
     if (device_ != "") {
       probe.meter(input_latency_key_, Probe::VALUE, 0, input_latency_.count() / 1000);
     }
