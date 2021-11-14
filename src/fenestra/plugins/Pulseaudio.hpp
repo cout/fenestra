@@ -90,7 +90,7 @@ public:
     if (!underruns_key_) { underruns_key_ = dictionary["Audio Underruns"]; }
     if (!latency_key_) { latency_key_ = dictionary["Audio Latency"]; }
 
-    pa_usec_t usec;
+    pa_usec_t usec = 0;
     int negative;
     if (stream_ && pa_stream_get_latency(stream_, &usec, &negative) != 0) {
       usec = 0;
