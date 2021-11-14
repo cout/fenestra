@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugin.hpp"
+#include "fenestra/Plugin.hpp"
 
 #include <gst/gst.h>
 #include <gst/video/video.h>

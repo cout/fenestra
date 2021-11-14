@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugin.hpp"
+#include "fenestra/Plugin.hpp"
 
 #include <GLFW/glfw3.h>
 

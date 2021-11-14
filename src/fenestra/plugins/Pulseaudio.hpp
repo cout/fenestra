@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugin.hpp"
+#include "fenestra/Plugin.hpp"
 #include "fenestra/Clock.hpp"
 
 #include <pulse/pulseaudio.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Plugin.hpp"
+#include "fenestra/Plugin.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>

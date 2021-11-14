@@ -6,7 +6,7 @@
 #include "Registry.hpp"
 #include "Window.hpp"
 #include "Geometry.hpp"
-#include "plugins/Plugin.hpp"
+#include "Plugin.hpp"
 #include "Probe.hpp"
 #include "Clock.hpp"
 
