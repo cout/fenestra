@@ -12,7 +12,6 @@
 #include <sys/mman.h>
 
 #include <iostream>
-#include <filesystem>
 #include <memory>
 
 namespace fenestra {
@@ -43,22 +42,7 @@ public:
   auto begin() { return data(); }
   auto end() { return data() + size(); }
 
-  virtual void game_loaded(Core const & core, std::string const & filename) override {
-    saveram_ = std::make_unique<Saveram>(core);
-    std::cout << "Saveram size is " << saveram_->size() << std::endl;
-
-    auto save_filename = std::filesystem::path(config_.save_directory()) /
-                         std::filesystem::path(filename).filename();
-    save_filename.replace_extension(".srm");
-
-    this->open(save_filename.native(), saveram_->size());
-
-    std::copy(begin(), end(), saveram_->begin());
-
-    std::cout << "Loaded savefile " << save_filename.native() << std::endl;
-    std::cout << p_ << std::endl;
-    std::cout << fd_ << std::endl;
-  }
+  virtual void game_loaded(Core const & core, std::string const & filename) override;
 
   virtual void unloading_game(Core const & core) override {
     sync(saveram_->data(), saveram_->size());
