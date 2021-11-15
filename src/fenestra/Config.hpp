@@ -31,6 +31,126 @@ struct Setting : Abstract_Setting {
 };
 
 class Config {
+private:
+  class Setter {
+  public:
+    virtual ~Setter() { }
+
+    virtual void operator()(Json::Value const & cfg) = 0;
+
+  protected:
+    template <typename T>
+    static void assign(std::vector<T> & dest, Json::Value const & src) {
+      std::vector<T> result;
+      for (auto v : src) {
+        T tmp;
+        assign(tmp, v);
+        result.push_back(tmp);
+      }
+      dest = result;
+    }
+
+    template <typename T>
+    static void assign(std::set<T> & dest, Json::Value const & src) {
+      std::set<T> result;
+      for (auto v : src) {
+        T tmp;
+        assign(tmp, v);
+        result.insert(tmp);
+      }
+      dest = result;
+    }
+
+    template <typename T>
+    static void assign(std::map<std::string, T> & dest, Json::Value const & src) {
+      std::map<std::string, T> result;
+      auto it = src.begin();
+      auto end = src.end();
+      while (it != end) {
+        T tmp;
+        assign(tmp, *it);
+        result[it.name()] = tmp;
+        ++it;
+      }
+      dest = result;
+    }
+
+    static void assign(bool & dest, Json::Value const & src) {
+      dest = src.asBool();
+    }
+
+    static void assign(int & dest, Json::Value const & src) {
+      dest = src.asInt();
+    }
+
+    static void assign(unsigned int & dest, Json::Value const & src) {
+      dest = src.asUInt();
+    }
+
+    static void assign(float & dest, Json::Value const & src) {
+      dest = src.asFloat();
+    }
+
+    static void assign(double & dest, Json::Value const & src) {
+      dest = src.asDouble();
+    }
+
+    static void assign(std::string & dest, Json::Value const & src) {
+      dest = src.asString();
+    }
+
+    static void assign(Milliseconds & dest, Json::Value const & src) {
+      dest = Milliseconds(src.asDouble());
+    }
+
+    template <typename T>
+    static void log_value(std::string const & name, std::vector<T> const & value) {
+    }
+
+    template <typename T>
+    static void log_value(std::string const & name, std::set<T> const & value) {
+    }
+
+    template <typename T>
+    static void log_value(std::string const & name, std::map<std::string, T> const & value) {
+    }
+
+    static void log_value(std::string const & name, Milliseconds const & value) {
+      std::cout << "[INFO config] " << name << ": " << value.count() << std::endl;
+    }
+
+    template <typename T>
+    static void log_value(std::string const & name, T const & value) {
+      std::cout << "[INFO config] " << name << ": " << value << std::endl;
+    }
+  };
+
+  template<typename T>
+  class Setter_T
+    : public Setter
+  {
+  public:
+    Setter_T(std::string const  & name, Setting<T> * setting)
+      : name_(name)
+      , setting_(setting)
+    {
+    }
+
+    virtual void operator()(Json::Value const & cfg) override {
+      auto cfg_value = find(&cfg, name_);
+      if (cfg_value) {
+        assign(setting_->value, *cfg_value);
+        log_value(name_, setting_->value);
+      }
+    }
+
+    virtual ~Setter_T() { }
+
+  private:
+    std::string name_;
+    Setting<T> * setting_;
+  };
+
 public:
   Config()
     : plugins_(fetch<std::map<std::string, bool>>("plugins", std::map<std::string, bool>({
@@ -59,7 +179,7 @@ public:
     merge(v, cfg_);
 
     for (auto const & setter : setters_) {
-      setter(cfg_);
+      (*setter)(cfg_);
     }
   }
 
@@ -76,14 +196,8 @@ public:
     if (it == values_.end()) {
       auto [ inserted_it, inserted ] = values_.emplace(name, new Setting<T>(dflt));
       auto * setting = static_cast<Setting<T> *>(inserted_it->second.get());
-      setters_.emplace_back([name, setting](Json::Value const & cfg) {
-        auto cfg_value = find(&cfg, name);
-        if (cfg_value) {
-          assign(setting->value, *cfg_value);
-          log_value(name, setting->value);
-        }
-      });
-      setters_.back()(cfg_);
+      setters_.emplace_back(new Setter_T<T>(name, setting));
+      (*setters_.back())(cfg_);
       return setting->value;
     } else {
       return dynamic_cast<Setting<T> *>(it->second.get())->value;
@@ -122,95 +236,9 @@ private:
   }
 
 private:
-  template <typename T>
-  static void assign(std::vector<T> & dest, Json::Value const & src) {
-    std::vector<T> result;
-    for (auto v : src) {
-      T tmp;
-      assign(tmp, v);
-      result.push_back(tmp);
-    }
-    dest = result;
-  }
-
-  template <typename T>
-  static void assign(std::set<T> & dest, Json::Value const & src) {
-    std::set<T> result;
-    for (auto v : src) {
-      T tmp;
-      assign(tmp, v);
-      result.insert(tmp);
-    }
-    dest = result;
-  }
-
-  template <typename T>
-  static void assign(std::map<std::string, T> & dest, Json::Value const & src) {
-    std::map<std::string, T> result;
-    auto it = src.begin();
-    auto end = src.end();
-    while (it != end) {
-      T tmp;
-      assign(tmp, *it);
-      result[it.name()] = tmp;
-      ++it;
-    }
-    dest = result;
-  }
-
-  static void assign(bool & dest, Json::Value const & src) {
-    dest = src.asBool();
-  }
-
-  static void assign(int & dest, Json::Value const & src) {
-    dest = src.asInt();
-  }
-
-  static void assign(unsigned int & dest, Json::Value const & src) {
-    dest = src.asUInt();
-  }
-
-  static void assign(float & dest, Json::Value const & src) {
-    dest = src.asFloat();
-  }
-
-  static void assign(double & dest, Json::Value const & src) {
-    dest = src.asDouble();
-  }
-
-  static void assign(std::string & dest, Json::Value const & src) {
-    dest = src.asString();
-  }
-
-  static void assign(Milliseconds & dest, Json::Value const & src) {
-    dest = Milliseconds(src.asDouble());
-  }
-
-  template <typename T>
-  static void log_value(std::string const & name, std::vector<T> const & value) {
-  }
-
-  template <typename T>
-  static void log_value(std::string const & name, std::set<T> const & value) {
-  }
-
-  template <typename T>
-  static void log_value(std::string const & name, std::map<std::string, T> const & value) {
-  }
-
-  static void log_value(std::string const & name, Milliseconds const & value) {
-    std::cout << "[INFO config] " << name << ": " << value.count() << std::endl;
-  }
-
-  template <typename T>
-  static void log_value(std::string const & name, T const & value) {
-    std::cout << "[INFO config] " << name << ": " << value << std::endl;
-  }
-
-private:
   Json::Value cfg_;
   mutable std::map<std::string, std::unique_ptr<Abstract_Setting>> values_;
-  mutable std::vector<std::function<void(Json::Value const &)>> setters_;
+  mutable std::vector<std::unique_ptr<Setter>> setters_;
 
   std::map<std::string, bool> & plugins_;
 
