@@ -3,7 +3,6 @@
 #include "libretro.h"
 
 #include "Config.hpp"
-#include "Registry.hpp"
 #include "Window.hpp"
 #include "Geometry.hpp"
 #include "Plugin.hpp"
@@ -47,7 +46,6 @@ public:
     : config_(config)
     , core_(core)
     , window_(title, core, config_)
-    , registry_()
     , probe_dict_()
   {
   }
@@ -64,10 +62,7 @@ public:
       return;
     }
 
-    registry_.register_factory<T>([&](std::string const & name) { return new T(config_); });
-    auto & plugin = registry_.fetch<T>();
-
-    plugins_.emplace_back(probe_dict_, plugin, name);
+    auto & plugin = *plugins_.emplace_back(new T(config_));
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
       video_refresh_plugins_.emplace_back(probe_dict_, plugin, "Video: " + name);
@@ -252,11 +247,10 @@ private:
   State state_;
 
   Window window_;
-  Registry registry_;
   Probe probe_;
 
   Probe::Dictionary probe_dict_;
-  std::vector<PluginSlot> plugins_;
+  std::vector<std::unique_ptr<Plugin>> plugins_;
   std::vector<PluginSlot> video_refresh_plugins_;
   std::vector<PluginSlot> audio_sample_plugins_;
   std::vector<PluginSlot> poll_input_plugins_;
