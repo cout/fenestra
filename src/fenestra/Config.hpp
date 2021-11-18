@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Clock.hpp"
+#include "JSON.hpp"
 
 #include "libretro.h"
-
-#include <json/json.h>
 
 #include <string_view>
 #include <string>
@@ -39,70 +38,6 @@ private:
     virtual void operator()(Json::Value const & cfg) = 0;
 
   protected:
-    template <typename T>
-    static void assign(std::vector<T> & dest, Json::Value const & src) {
-      std::vector<T> result;
-      for (auto v : src) {
-        T tmp;
-        assign(tmp, v);
-        result.push_back(tmp);
-      }
-      dest = result;
-    }
-
-    template <typename T>
-    static void assign(std::set<T> & dest, Json::Value const & src) {
-      std::set<T> result;
-      for (auto v : src) {
-        T tmp;
-        assign(tmp, v);
-        result.insert(tmp);
-      }
-      dest = result;
-    }
-
-    template <typename T>
-    static void assign(std::map<std::string, T> & dest, Json::Value const & src) {
-      std::map<std::string, T> result;
-      auto it = src.begin();
-      auto end = src.end();
-      while (it != end) {
-        T tmp;
-        assign(tmp, *it);
-        result[it.name()] = tmp;
-        ++it;
-      }
-      dest = result;
-    }
-
-    static void assign(bool & dest, Json::Value const & src) {
-      dest = src.asBool();
-    }
-
-    static void assign(int & dest, Json::Value const & src) {
-      dest = src.asInt();
-    }
-
-    static void assign(unsigned int & dest, Json::Value const & src) {
-      dest = src.asUInt();
-    }
-
-    static void assign(float & dest, Json::Value const & src) {
-      dest = src.asFloat();
-    }
-
-    static void assign(double & dest, Json::Value const & src) {
-      dest = src.asDouble();
-    }
-
-    static void assign(std::string & dest, Json::Value const & src) {
-      dest = src.asString();
-    }
-
-    static void assign(Milliseconds & dest, Json::Value const & src) {
-      dest = Milliseconds(src.asDouble());
-    }
-
     template <typename T>
     static void log_value(std::string const & name, std::vector<T> const & value) {
     }
@@ -139,7 +74,7 @@ private:
     virtual void operator()(Json::Value const & cfg) override {
       auto cfg_value = find(&cfg, name_);
       if (cfg_value) {
-        assign(setting_->value, *cfg_value);
+        json::assign(setting_->value, *cfg_value);
         log_value(name_, setting_->value);
       }
     }
