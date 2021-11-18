@@ -15,7 +15,8 @@ class Pulseaudio
 {
 public:
   Pulseaudio(Config const & config)
-    : audio_maximum_latency_(config.fetch<int>("pulseaudio.audio_maximum_latency", 64))
+    : device_(config.fetch<std::string>("pulseaudio.device", ""))
+    , audio_maximum_latency_(config.fetch<int>("pulseaudio.audio_maximum_latency", 64))
     , audio_suggested_latency_(config.fetch<int>("pulseaudio.audio_suggested_latency", 64))
   {
   }
@@ -142,7 +143,8 @@ private:
       buffer_attr.fragsize = -1;
       auto flags = pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY);
       int err;
-      if ((err = pa_stream_connect_playback(stream_, nullptr, &buffer_attr, flags, nullptr, nullptr)) < 0) {
+      char const * dev = device_ == "" ? nullptr : device_.c_str();
+      if ((err = pa_stream_connect_playback(stream_, dev, &buffer_attr, flags, nullptr, nullptr)) < 0) {
         std::stringstream strm;
         strm << "pa_stream_connect_playback failed: " << pa_strerror(err);
         throw std::runtime_error(strm.str());
@@ -211,6 +213,7 @@ private:
   }
 
 private:
+  std::string const & device_;
   int const & audio_maximum_latency_;
   int const & audio_suggested_latency_;
 
