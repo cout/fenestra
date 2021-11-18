@@ -160,8 +160,6 @@ public:
         { "rusage", true }
       })))
     , scale_factor_(fetch<float>("scale_factor", 6.0f))
-    , system_directory_(fetch<std::string>("system_directory", "."))
-    , save_directory_(fetch<std::string>("save_directory", "."))
   {
   }
 
@@ -186,9 +184,6 @@ public:
   auto const & plugins() const { return plugins_; }
 
   float const & scale_factor() const { return scale_factor_; }
-
-  char const * system_directory() const { return system_directory_.c_str(); }
-  char const * save_directory() const { return save_directory_.c_str(); }
 
   template <typename T, typename Default>
   T & fetch(std::string const & name, Default dflt) const {
@@ -243,9 +238,6 @@ private:
   std::map<std::string, bool> & plugins_;
 
   float & scale_factor_;
-
-  std::string & system_directory_;
-  std::string & save_directory_;
 };
 
 }

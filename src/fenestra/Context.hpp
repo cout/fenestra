@@ -19,7 +19,8 @@ public:
   Context(Frontend & frontend, Core & core, Config const & config)
     : frontend_(frontend)
     , core_(core)
-    , config_(config)
+    , system_directory_(config.fetch<std::string>("system_directory", "."))
+    , save_directory_(config.fetch<std::string>("save_directory", "."))
   {
     current_ = this;
     core.set_environment(environment);
@@ -45,7 +46,6 @@ public:
 
   auto & frontend() { return frontend_; }
   auto & core() { return core_; }
-  auto const & config() const { return config_; }
 
   auto system_info() {
     struct retro_system_info system_info;
@@ -134,11 +134,11 @@ private:
           return current->frontend().video_set_pixel_format(*static_cast<retro_pixel_format *>(data));
 
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
-          *static_cast<char const * *>(data) = current->config().system_directory();
+          *static_cast<char const * *>(data) = current->system_directory_.c_str();
           return true;
 
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-          *static_cast<char const * *>(data) = current->config().save_directory();
+          *static_cast<char const * *>(data) = current->save_directory_.c_str();
           return true;
 
         case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL: // 8
@@ -233,7 +233,9 @@ private:
 
   Frontend & frontend_;
   Core & core_;
-  Config const & config_;
+
+  std::string const & system_directory_;
+  std::string const & save_directory_;
 
   bool core_initialized_ = false;
   bool game_loaded_ = false;

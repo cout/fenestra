@@ -21,7 +21,7 @@ class Savefile
 {
 public:
   Savefile(Config const & config)
-    : config_(config)
+    : save_directory_(config.fetch<std::string>("save_directory", "."))
   {
   }
 
@@ -87,7 +87,7 @@ private:
   }
 
 private:
-  Config const & config_;
+  std::string const & save_directory_;
 
   std::unique_ptr<Saveram> saveram_;
   std::size_t size_ = 0;
