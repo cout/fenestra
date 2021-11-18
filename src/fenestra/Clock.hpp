@@ -12,7 +12,7 @@ using Milliseconds = std::chrono::duration<double, std::milli>;
 using Seconds = std::chrono::duration<double>;
 
 // TODO: Use std::chrono::time_point (but this requires chosing a clock)
-struct __attribute__((packed)) Timestamp {
+struct Timestamp {
   Timestamp(Nanoseconds nanos = Nanoseconds::zero()) : nanos_(nanos.count()) { }
   static auto zero() { return Timestamp(Nanoseconds::zero()); }
   std::int64_t nanos_;
