@@ -16,6 +16,4 @@ fenestra::Savefile::game_loaded(Core const & core, std::string const & filename)
   std::copy(begin(), end(), saveram_->begin());
 
   std::cout << "Loaded savefile " << save_filename.native() << std::endl;
-  std::cout << p_ << std::endl;
-  std::cout << fd_ << std::endl;
 }
