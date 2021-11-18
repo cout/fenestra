@@ -153,7 +153,6 @@ private:
 
 public:
   Config()
-    : scale_factor_(fetch<float>("scale_factor", 6.0f))
   {
   }
 
@@ -174,8 +173,6 @@ public:
       (*setter)(cfg_);
     }
   }
-
-  float const & scale_factor() const { return scale_factor_; }
 
   template <typename T, typename Default>
   T & fetch(std::string const & name, Default dflt) const {
@@ -226,8 +223,6 @@ private:
   Json::Value cfg_;
   mutable std::map<std::string, std::unique_ptr<Abstract_Setting>> values_;
   mutable std::vector<std::unique_ptr<Setter>> setters_;
-
-  float & scale_factor_;
 };
 
 }

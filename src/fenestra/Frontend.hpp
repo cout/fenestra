@@ -46,6 +46,7 @@ public:
     : core_(core)
     , config_(config)
     , configured_plugins_(plugins)
+    , scale_factor_(config.fetch<float>("scale_factor", 6.0f))
     , window_(title, core, config_)
     , probe_dict_()
   {
@@ -82,7 +83,7 @@ public:
   bool done() const { return state_.done; }
 
   void init(retro_system_av_info const & av) {
-    Geometry geom(av.geometry, config_.scale_factor());
+    Geometry geom(av.geometry, scale_factor_);
     window_.init(geom);
 
     for (auto const & plugin : plugins_) {
@@ -245,6 +246,7 @@ private:
   Core & core_;
   Config const & config_;
   std::map<std::string, bool> const & configured_plugins_;
+  float & scale_factor_;
 
   State state_;
 
