@@ -42,9 +42,10 @@ private:
 
 class Frontend {
 public:
-  Frontend(std::string const & title, Core & core, Config const & config)
-    : config_(config)
-    , core_(core)
+  Frontend(std::string const & title, Core & core, Config const & config, std::map<std::string, bool> const & plugins)
+    : core_(core)
+    , config_(config)
+    , configured_plugins_(plugins)
     , window_(title, core, config_)
     , probe_dict_()
   {
@@ -57,8 +58,8 @@ public:
 
   template<typename T>
   void add_plugin(std::string const & name) {
-    auto it = config_.plugins().find(name);
-    if (it == config_.plugins().end() || !it->second) {
+    auto it = configured_plugins_.find(name);
+    if (it == configured_plugins_.end() || !it->second) {
       return;
     }
 
@@ -241,8 +242,9 @@ public:
   }
 
 private:
-  Config const & config_;
   Core & core_;
+  Config const & config_;
+  std::map<std::string, bool> const & configured_plugins_;
 
   State state_;
 

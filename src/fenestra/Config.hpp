@@ -153,13 +153,7 @@ private:
 
 public:
   Config()
-    : plugins_(fetch<std::map<std::string, bool>>("plugins", std::map<std::string, bool>({
-        { "logger", true }, { "perf", true }, { "savefile", true }, { "glfw-gamepad", true },
-        { "portaudio", true }, { "gl", true }, { "sync", true }, { "framedelay", true },
-        { "v4l2stream", true }, { "gstreamer", true }, { "ssr", true }, { "netcmds", true },
-        { "rusage", true }
-      })))
-    , scale_factor_(fetch<float>("scale_factor", 6.0f))
+    : scale_factor_(fetch<float>("scale_factor", 6.0f))
   {
   }
 
@@ -180,8 +174,6 @@ public:
       (*setter)(cfg_);
     }
   }
-
-  auto const & plugins() const { return plugins_; }
 
   float const & scale_factor() const { return scale_factor_; }
 
@@ -234,8 +226,6 @@ private:
   Json::Value cfg_;
   mutable std::map<std::string, std::unique_ptr<Abstract_Setting>> values_;
   mutable std::vector<std::unique_ptr<Setter>> setters_;
-
-  std::map<std::string, bool> & plugins_;
 
   float & scale_factor_;
 };
