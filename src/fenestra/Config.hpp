@@ -42,8 +42,7 @@ public:
       auto [ inserted_it, inserted ] = values_.emplace(name, std::make_any<T>(dflt));
       T * value = std::any_cast<T>(&inserted_it->second);
       auto & setter = setters_.emplace_back([name, value](Json::Value const & cfg) {
-        auto cfg_value = json::deep_find(&cfg, name);
-        if (cfg_value) {
+        if (auto cfg_value = json::deep_find(&cfg, name)) {
           json::assign(*value, *cfg_value);
           log_value(name, *value);
         }
@@ -54,6 +53,10 @@ public:
       return *std::any_cast<T>(&it->second);
     }
   }
+
+  class Subtree;
+
+  Subtree subtree(std::string const & name) const;
 
 private:
   void refresh() {
@@ -88,5 +91,31 @@ private:
   mutable std::map<std::string, std::any> values_;
   mutable std::vector<std::function<void (Json::Value const &)>> setters_;
 };
+
+class Config::Subtree {
+public:
+  Subtree(Config const & config, std::string const & prefix)
+    : config_(config)
+    , prefix_(prefix)
+  {
+  }
+
+  template <typename T>
+  T & fetch(std::string const & name, T const & dflt) const {
+    return config_.fetch<T>(prefix_ + name, dflt);
+  }
+
+  Config const & root() const { return config_; }
+
+private:
+  Config const & config_;
+  std::string prefix_;
+};
+
+inline
+Config::Subtree
+Config::subtree(std::string const & name) const {
+  return Subtree(*this, name + ".");
+}
 
 }

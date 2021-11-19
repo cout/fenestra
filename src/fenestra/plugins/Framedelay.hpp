@@ -10,11 +10,11 @@ class Framedelay
   : public Plugin
 {
 public:
-  Framedelay(Config const & config)
-    : frame_delay_(config.fetch<Milliseconds>("framedelay.milliseconds", Milliseconds(4)))
-    , adaptive_(config.fetch<bool>("framedelay.adaptive", true))
-    , nv_delay_before_swap_(config.fetch<bool>("framedelay.nv_delay_before_swap", false))
-    , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
+  Framedelay(Config::Subtree const & config)
+    : frame_delay_(config.fetch<Milliseconds>("milliseconds", Milliseconds(4)))
+    , adaptive_(config.fetch<bool>("adaptive", true))
+    , nv_delay_before_swap_(config.fetch<bool>("nv_delay_before_swap", false))
+    , glfinish_sync_(config.root().fetch<bool>("sync.glfinish_sync", false))
   {
   }
 

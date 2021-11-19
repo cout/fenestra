@@ -10,9 +10,9 @@ class GLFWGamepad
   : public Plugin
 {
 public:
-  GLFWGamepad(Config const & config)
-    : joystick_(config.fetch<unsigned int>("glfw-gamepad.joystick", 0))
-    , port_(config.fetch<unsigned int>("glfw-gamepad.port", 0))
+  GLFWGamepad(Config::Subtree const & config)
+    : joystick_(config.fetch<unsigned int>("joystick", 0))
+    , port_(config.fetch<unsigned int>("port", 0))
   {
   }
 

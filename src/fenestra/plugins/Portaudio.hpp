@@ -17,11 +17,11 @@ class Portaudio
   : public Plugin
 {
 public:
-  Portaudio(Config const & config)
-    : audio_api_(config.fetch<std::string>("portaudio.audio_api", "ALSA"))
-    , audio_device_(config.fetch<std::string>("portaudio.audio_device", "default"))
-    , audio_suggested_latency_(config.fetch<int>("portaudio.audio_suggested_latency", 64))
-    , audio_nonblock_(config.fetch<bool>("portaudio.audio_nonblock", 64))
+  Portaudio(Config::Subtree const & config)
+    : audio_api_(config.fetch<std::string>("audio_api", "ALSA"))
+    , audio_device_(config.fetch<std::string>("audio_device", "default"))
+    , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))
+    , audio_nonblock_(config.fetch<bool>("audio_nonblock", 64))
   {
   }
 

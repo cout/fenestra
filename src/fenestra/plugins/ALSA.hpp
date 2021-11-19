@@ -13,10 +13,10 @@ class ALSA
   : public Plugin
 {
 public:
-  ALSA(Config const & config)
-    : audio_device_(config.fetch<std::string>("alsa.audio_device", "default"))
-    , audio_suggested_latency_(config.fetch<int>("alsa.audio_suggested_latency", 64))
-    , audio_nonblock_(config.fetch<bool>("alsa.audio_nonblock", 64))
+  ALSA(Config::Subtree const & config)
+    : audio_device_(config.fetch<std::string>("audio_device", "default"))
+    , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))
+    , audio_nonblock_(config.fetch<bool>("audio_nonblock", 64))
   {
   }
 

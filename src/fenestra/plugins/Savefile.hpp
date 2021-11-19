@@ -20,8 +20,8 @@ class Savefile
   : public Plugin
 {
 public:
-  Savefile(Config const & config)
-    : save_directory_(config.fetch<std::string>("save_directory", "."))
+  Savefile(Config::Subtree const & config)
+    : save_directory_(config.root().fetch<std::string>("save_directory", "."))
   {
   }
 

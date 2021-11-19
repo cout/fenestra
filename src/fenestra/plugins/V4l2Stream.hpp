@@ -31,8 +31,8 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { V4L2_PIX_FMT_RGB565, 16 } },
   };
 
-  V4l2Stream(Config const & config)
-    : device_(config.fetch<std::string>("v4l2.device", ""))
+  V4l2Stream(Config::Subtree const & config)
+    : device_(config.fetch<std::string>("device", ""))
   {
     if (device_ != "") {
       open(device_);

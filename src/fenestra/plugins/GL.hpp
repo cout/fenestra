@@ -132,8 +132,8 @@ private:
   };
 
 public:
-  GL(Config const & config)
-    : log_errors_(config.fetch<bool>("gl.log_errors", false))
+  GL(Config::Subtree const & config)
+    : log_errors_(config.fetch<bool>("log_errors", false))
   {
   }
 

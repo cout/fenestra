@@ -21,8 +21,8 @@ class Netcmds
   : public Plugin
 {
 public:
-  Netcmds(Config const & config)
-    : port_(config.fetch<int>("netcmds.port", 55355))
+  Netcmds(Config::Subtree const & config)
+    : port_(config.fetch<int>("port", 55355))
   {
   }
 

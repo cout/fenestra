@@ -10,17 +10,17 @@ class Sync
   : public Plugin
 {
 public:
-  Sync(Config const & config)
-    : vsync_(config.fetch<bool>("sync.vsync", true))
-    , adaptive_sync_(config.fetch<bool>("sync.adaptive", true))
-    , delay_with_fence_(config.fetch<bool>("sync.delay.fence", false))
-    , delay_with_glfinish_(config.fetch<bool>("sync.delay.glfinish", false))
-    , delay_with_query_object_(config.fetch<bool>("sync.delay.query_object", false))
-    , delay_with_nanosleep_(config.fetch<bool>("sync.delay.nanosleep", false))
-    , delay_margin_(config.fetch<float>("sync.delay.magin", 2.0f))
-    , glfinish_sync_(config.fetch<bool>("sync.glfinish_sync", false))
-    , oml_sync_(config.fetch<bool>("sync.oml_sync", false))
-    , sgi_sync_(config.fetch<bool>("sync.sgi_sync", false))
+  Sync(Config::Subtree const & config)
+    : vsync_(config.fetch<bool>("vsync", true))
+    , adaptive_sync_(config.fetch<bool>("adaptive", true))
+    , delay_with_fence_(config.fetch<bool>("delay.fence", false))
+    , delay_with_glfinish_(config.fetch<bool>("delay.glfinish", false))
+    , delay_with_query_object_(config.fetch<bool>("delay.query_object", false))
+    , delay_with_nanosleep_(config.fetch<bool>("delay.nanosleep", false))
+    , delay_margin_(config.fetch<float>("delay.magin", 2.0f))
+    , glfinish_sync_(config.fetch<bool>("glfinish_sync", false))
+    , oml_sync_(config.fetch<bool>("oml_sync", false))
+    , sgi_sync_(config.fetch<bool>("sgi_sync", false))
     , probe_(&dummy_probe_)
   {
   }

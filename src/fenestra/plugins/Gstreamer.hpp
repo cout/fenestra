@@ -31,7 +31,7 @@ public:
   };
 
   Gstreamer(Config const & config)
-    : sink_pipeline_(config.fetch<std::string>("gstreamer.sink_pipeline", ""))
+    : sink_pipeline_(config.fetch<std::string>("sink_pipeline", ""))
   {
     if (sink_pipeline_ != "") {
       open(sink_pipeline_);

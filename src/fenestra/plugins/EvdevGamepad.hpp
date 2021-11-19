@@ -17,9 +17,9 @@ class EvdevGamepad
   : public Plugin
 {
 public:
-  EvdevGamepad(Config const & config)
-    : device_(config.fetch<std::string>("evdev-gamepad.device", ""))
-    , port_(config.fetch<unsigned int>("evdev-gamepad.port", 0))
+  EvdevGamepad(Config::Subtree const & config)
+    : device_(config.fetch<std::string>("device", ""))
+    , port_(config.fetch<unsigned int>("port", 0))
   {
     if (device_ != "") {
       open(device_);

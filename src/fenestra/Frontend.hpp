@@ -64,7 +64,8 @@ public:
       return;
     }
 
-    auto & plugin = *plugins_.emplace_back(new T(config_));
+    auto const & subtree = config_.subtree(name);
+    auto & plugin = *plugins_.emplace_back(new T(subtree));
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
       video_refresh_plugins_.emplace_back(probe_dict_, plugin, "Video: " + name);

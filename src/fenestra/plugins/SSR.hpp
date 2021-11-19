@@ -23,8 +23,8 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { 16, RETRO_PIXEL_FORMAT_RGB565 } },
   };
 
-  SSR(Config const & config)
-    : channel_(config.fetch<std::string>("ssr.channel", ""))
+  SSR(Config::Subtree const & config)
+    : channel_(config.fetch<std::string>("channel", ""))
   {
     if (channel_ != "") {
       open(channel_);
