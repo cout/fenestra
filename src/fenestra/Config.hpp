@@ -13,20 +13,9 @@
 #include <functional>
 #include <memory>
 #include <iostream>
+#include <any>
 
 namespace fenestra {
-
-struct Abstract_Setting {
-  virtual ~Abstract_Setting() { }
-};
-
-template <typename T>
-struct Setting : Abstract_Setting {
-  virtual ~Setting() { }
-  Setting() { }
-  Setting(T const & value) : value(value) { }
-  T value;
-};
 
 class Config {
 private:
@@ -64,17 +53,17 @@ private:
     : public Setter
   {
   public:
-    Setter_T(std::string const  & name, Setting<T> * setting)
+    Setter_T(std::string const  & name, T * value)
       : name_(name)
-      , setting_(setting)
+      , value_(value)
     {
     }
 
     virtual void operator()(Json::Value const & cfg) override {
       auto cfg_value = json::deep_find(&cfg, name_);
       if (cfg_value) {
-        json::assign(setting_->value, *cfg_value);
-        log_value(name_, setting_->value);
+        json::assign(*value_, *cfg_value);
+        log_value(name_, *value_);
       }
     }
 
@@ -82,7 +71,7 @@ private:
 
   private:
     std::string name_;
-    Setting<T> * setting_;
+    T * value_;
   };
 
 public:
@@ -106,13 +95,13 @@ public:
   T & fetch(std::string const & name, Default dflt) const {
     auto it = values_.find(name);
     if (it == values_.end()) {
-      auto [ inserted_it, inserted ] = values_.emplace(name, new Setting<T>(dflt));
-      auto * setting = static_cast<Setting<T> *>(inserted_it->second.get());
-      setters_.emplace_back(new Setter_T<T>(name, setting));
+      auto [ inserted_it, inserted ] = values_.emplace(name, std::make_any<T>(dflt));
+      T * value = std::any_cast<T>(&inserted_it->second);
+      setters_.emplace_back(new Setter_T<T>(name, value));
       (*setters_.back())(cfg_);
-      return setting->value;
+      return *value;
     } else {
-      return dynamic_cast<Setting<T> *>(it->second.get())->value;
+      return *std::any_cast<T>(&it->second);
     }
   }
 
@@ -125,7 +114,7 @@ private:
 
 private:
   Json::Value cfg_;
-  mutable std::map<std::string, std::unique_ptr<Abstract_Setting>> values_;
+  mutable std::map<std::string, std::any> values_;
   mutable std::vector<std::unique_ptr<Setter>> setters_;
 };
 
