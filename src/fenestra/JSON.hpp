@@ -73,4 +73,17 @@ inline void assign(std::map<std::string, T> & dest, Json::Value const & src) {
   dest = result;
 }
 
+inline
+void
+merge(Json::Value & target, Json::Value v) {
+  for (auto it = v.begin(); it != v.end(); ++it) {
+    auto & t = target[it.name()];
+    if (it->type() == Json::objectValue && t.type() == Json::objectValue) {
+      merge(t, *it);
+    } else {
+      t = *it;
+    }
+  }
+}
+
 }

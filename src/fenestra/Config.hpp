@@ -102,7 +102,7 @@ public:
     std::ifstream file(filename);
     file >> v;
 
-    merge(v, cfg_);
+    json::merge(cfg_, v);
     refresh();
   }
 
@@ -121,17 +121,6 @@ public:
   }
 
 private:
-  static void merge(Json::Value v, Json::Value & target) {
-    for (auto it = v.begin(); it != v.end(); ++it) {
-      auto & t = target[it.name()];
-      if (it->type() == Json::objectValue && t.type() == Json::objectValue) {
-        merge(*it, t);
-      } else {
-        t = *it;
-      }
-    }
-  }
-
   void refresh() {
     for (auto const & setter : setters_) {
       (*setter)(cfg_);
