@@ -6,6 +6,7 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
+#include <unordered_map>
 
 #include <sys/types.h>
 #include <sys/stat.h>
