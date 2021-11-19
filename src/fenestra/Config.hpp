@@ -5,13 +5,11 @@
 
 #include "libretro.h"
 
-#include <string_view>
 #include <string>
 #include <vector>
 #include <set>
 #include <map>
 #include <functional>
-#include <memory>
 #include <iostream>
 #include <any>
 
