@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <fstream>
 
 namespace fenestra::json {
 
@@ -84,6 +85,15 @@ merge(Json::Value & target, Json::Value v) {
       t = *it;
     }
   }
+}
+
+inline
+Json::Value
+read_file(std::string const & filename) {
+  Json::Value v;
+  std::ifstream file(filename);
+  file >> v;
+  return v;
 }
 
 }

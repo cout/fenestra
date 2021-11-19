@@ -98,10 +98,7 @@ public:
   }
 
   void load(std::string const & filename) {
-    Json::Value v;
-    std::ifstream file(filename);
-    file >> v;
-
+    auto v = json::read_file(filename);
     json::merge(cfg_, v);
     refresh();
   }
