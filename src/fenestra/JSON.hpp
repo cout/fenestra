@@ -96,4 +96,25 @@ read_file(std::string const & filename) {
   return v;
 }
 
+inline
+Json::Value const *
+deep_find(Json::Value const * v, std::string const & name) {
+  auto it = name.begin();
+  auto begin_word = it;
+  auto end = name.end();
+
+  while (it != end) {
+    if (*it == '.') {
+      v = v->find(&*begin_word, &*it);
+      if (!v) return nullptr;
+      ++it;
+      begin_word = it;
+    } else {
+      ++it;
+    }
+  }
+
+  return v->find(&*begin_word, &*it);
+}
+
 }

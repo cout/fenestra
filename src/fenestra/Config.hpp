@@ -72,7 +72,7 @@ private:
     }
 
     virtual void operator()(Json::Value const & cfg) override {
-      auto cfg_value = find(&cfg, name_);
+      auto cfg_value = json::deep_find(&cfg, name_);
       if (cfg_value) {
         json::assign(setting_->value, *cfg_value);
         log_value(name_, setting_->value);
@@ -122,25 +122,6 @@ private:
     for (auto const & setter : setters_) {
       (*setter)(cfg_);
     }
-  }
-
-  static Json::Value const * find(Json::Value const * v, std::string const & name) {
-    auto it = name.begin();
-    auto begin_word = it;
-    auto end = name.end();
-
-    while (it != end) {
-      if (*it == '.') {
-        v = v->find(&*begin_word, &*it);
-        if (!v) return nullptr;
-        ++it;
-        begin_word = it;
-      } else {
-        ++it;
-      }
-    }
-
-    return v->find(&*begin_word, &*it);
   }
 
 private:
