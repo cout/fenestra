@@ -103,10 +103,7 @@ public:
     file >> v;
 
     merge(v, cfg_);
-
-    for (auto const & setter : setters_) {
-      (*setter)(cfg_);
-    }
+    refresh();
   }
 
   template <typename T, typename Default>
@@ -132,6 +129,12 @@ private:
       } else {
         t = *it;
       }
+    }
+  }
+
+  void refresh() {
+    for (auto const & setter : setters_) {
+      (*setter)(cfg_);
     }
   }
 
