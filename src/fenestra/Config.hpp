@@ -91,8 +91,8 @@ public:
     refresh();
   }
 
-  template <typename T, typename Default>
-  T & fetch(std::string const & name, Default dflt) const {
+  template <typename T>
+  T & fetch(std::string const & name, T const & dflt) const {
     auto it = values_.find(name);
     if (it == values_.end()) {
       auto [ inserted_it, inserted ] = values_.emplace(name, std::make_any<T>(dflt));
