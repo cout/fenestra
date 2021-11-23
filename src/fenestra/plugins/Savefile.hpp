@@ -21,7 +21,7 @@ class Savefile
 {
 public:
   Savefile(Config::Subtree const & config)
-    : save_directory_(config.root().fetch<std::string>("save_directory", "."))
+    : save_directory_(config.root().fetch<std::string>("paths.save_directory", "."))
   {
   }
 

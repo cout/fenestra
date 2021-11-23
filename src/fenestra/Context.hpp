@@ -19,8 +19,8 @@ public:
   Context(Frontend & frontend, Core & core, Config const & config)
     : frontend_(frontend)
     , core_(core)
-    , system_directory_(config.fetch<std::string>("system_directory", "."))
-    , save_directory_(config.fetch<std::string>("save_directory", "."))
+    , system_directory_(config.fetch<std::string>("paths.system_directory", "."))
+    , save_directory_(config.fetch<std::string>("paths.save_directory", "."))
   {
     current_ = this;
     core.set_environment(environment);
