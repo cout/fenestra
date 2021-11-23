@@ -159,8 +159,8 @@ private:
   static inline std::unordered_map<std::uint16_t, ButtonBinding> button_bindings_ {
     { BTN_A, { RETRO_DEVICE_ID_JOYPAD_B } },
     { BTN_B, { RETRO_DEVICE_ID_JOYPAD_A } },
-    { BTN_Y, { RETRO_DEVICE_ID_JOYPAD_Y } },
-    { BTN_X, { RETRO_DEVICE_ID_JOYPAD_X } },
+    { BTN_Y, { RETRO_DEVICE_ID_JOYPAD_X } },
+    { BTN_X, { RETRO_DEVICE_ID_JOYPAD_Y } },
     { BTN_TL, { RETRO_DEVICE_ID_JOYPAD_L } },
     { BTN_TR, { RETRO_DEVICE_ID_JOYPAD_R } },
     { BTN_SELECT, { RETRO_DEVICE_ID_JOYPAD_SELECT } },
