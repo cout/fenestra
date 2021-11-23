@@ -24,8 +24,10 @@ public:
       auto now = Clock::gettime(CLOCK_MONOTONIC);
       if (depth) probe.mark(key, *depth, now);
       std::forward<Fn>(fn)();
+    } catch(std::exception const & ex) {
+      std::cout << "error during " << frontend_.probe_dict()[key] << ": " << ex.what() << std::endl;
     } catch(...) {
-      std::cout << "error during " << frontend_.probe_dict()[key] << std::endl;
+      std::cout << "error during " << frontend_.probe_dict()[key] << ": unknown error" << std::endl;
     }
   }
 
