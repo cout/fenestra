@@ -5,6 +5,7 @@
 #include "Clock.hpp"
 #include "Core.hpp"
 #include "State.hpp"
+#include "CoreState.hpp"
 
 #include <epoxy/glx.h>
 
@@ -131,6 +132,24 @@ private:
         // underflow errors
         paused_ = !paused_;
         std::cout << (paused_ ? "Paused." : "GLHF!") << std::endl;
+        break;
+
+      case GLFW_KEY_S:
+        {
+          std::string filename = "state"; // TODO
+          auto state = CoreState::serialize(core_);
+          state.save(filename);
+          std::cout << "Saved state to " << filename << std::endl;
+        }
+        break;
+
+      case GLFW_KEY_L:
+        {
+          std::string filename = "state"; // TODO
+          auto state = CoreState::load(filename);
+          state.unserialize(core_);
+          std::cout << "Loaded state from " << filename << std::endl;
+        }
         break;
     }
   }
