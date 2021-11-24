@@ -1,4 +1,4 @@
-REQUIRED_PACKAGES = jsoncpp ftgl
+REQUIRED_PACKAGES = jsoncpp ftgl libzstd
 OPTIONAL_PACKAGES = alsa portaudiocpp gstreamermm-1.0 libpulse
 PACKAGES = $(REQUIRED_PACKAGES) $(OPTIONAL_PACKAGES)
 

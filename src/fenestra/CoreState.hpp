@@ -3,6 +3,9 @@
 #include <vector>
 #include <cstddef>
 #include <utility>
+#include <sstream>
+
+#include <zstd.h>
 
 namespace fenestra {
 
@@ -31,20 +34,39 @@ public:
 
   static CoreState load(std::string const & filename) {
     std::ifstream in(filename);
-    std::size_t size;
+    std::stringstream sstr;
+    while (in >> sstr.rdbuf()) { }
+
+    auto size = ZSTD_getFrameContentSize(sstr.str().data(), sstr.str().length());
+
+    if (size == ZSTD_CONTENTSIZE_ERROR) {
+      throw std::runtime_error("Content is not zstd-compressed");
+    }
+
+    if (size == ZSTD_CONTENTSIZE_UNKNOWN) {
+      throw std::runtime_error("Content size is unknown");
+    }
+
     std::vector<char> data;
-    in.read(reinterpret_cast<char *>(&size), sizeof(size));
     data.resize(size);
-    in.read(data.data(), size);
+    ZSTD_decompress(data.data(), data.size(), sstr.str().data(), sstr.str().length());
+
     return CoreState(data);
   }
 
   void save(std::string const & filename) {
     std::ofstream out(filename);
-    auto * data = data_.data();
-    std::size_t size = data_.size();
-    out.write(reinterpret_cast<char *>(&size), sizeof(size));
-    out.write(data, size);
+
+    std::vector<char> buf;
+    buf.resize(ZSTD_compressBound(data_.size()));
+
+    auto csize = ZSTD_compress(buf.data(), buf.size(), data_.data(), data_.size(), 1);
+
+    if (ZSTD_isError(csize)) {
+      throw std::runtime_error(ZSTD_getErrorName(csize));
+    }
+
+    out.write(buf.data(), csize);
   }
 
 private:
