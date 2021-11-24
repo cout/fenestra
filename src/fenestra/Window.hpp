@@ -141,7 +141,7 @@ private:
 
       case GLFW_KEY_S:
         {
-          std::string filename = state_basename_;
+          std::string filename = state_filename();
           auto state = CoreState::serialize(core_);
           state.save(filename);
           std::cout << "Saved state to " << filename << std::endl;
@@ -150,13 +150,44 @@ private:
 
       case GLFW_KEY_L:
         {
-          std::string filename = state_basename_;
+          std::string filename = state_filename();
           auto state = CoreState::load(filename);
           state.unserialize(core_);
           std::cout << "Loaded state from " << filename << std::endl;
         }
         break;
+
+      case GLFW_KEY_0:
+      case GLFW_KEY_1:
+      case GLFW_KEY_2:
+      case GLFW_KEY_3:
+      case GLFW_KEY_4:
+      case GLFW_KEY_5:
+      case GLFW_KEY_6:
+      case GLFW_KEY_7:
+      case GLFW_KEY_8:
+      case GLFW_KEY_9:
+        auto digit = key - GLFW_KEY_0;
+
+        if (now - last_digit_time_ > Seconds(1)) {
+          state_number_ = 0;
+        }
+
+        state_number_ *= 10;
+        state_number_ += digit;
+
+        std::cout << "Selected state " << state_number_ << std::endl;
+
+        last_digit_time_ = now;
+        break;
     }
+  }
+
+  std::string state_filename() {
+    std::stringstream strm;
+    strm << state_basename_;
+    strm << state_number_;
+    return strm.str();
   }
 
 private:
@@ -175,9 +206,13 @@ private:
   bool reset_requested_ = false;
   Timestamp reset_requested_time_;
 
+  Timestamp last_digit_time_;
+
   bool paused_ = false;
 
   std::string state_basename_;
+
+  unsigned int state_number_ = 0;
 };
 
 }
