@@ -150,11 +150,20 @@ private:
 
       case GLFW_KEY_L:
         {
+          last_state_ = CoreState::serialize(core_);
+
           std::string filename = state_filename();
           auto state = CoreState::load(filename);
           state.unserialize(core_);
           std::cout << "Loaded state from " << filename << std::endl;
         }
+        break;
+
+      case GLFW_KEY_U:
+        if (last_state_.valid()) {
+          last_state_.unserialize(core_);
+        }
+        std::cout << "Loaded state from undo buffer" << std::endl;
         break;
 
       case GLFW_KEY_0:
@@ -213,6 +222,8 @@ private:
   std::string state_basename_;
 
   unsigned int state_number_ = 0;
+
+  CoreState last_state_;
 };
 
 }

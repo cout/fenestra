@@ -11,10 +11,17 @@ namespace fenestra {
 
 class CoreState {
 public:
-  CoreState(std::vector<char> data)
+  CoreState()
+    : data_()
+  {
+  }
+
+  explicit CoreState(std::vector<char> data)
     : data_(std::move(data))
   {
   }
+
+  bool valid() const { return not data_.empty(); }
 
   static CoreState serialize(Core const & core) {
     auto size = core.serialize_size();
