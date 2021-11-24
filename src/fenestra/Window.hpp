@@ -27,6 +27,7 @@ public:
   Window(std::string const & title, Core & core, Config const & config)
     : title_(title)
     , core_(core)
+    , state_directory_(config.fetch<std::string>("paths.state_directory", "."))
   {
     if (!glfwInit()) {
       throw std::runtime_error("glfwInit failed");
@@ -74,6 +75,10 @@ public:
   }
 
   bool paused() const { return paused_; }
+
+  void game_loaded(Core const & core, std::string const & filename);
+
+  void unloading_game(Core const & core);
 
 private:
   static void key_callback_(GLFWwindow * window, int key, int scancode, int action, int mods) {
@@ -136,7 +141,7 @@ private:
 
       case GLFW_KEY_S:
         {
-          std::string filename = "state"; // TODO
+          std::string filename = state_basename_;
           auto state = CoreState::serialize(core_);
           state.save(filename);
           std::cout << "Saved state to " << filename << std::endl;
@@ -145,7 +150,7 @@ private:
 
       case GLFW_KEY_L:
         {
-          std::string filename = "state"; // TODO
+          std::string filename = state_basename_;
           auto state = CoreState::load(filename);
           state.unserialize(core_);
           std::cout << "Loaded state from " << filename << std::endl;
@@ -159,6 +164,9 @@ private:
 
   std::string title_;
   Core & core_;
+
+  std::string const & state_directory_;
+
   GLFWwindow * win_ = nullptr;
 
   bool close_requested_ = false;
@@ -168,6 +176,8 @@ private:
   Timestamp reset_requested_time_;
 
   bool paused_ = false;
+
+  std::string state_basename_;
 };
 
 }

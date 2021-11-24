@@ -131,12 +131,14 @@ public:
     for (auto const & plugin : plugins_) {
       plugin->game_loaded(core_, filename);
     }
+    window_.game_loaded(core_, filename); // TODO: make window a plugin
   }
 
   void unloading_game() {
     for (auto const & plugin : plugins_) {
       plugin->unloading_game(core_);
     }
+    window_.unloading_game(core_); // TODO: make window a plugin
   }
 
   void game_unloaded() {
