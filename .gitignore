@@ -1,9 +1,15 @@
 *.o
 *.d
-./fenestra
+/fenestra
 tools/list-portaudio-devices
 tools/perflog-viewer
 core
 fenestra.png
 perflog-viewer.png
 perf.log
+/cores
+/roms
+/patches
+/saves
+/states
+/doc

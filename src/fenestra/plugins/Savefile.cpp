@@ -4,6 +4,8 @@
 
 void
 fenestra::Savefile::game_loaded(Core const & core, std::string const & filename) {
+  std::filesystem::create_directories(save_directory_);
+
   saveram_ = std::make_unique<Saveram>(core);
   std::cout << "Saveram size is " << saveram_->size() << std::endl;
 
