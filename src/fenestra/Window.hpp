@@ -2,10 +2,8 @@
 
 #include "Config.hpp"
 #include "Geometry.hpp"
-#include "Clock.hpp"
 #include "Core.hpp"
 #include "State.hpp"
-#include "CoreState.hpp"
 
 #include <epoxy/glx.h>
 
@@ -24,10 +22,8 @@ namespace fenestra {
 
 class Window {
 public:
-  Window(std::string const & title, Core & core, Config const & config)
+  Window(std::string const & title, Config const & config)
     : title_(title)
-    , core_(core)
-    , state_directory_(config.fetch<std::string>("paths.state_directory", "."))
   {
     if (!glfwInit()) {
       throw std::runtime_error("glfwInit failed");
@@ -66,19 +62,14 @@ public:
 
     glfwPollEvents();
 
-    state.paused = paused();
-    state.done = done();
+    if (done()) state.done = true;
+    state.key_events.insert(state.key_events.begin(), key_events_.begin(), key_events_.end());
+    key_events_.clear();
   }
 
   bool done() const {
     return glfwWindowShouldClose(win_);
   }
-
-  bool paused() const { return paused_; }
-
-  void game_loaded(Core const & core, std::string const & filename);
-
-  void unloading_game(Core const & core);
 
 private:
   static void key_callback_(GLFWwindow * window, int key, int scancode, int action, int mods) {
@@ -86,144 +77,40 @@ private:
   }
 
   void key_callback(int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS) {
-      key_pressed(key, scancode, mods);
+    KeyEvent event = { KeyAction::UNKNOWN, '\0' };
+
+    if (key >= GLFW_KEY_SPACE && key <= GLFW_KEY_GRAVE_ACCENT) {
+      event.key = key;
+    } else {
+      switch(key) {
+        case GLFW_KEY_ESCAPE: event.key = '\033'; break;
+        case GLFW_KEY_ENTER: event.key = '\n'; break;
+        case GLFW_KEY_TAB: event.key = '\t'; break;
+        case GLFW_KEY_BACKSPACE: event.key = '\b'; break;
+        default: break;
+      }
     }
-  }
 
-  void key_pressed(int key, int scancode, int mods) {
-    // TODO: This is quick&dirty, but I think there should be some sort
-    // of event system, rather than having the Window know about the
-    // Core.
-    //
-    // Perhaps simpler but just as effective would be to have a Keyboard
-    // class, and allow it to know about the core.
-
-    // TODO: Create a timer queue, instead of manually doing timing like
-    // this?  That will be necessary if I want to show status text in
-    // the main window.
-
-    // TODO: Delay showing Close/reset requested message, so it's not
-    // possible to accidentally press esc-esc (there has to be a delay
-    // between them)
-
-    auto now = Clock::gettime(CLOCK_REALTIME);
-
-    switch(key) {
-      case GLFW_KEY_ESCAPE:
-        if (close_requested_ && now - close_requested_time_ < Seconds(1)) {
-          glfwSetWindowShouldClose(win_, true);
-          close_requested_ = false;
-        } else {
-          std::cout << "Close requested, press ESC within 1s to confirm" << std::endl;
-          close_requested_ = true;
-          close_requested_time_ = now;
-        }
-        break;
-
-      case GLFW_KEY_R:
-        if (reset_requested_ && now - reset_requested_time_ < Seconds(1)) {
-          core_.reset();
-          reset_requested_ = false;
-        } else {
-          std::cout << "Reset requested, press R within 1s to confirm" << std::endl;
-          reset_requested_ = true;
-          reset_requested_time_ = now;
-        }
-        break;
-
-      case GLFW_KEY_P:
-        // TODO: Stop audio when emulator is paused, otherwise we get
-        // underflow errors
-        paused_ = !paused_;
-        std::cout << (paused_ ? "Paused." : "GLHF!") << std::endl;
-        break;
-
-      case GLFW_KEY_S:
-        {
-          std::string filename = state_filename();
-          auto state = CoreState::serialize(core_);
-          state.save(filename);
-          std::cout << "Saved state to " << filename << std::endl;
-        }
-        break;
-
-      case GLFW_KEY_L:
-        {
-          last_state_ = CoreState::serialize(core_);
-
-          std::string filename = state_filename();
-          auto state = CoreState::load(filename);
-          state.unserialize(core_);
-          std::cout << "Loaded state from " << filename << std::endl;
-        }
-        break;
-
-      case GLFW_KEY_U:
-        if (last_state_.valid()) {
-          last_state_.unserialize(core_);
-        }
-        std::cout << "Loaded state from undo buffer" << std::endl;
-        break;
-
-      case GLFW_KEY_0:
-      case GLFW_KEY_1:
-      case GLFW_KEY_2:
-      case GLFW_KEY_3:
-      case GLFW_KEY_4:
-      case GLFW_KEY_5:
-      case GLFW_KEY_6:
-      case GLFW_KEY_7:
-      case GLFW_KEY_8:
-      case GLFW_KEY_9:
-        auto digit = key - GLFW_KEY_0;
-
-        if (now - last_digit_time_ > Seconds(1)) {
-          state_number_ = 0;
-        }
-
-        state_number_ *= 10;
-        state_number_ += digit;
-
-        std::cout << "Selected state " << state_number_ << std::endl;
-
-        last_digit_time_ = now;
-        break;
+    switch (action) {
+      case GLFW_PRESS: event.action = KeyAction::PRESS; break;
+      case GLFW_RELEASE: event.action = KeyAction::RELEASE; break;
+      case GLFW_REPEAT: event.action = KeyAction::REPEAT; break;
+      default: break;
     }
-  }
 
-  std::string state_filename() {
-    std::stringstream strm;
-    strm << state_basename_;
-    strm << state_number_;
-    return strm.str();
+    if (event.action != KeyAction::UNKNOWN && key != '\0') {
+      key_events_.push_back(event);
+    }
   }
 
 private:
   static inline Window * current_ = nullptr;
 
   std::string title_;
-  Core & core_;
-
-  std::string const & state_directory_;
 
   GLFWwindow * win_ = nullptr;
 
-  bool close_requested_ = false;
-  Timestamp close_requested_time_;
-
-  bool reset_requested_ = false;
-  Timestamp reset_requested_time_;
-
-  Timestamp last_digit_time_;
-
-  bool paused_ = false;
-
-  std::string state_basename_;
-
-  unsigned int state_number_ = 0;
-
-  CoreState last_state_;
+  std::vector<KeyEvent> key_events_;
 };
 
 }

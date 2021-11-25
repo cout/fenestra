@@ -20,7 +20,7 @@ LDFLAGS += $(shell pkg-config --libs $(installed_packages))
 
 FENESTRA_OBJS = \
   src/fenestra/fenestra.o \
-  src/fenestra/Window.o \
+  src/fenestra/KeyHandler.o \
   src/fenestra/plugins/Savefile.o \
   src/fenestra/plugins/ssr/SSRVideoStreamWriter.o
 
