@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdarg>
 #include <string_view>
+#include <vector>
 
 namespace fenestra {
 
@@ -50,6 +51,7 @@ public:
   virtual void game_unloaded(Core const & core) { }
 
   virtual void poll_input(State & state) { }
+  virtual void handle_key_events(std::vector<KeyEvent> const & key_events, State & state) { }
 };
 
 }

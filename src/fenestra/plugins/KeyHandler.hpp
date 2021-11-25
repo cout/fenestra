@@ -1,22 +1,28 @@
 #pragma once
 
-#include "Core.hpp"
-#include "Config.hpp"
-#include "State.hpp"
-#include "CoreState.hpp"
-#include "Clock.hpp"
+#include "fenestra/Plugin.hpp"
+#include "fenestra/Core.hpp"
+#include "fenestra/Config.hpp"
+#include "fenestra/State.hpp"
+#include "fenestra/CoreState.hpp"
+#include "fenestra/Clock.hpp"
+
+#include <string>
+#include <sstream>
+#include <vector>
 
 namespace fenestra {
 
-class KeyHandler {
+class KeyHandler
+  : public Plugin
+{
 public:
-  KeyHandler(Core & core, Config const & config)
-    : core_(core)
-    , state_directory_(config.fetch<std::string>("paths.state_directory", "."))
+  KeyHandler(Config::Subtree const & config)
+    : state_directory_(config.root().fetch<std::string>("paths.state_directory", "."))
   {
   }
 
-  void handle_key_events(std::vector<KeyEvent> const & key_events, State & state) {
+  virtual void handle_key_events(std::vector<KeyEvent> const & key_events, State & state) override {
     for (auto const & event : key_events) {
       if (event.action == KeyAction::PRESS) {
         handle_key_pressed(event.key, state);
@@ -54,7 +60,7 @@ private:
 
       case 'R':
         if (reset_requested_ && now - reset_requested_time_ < Seconds(1)) {
-          core_.reset();
+          core_->reset();
           reset_requested_ = false;
         } else {
           std::cout << "Reset requested, press R within 1s to confirm" << std::endl;
@@ -71,7 +77,7 @@ private:
       case 'S':
         {
           std::string filename = state_filename();
-          auto state = CoreState::serialize(core_);
+          auto state = CoreState::serialize(*core_);
           state.save(filename);
           std::cout << "Saved state to " << filename << std::endl;
         }
@@ -79,18 +85,18 @@ private:
 
       case 'L':
         {
-          last_state_ = CoreState::serialize(core_);
+          last_state_ = CoreState::serialize(*core_);
 
           std::string filename = state_filename();
           auto state = CoreState::load(filename);
-          state.unserialize(core_);
+          state.unserialize(*core_);
           std::cout << "Loaded state from " << filename << std::endl;
         }
         break;
 
       case 'U':
         if (last_state_.valid()) {
-          last_state_.unserialize(core_);
+          last_state_.unserialize(*core_);
         }
         std::cout << "Loaded state from undo buffer" << std::endl;
         break;
@@ -129,7 +135,7 @@ private:
   }
 
 private:
-  Core & core_;
+  Core const * core_ = nullptr;
 
   std::string const & state_directory_;
 

@@ -4,6 +4,7 @@
 #include "Context.hpp"
 #include "Loop.hpp"
 
+#include "plugins/KeyHandler.hpp"
 #include "plugins/Logger.hpp"
 #include "plugins/Perflog.hpp"
 #include "plugins/Savefile.hpp"
@@ -71,16 +72,17 @@ int main(int argc, char *argv[]) {
   Core core(core_filename);
 
   std::map<std::string, bool> default_plugins {
-    { "logger", true }, { "perf", true }, { "savefile", true }, { "glfw-gamepad", true },
-    { "portaudio", true }, { "gl", true }, { "sync", true }, { "framedelay", true },
-    { "v4l2stream", true }, { "gstreamer", true }, { "ssr", true }, { "netcmds", true },
-    { "rusage", true }
+    { "key-handler", true }, { "logger", true }, { "perf", true }, { "savefile", true },
+    { "glfw-gamepad", true }, { "portaudio", true }, { "gl", true }, { "sync", true },
+    { "framedelay", true }, { "v4l2stream", true }, { "gstreamer", true }, { "ssr", true },
+    { "netcmds", true }, { "rusage", true }
   };
 
   auto const & plugins = config.fetch<std::map<std::string, bool>>("plugins", default_plugins);
 
   Frontend frontend("Fenestra", core, config, plugins);
 
+  frontend.add_plugin<KeyHandler>("key-handler");
   frontend.add_plugin<Logger>("logger");
   frontend.add_plugin<Perflog>("perflog");
   frontend.add_plugin<Savefile>("savefile");

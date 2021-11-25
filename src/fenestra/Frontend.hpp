@@ -4,7 +4,6 @@
 
 #include "Config.hpp"
 #include "Window.hpp"
-#include "KeyHandler.hpp"
 #include "Geometry.hpp"
 #include "Plugin.hpp"
 #include "Probe.hpp"
@@ -49,7 +48,6 @@ public:
     , configured_plugins_(plugins)
     , scale_factor_(config.fetch<float>("scale_factor", 6.0f))
     , window_(title, config_)
-    , key_handler_(core, config_)
     , probe_dict_()
   {
   }
@@ -133,14 +131,12 @@ public:
     for (auto const & plugin : plugins_) {
       plugin->game_loaded(core_, filename);
     }
-    key_handler_.game_loaded(core_, filename); // TODO: make key handler a plugin
   }
 
   void unloading_game() {
     for (auto const & plugin : plugins_) {
       plugin->unloading_game(core_);
     }
-    key_handler_.unloading_game(core_); // TODO: make key handler a plugin
   }
 
   void game_unloaded() {
@@ -165,7 +161,9 @@ public:
 
   void poll_window_events() {
     window_.poll_events(state_);
-    key_handler_.handle_key_events(state_.key_events, state_);
+    for (auto const & plugin : plugins_) {
+      plugin->handle_key_events(state_.key_events, state_);
+    }
     state_.key_events.clear();
   }
 
@@ -258,7 +256,6 @@ private:
   State state_;
 
   Window window_;
-  KeyHandler key_handler_;
   Probe probe_;
 
   Probe::Dictionary probe_dict_;
