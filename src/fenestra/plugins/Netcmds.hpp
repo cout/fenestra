@@ -55,10 +55,10 @@ public:
   }
 
   virtual void pre_frame_delay(State const & state) override {
-    poll();
+    poll(state);
   }
 
-  void poll() {
+  void poll(State const & state) {
     if (sock_ > 0) {
       char buf[1500];
       sockaddr_in reply_addr;
@@ -67,7 +67,7 @@ public:
 
       if (n > 0) {
         auto const & vec = parse(buf, n);
-        handle_command(vec, reply_addr, reply_addr_len);
+        handle_command(vec, reply_addr, reply_addr_len, state);
       }
     }
   }
@@ -95,18 +95,20 @@ private:
     return vec_;
   }
 
-  void handle_command(std::vector<std::string_view> const & vec, sockaddr_in reply_addr, socklen_t reply_addr_len) {
+  void handle_command(std::vector<std::string_view> const & vec, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
     if (vec.empty()) {
       return;
     }
 
     auto cmd = vec[0];
     if (cmd == "READ_CORE_RAM" && vec.size() >= 3) {
-      handle_read_core_ram(vec[1], vec[2], reply_addr, reply_addr_len);
+      handle_read_core_ram(vec[1], vec[2], reply_addr, reply_addr_len, state);
+    } else if (cmd == "GET_STATUS") {
+      handle_get_status(reply_addr, reply_addr_len, state);
     }
   }
 
-  void handle_read_core_ram(std::string_view s_addr, std::string_view s_bytes, sockaddr_in reply_addr, socklen_t reply_addr_len) {
+  void handle_read_core_ram(std::string_view s_addr, std::string_view s_bytes, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
     unsigned int addr = 0;
     std::from_chars(s_addr.data(), s_addr.data() + s_addr.size(), addr, 16);
 
@@ -126,17 +128,34 @@ private:
       bytes = max_bytes;
     }
 
-    char reply[40 + 1024 * 3];
-    char * r = reply;
-    r += std::snprintf(reply, sizeof(reply), "READ_CORE_RAM %x", addr);
+    reply_.resize(40 + 1024 * 3);
+    char * r = reply_.data();
+    r += std::snprintf(reply_.data(), reply_.size(), "READ_CORE_RAM %x", addr);
 
     for (auto i = 0u; i < bytes; ++i) {
-      r += std::snprintf(r, sizeof(reply) - (r - reply), " %.2X", data[addr + i]);
+      r += std::snprintf(r, reply_.size() - (r - reply_.data()), " %.2X", data[addr + i]);
     }
 
-    r += std::snprintf(r, sizeof(reply) - (r - reply), "\n");
+    r += std::snprintf(r, reply_.size() - (r - reply_.data()), "\n");
 
-    send_reply(std::string_view(reply, r - reply), reply_addr);
+    send_reply(std::string_view(reply_.data(), r - reply_.data()), reply_addr);
+  }
+
+  void handle_get_status(sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
+    reply_.clear();
+    append(reply_, "GET_STATUS ");
+    append(reply_, state.paused ? "PAUSED " : "PLAYING ");
+    append(reply_, "TODO_system_id");
+    append(reply_, ",");
+    append(reply_, "TODO_content_name");
+    append(reply_, ",crc32=");
+    append(reply_, "TODO_content_crc32");
+
+    send_reply(std::string_view(reply_.data(), reply_.size()), reply_addr);
+  }
+
+  static void append(std::vector<char> & dest, std::string_view s) {
+    dest.insert(dest.end(), s.begin(), s.end());
   }
 
   void send_reply(std::string_view reply, sockaddr_in addr) {
@@ -148,6 +167,7 @@ private:
   int & port_;
   int sock_ = -1;
   std::vector<std::string_view> vec_;
+  std::vector<char> reply_;
 };
 
 }
