@@ -15,9 +15,9 @@ class Pulseaudio
 {
 public:
   Pulseaudio(Config::Subtree const & config)
-    : device_(config.fetch<std::string>("pulseaudio.device", ""))
-    , audio_maximum_latency_(config.fetch<int>("pulseaudio.audio_maximum_latency", 64))
-    , audio_suggested_latency_(config.fetch<int>("pulseaudio.audio_suggested_latency", 64))
+    : device_(config.fetch<std::string>("device", ""))
+    , audio_maximum_latency_(config.fetch<int>("audio_maximum_latency", 64))
+    , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))
   {
   }
 
