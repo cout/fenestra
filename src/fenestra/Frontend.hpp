@@ -74,6 +74,8 @@ public:
 
   template<typename T>
   void add_plugin_instance(std::string const & name) {
+    std::cout << "[INFO plugin] New plugin instance: " << name << std::endl;
+
     auto const & subtree = config_.subtree(name);
     auto & plugin = *plugins_.emplace_back(new T(subtree));
 
