@@ -298,9 +298,9 @@ public:
     double right_margin = 10;
     double column_margin = 20;
     double row_height = (height_ - top_margin - bottom_margin) / num_queues;
-    font_.FaceSize(row_height * 0.5);
 
     // Draw metric names
+    font_.FaceSize(row_height * 0.5875);
     FTGL_DOUBLE y = height_ - row_height - top_margin;
     FTGL_DOUBLE x = left_margin;
     FTGL_DOUBLE next_x = 0;
@@ -312,6 +312,7 @@ public:
     }
 
     // Draw averages
+    font_.FaceSize(row_height * 0.5875);
     y = height_ - row_height - top_margin;
     x = next_x + column_margin;
     for (auto const & queue : reader_.queues()) {
