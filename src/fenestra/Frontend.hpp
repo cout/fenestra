@@ -60,6 +60,7 @@ public:
   template<typename T>
   void add_plugin(std::string const & name) {
     for ( auto const & [ configured_name_instance, enabled ] : configured_plugins_) {
+      if (!enabled) continue;
       auto idx = configured_name_instance.find(":");
       if (idx != std::string::npos) {
         auto configured_name = configured_name_instance.substr(0, idx);
