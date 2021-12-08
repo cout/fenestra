@@ -41,7 +41,6 @@ public:
 
   void run() {
     auto final_key = frontend_.probe_dict()["---"];
-    auto perf_metrics_key = frontend_.probe_dict()["Perf metrics"];
     auto pre_frame_delay_key = frontend_.probe_dict()["Pre frame delay"];
     auto poll_window_events_key = frontend_.probe_dict()["Poll window events"];
     auto frame_delay_key = frontend_.probe_dict()["Frame delay"];
@@ -58,10 +57,11 @@ public:
     // Make sure this is always the first probe, otherwise we will show
     // the timing for the previous perf_record as if it were the one
     // that happened in this loop iteration.
-    probe.mark(perf_metrics_key, 0, Clock::gettime(CLOCK_MONOTONIC));
+    probe.mark(pre_frame_delay_key, 0, Clock::gettime(CLOCK_MONOTONIC));
 
     while (!frontend_.done()) {
-      step(probe, 0, pre_frame_delay_key,     [&] { frontend_.pre_frame_delay();     });
+      frontend_.pre_frame_delay();
+
       step(probe, 0, poll_window_events_key,  [&] { frontend_.poll_window_events();  });
       step(probe, 0, frame_delay_key,         [&] { frontend_.frame_delay();         });
       step(probe, 0, core_run_key,            [&] { run_core(probe);                 });
@@ -72,12 +72,12 @@ public:
         step(probe, std::nullopt, sync_key, [&] { frontend_.window_sync();         });
       });
 
-      auto perf_metrics_start_time = Clock::gettime(CLOCK_MONOTONIC);
-      probe.mark(final_key, Probe::FINAL, 0, perf_metrics_start_time);
+      auto pre_frame_delay_start_time = Clock::gettime(CLOCK_MONOTONIC);
+      probe.mark(final_key, Probe::FINAL, 0, pre_frame_delay_start_time);
       frontend_.collect_metrics(probe);
       frontend_.record_probe(probe);
       probe.clear();
-      probe.mark(perf_metrics_key, 0, perf_metrics_start_time);
+      probe.mark(pre_frame_delay_key, 0, pre_frame_delay_start_time);
     }
   }
 
