@@ -59,11 +59,22 @@ public:
 
   template<typename T>
   void add_plugin(std::string const & name) {
-    auto it = configured_plugins_.find(name);
-    if (it == configured_plugins_.end() || !it->second) {
-      return;
+    for ( auto const & [ configured_name_instance, enabled ] : configured_plugins_) {
+      auto idx = configured_name_instance.find(":");
+      if (idx != std::string::npos) {
+        auto configured_name = configured_name_instance.substr(0, idx);
+        auto configured_instance = configured_name_instance.substr(idx + 1, std::string::npos);
+        if (name == configured_name) {
+          add_plugin<T>(configured_name, configured_instance);
+        }
+      } else if (name == configured_name_instance) {
+        add_plugin<T>(configured_name_instance, "");
+      }
     }
+  }
 
+  template<typename T>
+  void add_plugin(std::string const & name, std::string const & instance) {
     auto const & subtree = config_.subtree(name);
     auto & plugin = *plugins_.emplace_back(new T(subtree));
 
