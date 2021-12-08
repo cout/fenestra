@@ -14,7 +14,7 @@ class Pulseaudio
   : public Plugin
 {
 public:
-  Pulseaudio(Config::Subtree const & config)
+  Pulseaudio(Config::Subtree const & config, std::string const & instance)
     : device_(config.fetch<std::string>("device", ""))
     , audio_maximum_latency_(config.fetch<int>("audio_maximum_latency", 64))
     , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))

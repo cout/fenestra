@@ -63,32 +63,33 @@ public:
       auto idx = configured_name_instance.find(":");
       if (idx != std::string::npos) {
         auto configured_name = configured_name_instance.substr(0, idx);
+        auto configured_instance = configured_name_instance.substr(idx + 1, std::string::npos);
         if (name == configured_name) {
-          add_plugin_instance<T>(configured_name_instance);
+          add_plugin_instance<T>(configured_name_instance, configured_instance);
         }
       } else if (name == configured_name_instance) {
-        add_plugin_instance<T>(configured_name_instance);
+        add_plugin_instance<T>(configured_name_instance, "");
       }
     }
   }
 
   template<typename T>
-  void add_plugin_instance(std::string const & name) {
-    std::cout << "[INFO plugin] New plugin instance: " << name << std::endl;
+  void add_plugin_instance(std::string const & full_name, std::string const & instance) {
+    std::cout << "[INFO plugin] New plugin instance: " << full_name << std::endl;
 
-    auto const & subtree = config_.subtree(name);
-    auto & plugin = *plugins_.emplace_back(new T(subtree));
+    auto const & subtree = config_.subtree(full_name);
+    auto & plugin = *plugins_.emplace_back(new T(subtree, instance));
 
     if (!std::is_same_v<decltype(&T::video_refresh), decltype(&Plugin::video_refresh)>) {
-      video_refresh_plugins_.emplace_back(probe_dict_, plugin, "Video: " + name);
+      video_refresh_plugins_.emplace_back(probe_dict_, plugin, "Video: " + full_name);
     }
 
     if (!std::is_same_v<decltype(&T::write_audio_sample), decltype(&Plugin::write_audio_sample)>) {
-      audio_sample_plugins_.emplace_back(probe_dict_, plugin, "Audio: " + name);
+      audio_sample_plugins_.emplace_back(probe_dict_, plugin, "Audio: " + full_name);
     }
 
     if (!std::is_same_v<decltype(&T::poll_input), decltype(&Plugin::poll_input)>) {
-      poll_input_plugins_.emplace_back(probe_dict_, plugin, "Input: " + name);
+      poll_input_plugins_.emplace_back(probe_dict_, plugin, "Input: " + full_name);
     }
   }
 

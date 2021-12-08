@@ -9,7 +9,7 @@ class Screensaver
   : public Plugin
 {
 public:
-  Screensaver(Config::Subtree const & config)
+  Screensaver(Config::Subtree const & config, std::string const & instance)
     : xresetscreensaver_(config.fetch<bool>("inhibit.xresetscreensaver", true))
     , dl_(RTLD_LAZY)
   {

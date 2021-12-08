@@ -30,7 +30,7 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { "RGB16", 16 } },
   };
 
-  Gstreamer(Config const & config)
+  Gstreamer(Config const & config, std::string const & instance)
     : sink_pipeline_(config.fetch<std::string>("sink_pipeline", ""))
   {
     if (sink_pipeline_ != "") {

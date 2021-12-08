@@ -25,7 +25,7 @@ private:
   class Queue;
 
 public:
-  Perflog(Config::Subtree const & config);
+  Perflog(Config::Subtree const & config, std::string const & instance);
 
   ~Perflog();
 
@@ -175,7 +175,7 @@ private:
 
 inline
 Perflog::
-Perflog(Config::Subtree const & config)
+Perflog(Config::Subtree const & config, std::string const & instance)
   : filename_(config.fetch<std::string>("filename", ""))
 {
   if (filename_ != "") {

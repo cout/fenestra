@@ -17,7 +17,7 @@ class EvdevGamepad
   : public Plugin
 {
 public:
-  EvdevGamepad(Config::Subtree const & config)
+  EvdevGamepad(Config::Subtree const & config, std::string const & instance)
     : device_(config.fetch<std::string>("device", ""))
     , port_(config.fetch<unsigned int>("port", 0))
   {

@@ -24,7 +24,7 @@ public:
     { RETRO_PIXEL_FORMAT_RGB565,   { 16, RETRO_PIXEL_FORMAT_RGB565 } },
   };
 
-  SSR(Config::Subtree const & config)
+  SSR(Config::Subtree const & config, std::string const & instance)
     : channel_(config.fetch<std::string>("channel", ""))
   {
     if (channel_ != "") {

@@ -14,7 +14,7 @@ class Rusage
   : public Plugin
 {
 public:
-  Rusage(Config::Subtree const & config) {
+  Rusage(Config::Subtree const & config, std::string const & instance) {
     getrusage(RUSAGE_SELF, &last_usage_);
   }
 

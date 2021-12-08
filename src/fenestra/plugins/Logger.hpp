@@ -13,7 +13,7 @@ class Logger
 public:
   static inline const char * levelstr[] = { "DEBUG", "INFO", "WARN", "ERROR" };
 
-  Logger(Config::Subtree const & config) {
+  Logger(Config::Subtree const & config, std::string const & instance) {
   }
 
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) override {

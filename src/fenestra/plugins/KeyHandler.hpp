@@ -17,7 +17,7 @@ class KeyHandler
   : public Plugin
 {
 public:
-  KeyHandler(Config::Subtree const & config)
+  KeyHandler(Config::Subtree const & config, std::string const & instance)
     : state_directory_(config.root().fetch<std::string>("paths.state_directory", "."))
   {
   }

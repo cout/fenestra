@@ -10,7 +10,7 @@ class Framedelay
   : public Plugin
 {
 public:
-  Framedelay(Config::Subtree const & config)
+  Framedelay(Config::Subtree const & config, std::string const & instance)
     : frame_delay_(config.fetch<Milliseconds>("milliseconds", Milliseconds(4)))
     , adaptive_(config.fetch<bool>("adaptive", true))
     , nv_delay_before_swap_(config.fetch<bool>("nv_delay_before_swap", false))

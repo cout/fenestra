@@ -17,7 +17,7 @@ class Portaudio
   : public Plugin
 {
 public:
-  Portaudio(Config::Subtree const & config)
+  Portaudio(Config::Subtree const & config, std::string const & instance)
     : audio_api_(config.fetch<std::string>("audio_api", "ALSA"))
     , audio_device_(config.fetch<std::string>("audio_device", "default"))
     , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))

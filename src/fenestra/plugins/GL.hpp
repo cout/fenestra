@@ -132,7 +132,7 @@ private:
   };
 
 public:
-  GL(Config::Subtree const & config)
+  GL(Config::Subtree const & config, std::string const & instance)
     : log_errors_(config.fetch<bool>("log_errors", false))
   {
   }

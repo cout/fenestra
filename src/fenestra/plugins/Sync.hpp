@@ -10,7 +10,7 @@ class Sync
   : public Plugin
 {
 public:
-  Sync(Config::Subtree const & config)
+  Sync(Config::Subtree const & config, std::string const & instance)
     : vsync_(config.fetch<bool>("vsync", true))
     , adaptive_sync_(config.fetch<bool>("adaptive", true))
     , delay_with_fence_(config.fetch<bool>("delay.fence", false))
