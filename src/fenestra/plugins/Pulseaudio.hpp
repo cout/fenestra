@@ -18,6 +18,7 @@ public:
     : device_(config.fetch<std::string>("device", ""))
     , audio_maximum_latency_(config.fetch<int>("audio_maximum_latency", 64))
     , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))
+    , instance_(instance)
   {
   }
 
@@ -87,9 +88,9 @@ public:
   }
 
   virtual void collect_metrics(Probe & probe, Probe::Dictionary & dictionary) override {
-    if (!overruns_key_) { overruns_key_ = dictionary["Audio Overruns"]; }
-    if (!underruns_key_) { underruns_key_ = dictionary["Audio Underruns"]; }
-    if (!latency_key_) { latency_key_ = dictionary["Audio Latency"]; }
+    if (!overruns_key_) { overruns_key_ = dictionary["Audio Overruns" + metrics_suffix()]; }
+    if (!underruns_key_) { underruns_key_ = dictionary["Audio Underruns" + metrics_suffix()]; }
+    if (!latency_key_) { latency_key_ = dictionary["Audio Latency" + metrics_suffix()]; }
 
     pa_usec_t usec = 0;
     int negative;
@@ -212,10 +213,20 @@ private:
     }
   }
 
+  std::string metrics_suffix() const {
+    if (instance_ == "") {
+      return "";
+    } else {
+      return " (" + instance_ + ")";
+    }
+  }
+
 private:
   std::string const & device_;
   int const & audio_maximum_latency_;
   int const & audio_suggested_latency_;
+
+  std::string instance_;
 
   pa_mainloop * loop_ = nullptr;
   double game_sample_rate_ = 0.0;
