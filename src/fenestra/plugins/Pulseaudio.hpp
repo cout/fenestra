@@ -48,8 +48,13 @@ public:
       throw std::runtime_error("pa_mainloop_get_api failed");
     }
 
-    auto const * client_name = "fenestra";
-    if (!(context_ = pa_context_new(api_, client_name))) {
+    std::string client_name = "fenestra";
+    if (instance_ != "") {
+      client_name += ":";
+      client_name += instance_;
+    }
+
+    if (!(context_ = pa_context_new(api_, client_name.c_str()))) {
       throw std::runtime_error("pa_context_new failed");
     }
 
