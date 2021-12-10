@@ -124,11 +124,17 @@ private:
     auto state = pa_context_get_state(c);
 
     if (state == PA_CONTEXT_READY) {
+      std::string stream_name = "fenestra";
+      if (instance_ != "") {
+        stream_name += ":";
+        stream_name += instance_;
+      }
+
       pa_sample_spec ss;
       ss.format = PA_SAMPLE_S16LE;
       ss.channels = 2;
       ss.rate = game_adjusted_rate_;
-      if (!(stream_ = pa_stream_new(context_, "fenestra", &ss, nullptr))) {
+      if (!(stream_ = pa_stream_new(context_, stream_name.c_str(), &ss, nullptr))) {
         throw std::runtime_error("pa_stream_new failed");
       }
 
