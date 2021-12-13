@@ -3,7 +3,6 @@
 #include <json/json.h>
 
 #include <set>
-#include <vector>
 #include <map>
 #include <string>
 #include <fstream>
@@ -36,17 +35,6 @@ inline void assign(std::string & dest, Json::Value const & src) {
 
 inline void assign(Milliseconds & dest, Json::Value const & src) {
   dest = Milliseconds(src.asDouble());
-}
-
-template <typename T>
-inline void assign(std::vector<T> & dest, Json::Value const & src) {
-  std::vector<T> result;
-  for (auto v : src) {
-    T tmp;
-    assign(tmp, v);
-    result.push_back(tmp);
-  }
-  dest = result;
 }
 
 template <typename T>
