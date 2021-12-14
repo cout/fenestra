@@ -38,17 +38,6 @@ inline void assign(Milliseconds & dest, Json::Value const & src) {
 }
 
 template <typename T>
-inline void assign(std::set<T> & dest, Json::Value const & src) {
-  std::set<T> result;
-  for (auto v : src) {
-    T tmp;
-    assign(tmp, v);
-    result.insert(tmp);
-  }
-  dest = result;
-}
-
-template <typename T>
 inline void assign(std::map<std::string, T> & dest, Json::Value const & src) {
   std::map<std::string, T> result;
   auto it = src.begin();
