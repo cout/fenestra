@@ -64,14 +64,6 @@ private:
   }
 
   template <typename T>
-  static void log_value(std::string const & name, std::vector<T> const & value) {
-  }
-
-  template <typename T>
-  static void log_value(std::string const & name, std::set<T> const & value) {
-  }
-
-  template <typename T>
   static void log_value(std::string const & name, std::map<std::string, T> const & value) {
   }
 
