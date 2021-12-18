@@ -18,6 +18,7 @@ struct State {
   bool paused = false;
   bool done = false;
   bool synchronized = true;
+  bool fast_forward = false;
 
   std::vector<InputState> input_state;
   std::vector<KeyEvent> key_events;

@@ -60,6 +60,7 @@ public:
     if (vsync_ && adaptive_sync_) {
       if (epoxy_has_glx_extension(glXGetCurrentDisplay(), 0, "GLX_EXT_swap_control_tear")) {
         glfwSwapInterval(-1);
+        swap_interval_ = -1;
         return;
       } else {
         std::cout << "GLX_EXT_swap_control_tear not found; not using adaptive vsync" << std::endl;
@@ -71,6 +72,7 @@ public:
     // it will sync, but the pulseaudio plugin does not block, so it
     // will not sync.
     glfwSwapInterval(vsync_ ? 1 : 0);
+    swap_interval_ = vsync_ ? 1 : 0;
   }
 
   virtual void video_rendered() override {
@@ -82,6 +84,14 @@ public:
   }
 
   virtual void pre_frame_delay(State const & state) override {
+    if (state.fast_forward) {
+      glfwSwapInterval(0);
+      fast_forward_ = true;
+    } else if (state.fast_forward) {
+      glfwSwapInterval(swap_interval_);
+      fast_forward_ = false;
+    }
+
     if (oml_sync_) {
       glXGetSyncValuesOML(glXGetCurrentDisplay(), glXGetCurrentDrawable(), &ust_, &msc_, &sbc_);
     } else if (sgi_sync_) {
@@ -149,11 +159,11 @@ public:
         unsigned int vsc = vsc_;
         glXGetVideoSyncSGI(&vsc);
         state.synchronized = vsc < vsc_ + 1;
-        if (state.synchronized) {
+        if (state.synchronized && !state.fast_forward) {
           glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc);
         }
         vsc_ = vsc;
-      } else {
+      } else if (!state.fast_forward) {
         glXWaitVideoSyncSGI(2, 1 - (vsc_ & 1), &vsc_);
       }
       probe_->mark(sync_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
@@ -170,7 +180,7 @@ public:
 
     if (glfinish_sync_) {
       probe_->mark(glfinish_sync_key_, Probe::START, 1, Clock::gettime(CLOCK_MONOTONIC));
-      glFinish();
+      if (!state.fast_forward) glFinish();
       probe_->mark(glfinish_sync_key_, Probe::END, 1, Clock::gettime(CLOCK_MONOTONIC));
     }
 
@@ -194,6 +204,9 @@ private:
   Probe::Key glfinish_sync_key_;
   Probe dummy_probe_;
   Probe * probe_;
+
+  int swap_interval_ = 0;
+  bool fast_forward_ = false;
 
   std::int64_t ust_ = 0;
   std::int64_t msc_ = 0;

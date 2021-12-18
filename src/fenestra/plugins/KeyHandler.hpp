@@ -74,6 +74,11 @@ private:
         std::cout << (state.paused ? "Paused." : "GLHF!") << std::endl;
         break;
 
+      case ' ':
+        state.fast_forward = !state.fast_forward;
+        std::cout << (state.fast_forward ? "Fast-foward." : "Back to normal speed") << std::endl;
+        break;
+
       case 'S':
         {
           std::string filename = state_filename();
