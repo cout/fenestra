@@ -42,7 +42,7 @@ public:
   virtual void window_synced(State const & state) { }
 
   virtual void pre_frame_delay(State const & state) { }
-  virtual void frame_delay() { }
+  virtual void frame_delay(State const & state) { }
 
   virtual void log_libretro(retro_log_level level, char const * fmt, va_list ap) { }
 

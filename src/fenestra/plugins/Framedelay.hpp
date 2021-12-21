@@ -72,7 +72,11 @@ public:
     }
   }
 
-  virtual void frame_delay() override {
+  virtual void frame_delay(State const & state) override {
+    if (state.fast_forward) {
+      return;
+    }
+
     if (nv_delay_before_swap_) {
       Seconds delay_before_swap = Milliseconds(16.7) - frame_delay_;
       glXDelayBeforeSwapNV(glXGetCurrentDisplay(), glXGetCurrentDrawable(), delay_before_swap.count());

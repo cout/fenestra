@@ -183,7 +183,7 @@ public:
 
   void frame_delay() {
     for (auto const & plugin : plugins_) {
-      plugin->frame_delay();
+      plugin->frame_delay(state_);
     }
   }
 
