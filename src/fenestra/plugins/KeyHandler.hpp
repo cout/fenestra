@@ -72,6 +72,7 @@ private:
       case 'P':
         state.paused = !state.paused;
         std::cout << (state.paused ? "Paused." : "GLHF!") << std::endl;
+        if (state.paused) state.fast_forward = false;
         break;
 
       case ' ':
