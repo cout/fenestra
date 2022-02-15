@@ -63,9 +63,13 @@ public:
       char buf[1500];
       sockaddr_in reply_addr;
       socklen_t reply_addr_len = sizeof(reply_addr);
-      int n = recvfrom(sock_, buf, sizeof(buf), 0, (sockaddr *)&reply_addr, &reply_addr_len);
 
-      if (n > 0) {
+      for (;;) {
+        int n = recvfrom(sock_, buf, sizeof(buf), 0, (sockaddr *)&reply_addr, &reply_addr_len);
+        if (n <= 0) {
+          break;
+        }
+
         auto const & vec = parse(buf, n);
         handle_command(vec, reply_addr, reply_addr_len, state);
       }
@@ -113,7 +117,7 @@ private:
     std::from_chars(s_addr.data(), s_addr.data() + s_addr.size(), addr, 16);
 
     unsigned int bytes = 0;
-    std::from_chars(s_bytes.data(), s_bytes.data() + s_bytes.size(), bytes, 16);
+    std::from_chars(s_bytes.data(), s_bytes.data() + s_bytes.size(), bytes, 10);
 
     auto size = core_->get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
     auto const * data = static_cast<uint8_t *>(core_->get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
