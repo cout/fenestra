@@ -128,10 +128,6 @@ private:
 
     auto const max_bytes = 1024;
 
-    if (addr > size) {
-      bytes = 0;
-    }
-
     if (bytes > max_bytes) {
       bytes = max_bytes;
     }
@@ -140,8 +136,14 @@ private:
     char * r = reply_.data();
     r += std::snprintf(reply_.data(), reply_.size(), "READ_CORE_RAM %x", addr);
 
-    for (auto i = 0u; i < bytes; ++i) {
-      r += std::snprintf(r, reply_.size() - (r - reply_.data()), " %.2X", data[addr + i]);
+    if (addr < size) {
+      for (auto i = 0u; i < bytes; ++i) {
+        r += std::snprintf(r, reply_.size() - (r - reply_.data()), " %.2X", data[addr + i]);
+      }
+    } else {
+      // TODO: This might be a request for a ROM read, but we don't
+      // support it.
+      r += std::snprintf(r, reply_.size() - (r - reply_.data()), " -1");
     }
 
     r += std::snprintf(r, reply_.size() - (r - reply_.data()), "\n");
