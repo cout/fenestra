@@ -109,6 +109,8 @@ private:
       handle_read_core_ram(vec[1], vec[2], reply_addr, reply_addr_len, state);
     } else if (cmd == "GET_STATUS") {
       handle_get_status(reply_addr, reply_addr_len, state);
+    } else if (cmd == "VERSION") {
+      handle_get_version(reply_addr, reply_addr_len);
     } else {
       std::cerr << "Unknown network command: " << cmd << std::endl;
     }
@@ -156,6 +158,15 @@ private:
     append(reply_, "TODO_content_name");
     append(reply_, ",crc32=");
     append(reply_, "TODO_content_crc32");
+
+    send_reply(std::string_view(reply_.data(), reply_.size()), reply_addr);
+  }
+
+  void handle_get_version(sockaddr_in reply_addr, socklen_t reply_addr_len) {
+    reply_.clear();
+
+    // 1.7.2 tells clients that we don't support READ_CORE_MEMORY.
+    append(reply_, "1.7.2");
 
     send_reply(std::string_view(reply_.data(), reply_.size()), reply_addr);
   }
