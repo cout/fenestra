@@ -109,6 +109,8 @@ private:
       handle_read_core_ram(vec[1], vec[2], reply_addr, reply_addr_len, state);
     } else if (cmd == "GET_STATUS") {
       handle_get_status(reply_addr, reply_addr_len, state);
+    } else {
+      std::cerr << "Unknown network command: " << cmd << std::endl;
     }
   }
 
