@@ -77,26 +77,35 @@ public:
   }
 
 private:
-  std::vector<std::string_view> const & parse(char const * buf, int n) {
-    vec_.clear();
+  template<typename F>
+  static void split(char const * buf, std::size_t size, std::vector<std::string_view> & res, F issep) {
+    res.clear();
 
     auto const * p = buf;
-    auto const * e = buf + n;
+    auto const * e = buf + size;
     auto const * s = p;
 
-    while (e > p && std::isspace(*(e-1))) --e;
+    // Ignore trailing separators
+    while (e > p && issep(*(e-1))) --e;
 
     for(; p < e; ++p) {
-      if (std::isspace(*p)) {
-        vec_.push_back(std::string_view(s, p - s));
+      // Each time we find a separator, add the current token to the list
+      if (issep(*p)) {
+        res.push_back(std::string_view(s, p - s));
         s = p + 1;
       }
-      while (p != e && std::isspace(*p)) ++p;
+
+      // Find the next separator
+      while (p != e && issep(*p)) ++p;
     }
 
-    vec_.push_back(std::string_view(s, p - s));
+    // Add the final token to the list
+    res.push_back(std::string_view(s, p - s));
+  }
 
-    return vec_;
+  std::vector<std::string_view> const & parse(char const * buf, std::size_t size) {
+    split(buf, size, args_, [](auto c) { return std::isspace(c); });
+    return args_;
   }
 
   void handle_command(std::vector<std::string_view> const & vec, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
@@ -185,7 +194,7 @@ private:
   Core const * core_;
   int & port_;
   int sock_ = -1;
-  std::vector<std::string_view> vec_;
+  std::vector<std::string_view> args_;
   std::vector<char> reply_;
 };
 
