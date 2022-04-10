@@ -70,8 +70,7 @@ public:
           break;
         }
 
-        auto const & vec = parse(buf, n);
-        handle_command(vec, reply_addr, reply_addr_len, state);
+        handle_packet(buf, n, reply_addr, reply_addr_len, state);
       }
     }
   }
@@ -106,6 +105,11 @@ private:
   std::vector<std::string_view> const & parse(char const * buf, std::size_t size) {
     split(buf, size, args_, [](auto c) { return std::isspace(c); });
     return args_;
+  }
+
+  void handle_packet(char const * buf, std::size_t size, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
+    auto const & vec = parse(buf, size);
+    handle_command(vec, reply_addr, reply_addr_len, state);
   }
 
   void handle_command(std::vector<std::string_view> const & vec, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
