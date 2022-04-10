@@ -70,18 +70,19 @@ public:
           break;
         }
 
-        handle_packet(buf, n, reply_addr, reply_addr_len, state);
+        std::string_view str(buf, n);
+        handle_packet(str, reply_addr, reply_addr_len, state);
       }
     }
   }
 
 private:
   template<typename F>
-  static void split(char const * buf, std::size_t size, std::vector<std::string_view> & res, F issep) {
+  static void split(std::string_view const & str, std::vector<std::string_view> & res, F issep) {
     res.clear();
 
-    auto const * p = buf;
-    auto const * e = buf + size;
+    auto const * p = str.data();
+    auto const * e = p + str.size();
     auto const * s = p;
 
     // Ignore trailing separators
@@ -102,15 +103,15 @@ private:
     res.push_back(std::string_view(s, p - s));
   }
 
-  std::vector<std::string_view> const & parse(char const * buf, std::size_t size) {
-    split(buf, size, args_, [](auto c) { return std::isspace(c); });
+  std::vector<std::string_view> const & parse(std::string_view str) {
+    split(str, args_, [](auto c) { return std::isspace(c); });
     return args_;
   }
 
-  void handle_packet(char const * buf, std::size_t size, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
-    split(buf, size, cmds_, [](auto c) { return c == '\n'; });
+  void handle_packet(std::string_view str, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
+    split(str, cmds_, [](auto c) { return c == '\n'; });
     for (auto const & cmd : cmds_ ) {
-      auto const & args = parse(cmd.data(), cmd.size());
+      auto const & args = parse(cmd);
       handle_command(args, reply_addr, reply_addr_len, state);
     }
   }
