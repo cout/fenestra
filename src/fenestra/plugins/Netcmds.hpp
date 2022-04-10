@@ -108,18 +108,21 @@ private:
   }
 
   void handle_packet(char const * buf, std::size_t size, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
-    auto const & vec = parse(buf, size);
-    handle_command(vec, reply_addr, reply_addr_len, state);
+    split(buf, size, cmds_, [](auto c) { return c == '\n'; });
+    for (auto const & cmd : cmds_ ) {
+      auto const & args = parse(cmd.data(), cmd.size());
+      handle_command(args, reply_addr, reply_addr_len, state);
+    }
   }
 
-  void handle_command(std::vector<std::string_view> const & vec, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
-    if (vec.empty()) {
+  void handle_command(std::vector<std::string_view> const & args, sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
+    if (args.empty()) {
       return;
     }
 
-    auto cmd = vec[0];
-    if (cmd == "READ_CORE_RAM" && vec.size() >= 3) {
-      handle_read_core_ram(vec[1], vec[2], reply_addr, reply_addr_len, state);
+    auto cmd = args[0];
+    if (cmd == "READ_CORE_RAM" && args.size() >= 3) {
+      handle_read_core_ram(args[1], args[2], reply_addr, reply_addr_len, state);
     } else if (cmd == "GET_STATUS") {
       handle_get_status(reply_addr, reply_addr_len, state);
     } else if (cmd == "VERSION") {
@@ -198,6 +201,7 @@ private:
   Core const * core_;
   int & port_;
   int sock_ = -1;
+  std::vector<std::string_view> cmds_;
   std::vector<std::string_view> args_;
   std::vector<char> reply_;
 };
