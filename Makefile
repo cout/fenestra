@@ -27,9 +27,15 @@ FENESTRA_OBJS = \
 PERFLOGVIEWER_OBJS = \
   tools/perflog-viewer.o
 
-OBJS = $(FENESTRA_OBJS) $(PERFLOGVIEWER_OBJS)
+PERFLOG2CSV_OBJS = \
+  tools/perflog2csv.o
 
-BIN = fenestra tools/perflog-viewer
+OBJS = \
+  $(FENESTRA_OBJS) \
+  $(PERFLOGVIEWER_OBJS) \
+  ${PERFLOG2CSV_OBJS}
+
+BIN = fenestra tools/perflog-viewer tools/perflog2csv
 ICONS = icons/fenestra.png icons/perflog-viewer.png
 
 all: $(BIN) $(ICONS)
@@ -37,6 +43,8 @@ all: $(BIN) $(ICONS)
 fenestra: $(FENESTRA_OBJS)
 
 tools/perflog-viewer: $(PERFLOGVIEWER_OBJS)
+
+tools/perflog2csv: $(PERFLOG2CSV_OBJS)
 
 ifeq ($(call is_installed,portaudiocpp),yes)
 

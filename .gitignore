@@ -3,6 +3,7 @@
 /fenestra
 tools/list-portaudio-devices
 tools/perflog-viewer
+tools/perflog2csv
 core
 fenestra.png
 perflog-viewer.png
