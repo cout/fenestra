@@ -43,6 +43,17 @@ void for_each_main_loop_queue(Queues const & queues, Fn f) {
   }
 }
 
+bool is_latency(std::string const & name) {
+  return (
+         name == "Input latency"
+      || name == "Render latency"
+      || name == "Sync latency");
+}
+
+std::string latency_label(std::string const & name) {
+  return name;
+}
+
 void set_stacked_color(std::size_t idx) {
   // Viridis
   switch(idx) {
@@ -151,20 +162,36 @@ public:
         main_loop_names,
         main_loop_vals);
 
+    draw_latency_labels(
+        left_margin,
+        height_ - top_margin - graph_height, // TODO: row margin?
+        row_height); // TODO: should use a different row height for this graph (but if I do it might look inconsistent)
+
     next_x = draw_main_loop_averages(
         next_x + column_margin,
         height_ - top_margin,
         row_height,
         main_loop_vals);
 
+
+    auto graph_width = width_ - (next_x + column_margin) - right_margin;
+
     draw_main_loop_plot(
         next_x + column_margin,
         height_ - top_margin,
-        width_ - (next_x + column_margin) - right_margin,
+        graph_width,
         graph_height,
         0,
         16667,
         main_loop_stacked_vals);
+
+    draw_latency_plot(
+        next_x + column_margin,
+        height_ - top_margin - graph_height, // TODO: shouldn't this include row margin to get spacing between the two graphs?
+        graph_width,
+        100,
+        0, // TODO
+        16667); // TODO
 
     return true;
   }
@@ -376,6 +403,92 @@ public:
     glDrawArrays(GL_QUAD_STRIP, 0, coords.size() / 2);
   }
 
+  double draw_latency_labels(double x, double y, double row_height) {
+    std::vector<std::string> latency_names;
+    std::vector<std::vector<std::uint32_t>> latency_vals;
+
+    for (auto const & queue : reader_.queues()) {
+      if (is_latency(queue.name())) {
+        latency_names.push_back(queue.name());
+        latency_vals.emplace_back(queue.begin(), queue.end());
+      }
+    }
+
+    // TODO: This is mostly the same as draw_main_loop_labels from here
+    // on
+
+    auto next_x = x;
+    auto cidx = latency_names.size() - 1;
+    auto text_height = 25 * 0.8;
+    y -= text_height;
+
+    font_.FaceSize(text_height);
+
+    for (auto it = latency_names.rbegin(); it != latency_names.rend(); ++it) {
+      auto const & name = *it;
+
+      std::stringstream strm;
+      strm << latency_label(name);
+      auto const & label = strm.str();
+
+      set_stacked_color(cidx);
+      // auto pos = font_.Render("█ ", -1, FTPoint(x, y, 0));
+      // auto pos = font_.Render("■ ", -1, FTPoint(x, y, 0));
+      // auto pos = font_.Render("▐▌ ", -1, FTPoint(x, y, 0));
+      auto pos = font_.Render("▐█ ", -1, FTPoint(x, y, 0));
+      glColor4f(1.0, 1.0, 1.0, 1.0);
+      pos = font_.Render(label.c_str(), -1, pos);
+      y -= row_height;
+      next_x = std::max(pos.X(), next_x);
+      --cidx;
+    }
+
+    return next_x;
+  }
+
+  void draw_latency_plot(double x, double y, double graph_width, double graph_height, double min, double max) {
+    y -= graph_height;
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    std::vector<GLfloat> coords;
+
+    coords.resize(8);
+    coords[0] = x;
+    coords[1] = y;
+    coords[2] = x + graph_width;
+    coords[3] = y;
+    coords[4] = x;
+    coords[5] = y + graph_height;
+    coords[6] = x + graph_width;
+    coords[7] = y + graph_height;
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA);
+    glBlendColor(1.0f, 1.0f, 1.0f, 0.4f);
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0);
+
+    glColor4ub(68, 1, 84, 100);
+    glVertexPointer(2, GL_FLOAT, 0, coords.data());
+    glDrawArrays(GL_QUAD_STRIP, 0, coords.size() / 2);
+
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
+
+    auto cidx = 0;
+    for (auto const & queue : reader_.queues()) {
+      if (is_latency(queue.name())) {
+        set_stacked_color(cidx);
+        draw_plot(x, y, queue, min, max, graph_height, graph_width, coords);
+        ++cidx;
+      }
+    }
+  }
+
 };
 
 int main(int argc, char * argv[]) {
@@ -385,7 +498,7 @@ int main(int argc, char * argv[]) {
   }
 
   PerflogReader reader(argv[1]);
-  PerflogViewerMini app(reader, 752, 225);
+  PerflogViewerMini app(reader, 752, 336);
 
   while (!app.done()) {
     app.poll();
