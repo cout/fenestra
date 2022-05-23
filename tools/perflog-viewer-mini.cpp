@@ -43,15 +43,59 @@ void for_each_main_loop_queue(Queues const & queues, Fn f) {
 }
 
 void set_stacked_color(std::size_t idx) {
+  // Viridis
   switch(idx) {
-    case 0: glColor4f(1.0, 0.5, 0.5, 1.0); break;
-    case 1: glColor4f(0.5, 1.0, 0.5, 1.0); break;
-    case 2: glColor4f(1.0, 1.0, 0.5, 1.0); break;
-    case 3: glColor4f(0.5, 0.5, 1.0, 1.0); break;
-    case 4: glColor4f(1.0, 0.5, 1.0, 1.0); break;
-    case 5: glColor4f(0.5, 1.0, 1.0, 1.0); break;
-    default: glColor4f(1.0, 1.0, 1.0, 1.0); break;
+    case 0: glColor4f(253/255.0, 231/255.0, 37/255.0, 1.0); break;
+    case 1: glColor4f(144/255.0, 215/255.0, 67/255.0, 1.0); break;
+    case 2: glColor4f(53/255.0, 183/255.0, 121/255.0, 1.0); break;
+    case 3: glColor4f(33/255.0, 145/255.0, 140/255.0, 1.0); break;
+    case 4: glColor4f(49/255.0, 104/255.0, 142/255.0, 1.0); break;
+    case 5: glColor4f(68/255.0, 57/255.0, 131/255.0, 1.0); break;
+    default: glColor4f(68/255.0, 1/255.0, 84/255.0, 1.0); break;
   }
+
+  // learnui
+  /*
+  switch(idx) {
+    case 0: glColor4ub(0x00, 0x3f, 0x5c, 0xff); break;
+    case 1: glColor4ub(0x37, 0x4c, 0x80, 0xff); break;
+    case 2: glColor4ub(0x7a, 0x51, 0x95, 0xff); break;
+    case 3: glColor4ub(0xbc, 0x50, 0x90, 0xff); break;
+    case 4: glColor4ub(0xef, 0x56, 0x75, 0xff); break;
+    case 5: glColor4ub(0xff, 0x76, 0x4a, 0xff); break;
+    default: glColor4ub(0xff, 0xa6, 0x00, 0xff); break;
+  }
+  */
+
+  // Retro Metro
+  /*
+  switch(idx) {
+    case 0: glColor4ub(0xea, 0x55, 0x45, 0xff); break;
+    case 1: glColor4ub(0xf4, 0x6a, 0x9b, 0xff); break;
+    case 2: glColor4ub(0xef, 0x9b, 0x20, 0xff); break;
+    case 3: glColor4ub(0xed, 0xbf, 0x33, 0xff); break;
+    case 4: glColor4ub(0xed, 0xe1, 0x5b, 0xff); break;
+    case 5: glColor4ub(0xbd, 0xcf, 0x32, 0xff); break;
+    case 6: glColor4ub(0x87, 0xbc, 0x45, 0xff); break;
+    case 7: glColor4ub(0x27, 0xae, 0xef, 0xff); break;
+    default: glColor4ub(0xb3, 0x3d, 0xc6, 0xff); break;
+  }
+  */
+
+  // Dutch Field
+  /*
+  switch(idx) {
+    case 0: glColor4ub(0xe6, 0x00, 0x49, 0xff); break;
+    case 1: glColor4ub(0x0b, 0xb4, 0xff, 0xff); break;
+    case 2: glColor4ub(0x50, 0xe9, 0x91, 0xff); break;
+    case 3: glColor4ub(0xe6, 0xd8, 0x00, 0xff); break;
+    case 4: glColor4ub(0x9b, 0x19, 0xf5, 0xff); break;
+    case 5: glColor4ub(0xff, 0xa3, 0x00, 0xff); break;
+    case 6: glColor4ub(0xdc, 0x0a, 0xb4, 0xff); break;
+    case 7: glColor4ub(0xb3, 0xd4, 0xff, 0xff); break;
+    default: glColor4ub(0x00, 0xbf, 0xa0, 0xff); break;
+  }
+  */
 }
 
 class PerflogViewerMini
@@ -97,6 +141,7 @@ public:
     }
 
     max = std::max(max, std::uint32_t(16667));
+    max = std::min(max, std::uint32_t(20000));
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
@@ -144,7 +189,7 @@ public:
 
     auto lmt_line = vals;
     for (auto & v : lmt_line) v = 16667;
-    glColor4f(0.4, 0.4, 0.6, 0.5);
+    glColor4f(0.8, 0.2, 0.2, 0.5);
     draw_plot(x, y, lmt_line, min, max, row_height, graph_width, coords);
 
     cidx = 0;
