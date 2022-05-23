@@ -140,11 +140,21 @@ public:
 
     double graph_height = 250; // 166.67 * 1.5
 
-    auto next_x = draw_main_loop_labels(
+    double next_x;
+
+    auto row_height = graph_height / (main_loop_names.size() + 1); // TODO TODO TODO: Why do I have to add 1 here???
+
+    next_x = draw_main_loop_labels(
         left_margin,
         height_ - top_margin,
-        graph_height,
+        row_height,
         main_loop_names,
+        main_loop_vals);
+
+    next_x = draw_main_loop_averages(
+        next_x + column_margin,
+        height_ - top_margin,
+        row_height,
         main_loop_vals);
 
     draw_main_loop_plot(
@@ -159,12 +169,14 @@ public:
     return true;
   }
 
-  double draw_main_loop_labels(double x, double y, double graph_height, std::vector<std::string> const & main_loop_names, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
-    auto row_height = graph_height / (main_loop_names.size() + 1); // TODO TODO TODO: Why do I have to add 1 here???
+  double draw_main_loop_labels(double x, double y, double row_height, std::vector<std::string> const & main_loop_names, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
     auto next_x = x;
     auto cidx = main_loop_names.size() - 1;
     auto text_height = 25 * 0.8;
     y -= text_height * 2;
+
+    font_.FaceSize(text_height);
+
     std::size_t idx = main_loop_vals.size() - 1;
     for (auto it = main_loop_names.rbegin(); it != main_loop_names.rend(); ++it) {
       auto const & name = *it;
@@ -189,7 +201,6 @@ public:
       auto const & label = strm.str();
 
       set_stacked_color(cidx);
-      font_.FaceSize(text_height);
       // auto pos = font_.Render("█ ", -1, FTPoint(x, y, 0));
       // auto pos = font_.Render("■ ", -1, FTPoint(x, y, 0));
       // auto pos = font_.Render("▐▌ ", -1, FTPoint(x, y, 0));
@@ -200,6 +211,31 @@ public:
       next_x = std::max(pos.X(), next_x);
       --cidx;
       --idx;
+    }
+
+    return next_x;
+  }
+
+  double draw_main_loop_averages(double x, double y, double row_height, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
+    auto text_height = 25 * 0.8;
+    y -= text_height * 2;
+
+    font_.FaceSize(text_height);
+
+    double next_x = 0;
+    for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
+      auto const & vals = *it;
+
+      std::uint64_t total = 0;
+      for (auto val : vals) total += val;
+      auto avg = total / vals.size();
+
+      std::stringstream strm;
+      strm << std::fixed << std::setprecision(2);
+      strm << avg / 1000.0;
+      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+      next_x = std::max(next_x, pos.X());
+      y -= row_height;
     }
 
     return next_x;
