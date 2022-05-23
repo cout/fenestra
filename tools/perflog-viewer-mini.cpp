@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 
 bool is_main_loop(std::string const & name) {
   return (
@@ -159,18 +160,6 @@ public:
   }
 
   double draw_main_loop_labels(double x, double y, double graph_height, std::vector<std::string> const & main_loop_names, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
-    /*
-    std::uint32_t max = 0;
-    std::uint32_t min = std::numeric_limits<std::uint32_t>::max();
-    std::uint32_t total = 0;
-    for (auto val : reader_.queues()[i]) {
-      min = std::min(val, min);
-      max = std::max(val, max);
-      total += val;
-    }
-    auto avg = total / 
-    */
-
     auto row_height = graph_height / (main_loop_names.size() + 1); // TODO TODO TODO: Why do I have to add 1 here???
     auto next_x = x;
     auto cidx = main_loop_names.size() - 1;
@@ -179,15 +168,34 @@ public:
     std::size_t idx = main_loop_vals.size() - 1;
     for (auto it = main_loop_names.rbegin(); it != main_loop_names.rend(); ++it) {
       auto const & name = *it;
+
+      std::uint32_t max = 0;
+      std::uint32_t min = std::numeric_limits<std::uint32_t>::max();
+      std::uint32_t total = 0;
+      for (auto val : main_loop_vals[idx]) {
+        min = std::min(val, min);
+        max = std::max(val, max);
+        total += val;
+      }
+      auto avg = total / main_loop_vals[idx].size();
+
+      std::stringstream strm;
+      strm << main_loop_label(name)
+        // << " (" << avg / 1000.0
+        // << ", " << min / 1000.0
+        // << "-" << max / 1000.0
+        // << ")"
+        ;
+      auto const & label = strm.str();
+
       set_stacked_color(cidx);
       font_.FaceSize(text_height);
       // auto pos = font_.Render("█ ", -1, FTPoint(x, y, 0));
       // auto pos = font_.Render("■ ", -1, FTPoint(x, y, 0));
       // auto pos = font_.Render("▐▌ ", -1, FTPoint(x, y, 0));
       auto pos = font_.Render("▐█ ", -1, FTPoint(x, y, 0));
-      std::string s(main_loop_label(name));
       glColor4f(1.0, 1.0, 1.0, 1.0);
-      pos = font_.Render(s.c_str(), -1, pos);
+      pos = font_.Render(label.c_str(), -1, pos);
       y -= row_height;
       next_x = std::max(pos.X(), next_x);
       --cidx;
