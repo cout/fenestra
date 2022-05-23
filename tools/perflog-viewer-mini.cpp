@@ -116,16 +116,12 @@ public:
     double right_margin = 10;
     double column_margin = 20;
     double row_margin = 20;
-    // double row_height = (height_ - top_margin - bottom_margin) / num_queues;
 
     auto num_queues = reader_.queues().size();
 
     if (num_queues == 0) {
       return false;
     }
-
-    std::uint32_t min = 0;
-    std::uint32_t max = 0;
 
     std::vector<PerflogReader::PerfQueue const *> main_loop_queues;
     std::size_t num_main_loop_queues = 0;
@@ -137,26 +133,11 @@ public:
       main_loop_queues.push_back(&queue);
     });
     
-    /*
-    for (std::size_t i = 0; i < max_main_loop_queue_size; ++i) {
-      std::uint32_t sum_at_point = 0;
-      for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
-        sum_at_point += queue[i];
-      });
-      max = std::max(max, sum_at_point);
-    }
-    */
-
-    max = std::max(max, std::uint32_t(16667));
-    max = std::min(max, std::uint32_t(20000));
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     double graph_height = 250; // 166.67 * 1.5
-    // double x = left_margin;
-    // double y = height_ - row_height - top_margin - row_margin + row_margin/2;
 
     auto next_x = draw_main_loop_labels(
         left_margin,
@@ -164,10 +145,23 @@ public:
         graph_height,
         main_loop_queues);
 
-    /*
+    draw_main_loop_plot(
+        next_x + column_margin,
+        height_ - top_margin,
+        width_ - (next_x + column_margin) - right_margin,
+        graph_height,
+        0,
+        16667);
+
+    return true;
+  }
+
+  double draw_main_loop_labels(double x, double y, double graph_height, std::vector<PerflogReader::PerfQueue const *> const & main_loop_queues) {
+    auto row_height = graph_height / main_loop_queues.size();
     auto next_x = x;
-    auto cidx = num_main_loop_queues - 2;
+    auto cidx = main_loop_queues.size() - 2;
     auto text_height = 25 * 0.8;
+    y -= text_height * 2;
     for (auto it = main_loop_queues.rbegin(); it != main_loop_queues.rend(); ++it) {
       auto const & queue = **it;
       if (is_drawn_main_loop(queue.name())) {
@@ -180,12 +174,12 @@ public:
         --cidx;
       }
     }
-    */
 
-    auto row_height = graph_height;
-    auto graph_width = width_ - (next_x + column_margin) - right_margin;
-    double x = next_x + column_margin;
-    double y = height_ - row_height - top_margin;
+    return next_x;
+  }
+
+  void draw_main_loop_plot(double x, double y, double graph_width, double graph_height, std::uint32_t min, std::uint32_t max) {
+    y -= graph_height;
 
     std::vector<std::uint32_t> vals;
 
@@ -193,12 +187,12 @@ public:
 
     vals.resize(reader_.queues()[0].size());
     glColor4f(0.5, 0.5, 0.5, 0.5);
-    draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
+    draw_plot(x, y, vals, min, max, graph_height, graph_width, coords);
 
     auto top_line = vals;
     for (auto & v : top_line) v = max;
     glColor4f(0.5, 0.5, 0.5, 0.5);
-    draw_plot(x, y, top_line, min, max, row_height, graph_width, coords);
+    draw_plot(x, y, top_line, min, max, graph_height, graph_width, coords);
 
     std::vector<std::vector<std::uint32_t>> main_loop_vals;
 
@@ -229,7 +223,7 @@ public:
     for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
       auto const & vals = *it;
       set_stacked_color(cidx);
-      draw_plot_filled(x, y, vals, min, max, row_height, graph_width, coords);
+      draw_plot_filled(x, y, vals, min, max, graph_height, graph_width, coords);
       --cidx;
     }
 
@@ -240,42 +234,18 @@ public:
     for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
       auto const & vals = *it;
       set_stacked_color(cidx);
-      draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
+      draw_plot(x, y, vals, min, max, graph_height, graph_width, coords);
       --cidx;
     }
 
     auto lmt_line = vals;
     for (auto & v : lmt_line) v = 16667;
     glColor4f(0.8, 0.2, 0.2, 0.5);
-    draw_plot(x, y, lmt_line, min, max, row_height, graph_width, coords);
-
-    return true;
-  }
-
-  double draw_main_loop_labels(double x, double y, double graph_height, std::vector<PerflogReader::PerfQueue const *> const & main_loop_queues) {
-    auto row_height = graph_height / main_loop_queues.size();
-    auto next_x = x;
-    auto cidx = main_loop_queues.size() - 2;
-    auto text_height = 25 * 0.8;
-    y -= text_height * 2;
-    for (auto it = main_loop_queues.rbegin(); it != main_loop_queues.rend(); ++it) {
-      auto const & queue = **it;
-      if (is_drawn_main_loop(queue.name())) {
-        set_stacked_color(cidx);
-        font_.FaceSize(text_height);
-        std::string s(main_loop_label(queue.name()));
-        auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
-        y -= row_height;
-        next_x = std::max(pos.X(), next_x);
-        --cidx;
-      }
-    }
-
-    return next_x;
+    draw_plot(x, y, lmt_line, min, max, graph_height, graph_width, coords);
   }
 
   template <typename Queue>
-  void draw_plot_filled(double x, double y, Queue const & queue, std::uint32_t min, std::uint32_t max, double row_height, double graph_width, std::vector<GLfloat> & coords) {
+  void draw_plot_filled(double x, double y, Queue const & queue, std::uint32_t min, std::uint32_t max, double graph_height, double graph_width, std::vector<GLfloat> & coords) {
     std::size_t i = 0;
     auto num_points = queue.size();
     coords.resize(num_points * 4);
@@ -285,9 +255,9 @@ public:
       assert(pct >= 0.0);
       // assert(pct <= 1.0);
       coords[i*4 + 0] = x + float(i) / num_points * graph_width;
-      coords[i*4 + 1] = 0 * row_height * 0.8 + y + 0.1 * row_height;
+      coords[i*4 + 1] = 0 * graph_height * 0.8 + y + 0.1 * graph_height;
       coords[i*4 + 2] = x + float(i) / num_points * graph_width;
-      coords[i*4 + 3] = pct * row_height * 0.8 + y + 0.1 * row_height;
+      coords[i*4 + 3] = pct * graph_height * 0.8 + y + 0.1 * graph_height;
       ++i;
     }
 
