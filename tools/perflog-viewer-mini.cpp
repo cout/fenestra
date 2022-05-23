@@ -133,24 +133,9 @@ public:
       main_loop_queues.push_back(&queue);
     });
     
-    std::vector<std::vector<std::uint32_t>> main_loop_stacked_vals;
-
-    std::vector<std::uint32_t> vals;
-    for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
-      if (vals.size() < queue.size()) {
-        vals.resize(queue.size());
-      }
-
-      std::size_t idx = 0;
-      for (auto val : queue) {
-        vals[idx] += val;
-        ++idx;
-      }
-
-      if (is_drawn_main_loop(queue.name())) {
-        main_loop_stacked_vals.push_back(vals);
-      }
-    });
+    auto main_loop_names = this->main_loop_names();
+    auto main_loop_vals = this->main_loop_vals();
+    auto main_loop_stacked_vals = this->main_loop_stacked_vals(main_loop_vals);
 
     double graph_height = 250; // 166.67 * 1.5
 
@@ -197,6 +182,68 @@ public:
     }
 
     return next_x;
+  }
+
+  std::vector<std::string>
+  main_loop_names() {
+    std::vector<std::string> main_loop_names;
+
+    for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
+      if (is_drawn_main_loop(queue.name())) {
+        main_loop_names.push_back(queue.name());
+      }
+    });
+
+    return main_loop_names;
+  }
+
+  std::vector<std::vector<std::uint32_t>>
+  main_loop_vals() {
+    std::vector<std::vector<std::uint32_t>> main_loop_vals;
+
+    std::vector<std::uint32_t> vals;
+    for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
+      if (vals.size() < queue.size()) {
+        vals.resize(queue.size());
+      }
+
+      std::size_t i = 0;
+      for (auto val : queue) {
+        vals[i] += val;
+        ++i;
+      }
+
+      if (is_drawn_main_loop(queue.name())) {
+        main_loop_vals.push_back(vals);
+        for (auto & val : vals) val = 0;
+      }
+    });
+
+    return main_loop_vals;
+  }
+
+  std::vector<std::vector<std::uint32_t>>
+  main_loop_stacked_vals(std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
+    std::vector<std::vector<std::uint32_t>> main_loop_stacked_vals;
+
+    std::size_t idx = 0;
+    std::vector<std::uint32_t> vals;
+    for (auto const & queue_vals : main_loop_vals) {
+      if (vals.size() < queue_vals.size()) {
+        vals.resize(queue_vals.size());
+      }
+
+      std::size_t i = 0;
+      for (auto val : queue_vals) {
+        vals[i] += val;
+        ++i;
+      }
+
+      main_loop_stacked_vals.push_back(vals);
+      ++idx;
+    }
+
+    return main_loop_stacked_vals;
   }
 
   void draw_main_loop_plot(double x, double y, double graph_width, double graph_height, std::uint32_t min, std::uint32_t max, std::vector<std::vector<std::uint32_t>> const & main_loop_stacked_vals) {
