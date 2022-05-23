@@ -127,9 +127,12 @@ public:
     std::uint32_t min = 0;
     std::uint32_t max = 0;
 
+    // std::vector<PerflogReader::PerfQueue *> main_loop_queues;
+
     std::size_t max_main_loop_queue_size = 0;
     for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
       max_main_loop_queue_size = std::max(max_main_loop_queue_size, queue.size());
+      // main_loop_queues.push_back(&queue);
     });
     
     for (std::size_t i = 0; i < max_main_loop_queue_size; ++i) {
@@ -165,8 +168,8 @@ public:
     glColor4f(0.5, 0.5, 0.5, 0.5);
     draw_plot(x, y, top_line, min, max, row_height, graph_width, coords);
 
-    std::size_t qidx = 0;
-    std::size_t cidx = 0;
+    std::vector<std::vector<std::uint32_t>> main_loop_vals;
+
     for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
       if (vals.size() < queue.size()) {
         vals.resize(queue.size());
@@ -179,13 +182,19 @@ public:
       }
 
       if (is_drawn_main_loop(queue.name())) {
-        set_stacked_color(cidx);
-        draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
-        ++cidx;
+        main_loop_vals.push_back(vals);
       }
-
-      ++qidx;
     });
+
+    std::size_t cidx = main_loop_vals.size() - 1;
+    for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
+      auto const & vals = *it;
+      set_stacked_color(cidx);
+      draw_plot_filled(x, y, vals, min, max, row_height, graph_width, coords);
+      set_stacked_color(cidx);
+      draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
+      --cidx;
+    }
 
     auto lmt_line = vals;
     for (auto & v : lmt_line) v = 16667;
@@ -209,6 +218,28 @@ public:
 
     return true;
   }
+
+  template <typename Queue>
+  void draw_plot_filled(double x, double y, Queue const & queue, std::uint32_t min, std::uint32_t max, double row_height, double graph_width, std::vector<GLfloat> & coords) {
+    std::size_t i = 0;
+    auto num_points = queue.size();
+    coords.resize(num_points * 4);
+    for (auto val : queue) {
+      assert(i * 2 + 1 < coords.size());
+      auto pct = float(val - min) / max;
+      assert(pct >= 0.0);
+      // assert(pct <= 1.0);
+      coords[i*4 + 0] = x + float(i) / num_points * graph_width;
+      coords[i*4 + 1] = 0 * row_height * 0.8 + y + 0.1 * row_height;
+      coords[i*4 + 2] = x + float(i) / num_points * graph_width;
+      coords[i*4 + 3] = pct * row_height * 0.8 + y + 0.1 * row_height;
+      ++i;
+    }
+
+    glVertexPointer(2, GL_FLOAT, 0, coords.data());
+    glDrawArrays(GL_QUAD_STRIP, 0, coords.size() / 2);
+  }
+
 };
 
 int main(int argc, char * argv[]) {
