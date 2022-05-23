@@ -215,31 +215,34 @@ public:
     std::vector<GLfloat> coords;
     std::size_t qidx = 0;
     for (auto const & queue : reader_.queues()) {
-      auto num_points = queue.size();
-      coords.clear();
-      coords.resize(num_points * 2);
       auto min = mins[qidx];
       auto max = maxes[qidx];
 
       if (max > 0) {
-        std::size_t i = 0;
-        for (auto val : queue) {
-          assert(i * 2 + 1 < coords.size());
-          auto pct = float(val - min) / max;
-          assert(pct >= 0.0);
-          assert(pct <= 1.0);
-          coords[i*2] = x + float(i) / num_points * graph_width;
-          coords[i*2 + 1] = pct * row_height * 0.8 + y + 0.1 * row_height;
-          ++i;
-        }
-
-        glVertexPointer(2, GL_FLOAT, 0, coords.data());
-        glDrawArrays(GL_LINE_STRIP, 0, coords.size() / 2);
+        draw_plot(x, y, queue, min, max, coords);
       }
 
       y -= row_height;
       ++qidx;
     }
+  }
+
+  void draw_plot(double x, double y, PerflogReader::PerfQueue const & queue, std::uint32_t min, std::uint32_t max, std::vector<GLfloat> & coords) {
+    std::size_t i = 0;
+    auto num_points = queue.size();
+    coords.resize(num_points * 2);
+    for (auto val : queue) {
+      assert(i * 2 + 1 < coords.size());
+      auto pct = float(val - min) / max;
+      assert(pct >= 0.0);
+      assert(pct <= 1.0);
+      coords[i*2] = x + float(i) / num_points * graph_width;
+      coords[i*2 + 1] = pct * row_height * 0.8 + y + 0.1 * row_height;
+      ++i;
+    }
+
+    glVertexPointer(2, GL_FLOAT, 0, coords.data());
+    glDrawArrays(GL_LINE_STRIP, 0, coords.size() / 2);
   }
 
   void draw_markers(double x, double y, double graph_width) {
