@@ -186,6 +186,14 @@ public:
       }
     });
 
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA);
+    glBlendColor(1.0f, 1.0f, 1.0f, 0.4f);
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0);
+
     std::size_t cidx = main_loop_vals.size() - 1;
     for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
       auto const & vals = *it;
@@ -195,6 +203,9 @@ public:
       draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
       --cidx;
     }
+
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
 
     auto lmt_line = vals;
     for (auto & v : lmt_line) v = 16667;
