@@ -94,30 +94,15 @@ public:
     double column_margin = 20;
     double row_height = (height_ - top_margin - bottom_margin) / num_queues;
 
-    // Draw metric names
-    font_.FaceSize(row_height * 0.5875);
-    FTGL_DOUBLE y = height_ - row_height - top_margin;
-    FTGL_DOUBLE x = left_margin;
-    FTGL_DOUBLE next_x = 0;
-    for (auto const & queue : reader_.queues()) {
-      std::string s(queue.name());
-      auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
-      next_x = std::max(next_x, pos.X());
-      y -= row_height;
-    }
+    auto next_x = draw_metric_names(
+        left_margin,
+        height_ - row_height - top_margin,
+        row_height);
 
-    // Draw averages
-    font_.FaceSize(row_height * 0.5875);
-    y = height_ - row_height - top_margin;
-    x = next_x + column_margin;
-    for (auto const & queue : reader_.queues()) {
-      std::stringstream strm;
-      strm << std::fixed << std::setprecision(2);
-      strm << queue.avg() / 1000.0;
-      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
-      next_x = std::max(next_x, pos.X());
-      y -= row_height;
-    }
+    next_x = draw_averages(
+        next_x + column_margin,
+        height_ - row_height - top_margin,
+        row_height);
 
     std::vector<std::uint32_t> mins;
     std::vector<std::uint32_t> maxes;
@@ -137,10 +122,65 @@ public:
       maxes[i] = max;
     }
 
-    // Draw min/max values
+    next_x = draw_min_max(
+        mins,
+        maxes,
+        next_x + column_margin,
+        height_ - row_height - top_margin,
+        row_height);
+
+    auto graph_width = width_ - (next_x + column_margin) - right_margin;
+
+    draw_plots(
+        mins,
+        maxes,
+        next_x + column_margin,
+        height_ - row_height - top_margin,
+        row_height,
+        graph_width);
+
+    draw_markers(
+        next_x + column_margin,
+        height_ - row_height - top_margin,
+        graph_width);
+
+    last_time_ = reader_.time();
+    need_redraw_ = false;
+    need_refresh_ = true;
+  }
+
+  double draw_metric_names(double x, double y, double row_height) {
+    font_.FaceSize(row_height * 0.5875);
+    FTGL_DOUBLE next_x = 0;
+    for (auto const & queue : reader_.queues()) {
+      std::string s(queue.name());
+      auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
+      next_x = std::max(next_x, pos.X());
+      y -= row_height;
+    }
+
+    return next_x;
+  }
+
+  double draw_averages(double x, double y, double row_height) {
+    font_.FaceSize(row_height * 0.5875);
+    FTGL_DOUBLE next_x = 0;
+    for (auto const & queue : reader_.queues()) {
+      std::stringstream strm;
+      strm << std::fixed << std::setprecision(2);
+      strm << queue.avg() / 1000.0;
+      auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+      next_x = std::max(next_x, pos.X());
+      y -= row_height;
+    }
+
+    return next_x;
+  }
+
+  double draw_min_max(std::vector<std::uint32_t> const & mins, std::vector<std::uint32_t> const & maxes, double x, double y, double row_height) {
     font_.FaceSize(row_height * 0.75 / 2);
-    y = height_ - row_height - top_margin + row_height / 4 + row_height / 8;
-    x = next_x + column_margin;
+    y += row_height / 4 + row_height / 8;
+    FTGL_DOUBLE next_x = 0;
     for (std::size_t i = 0; i < reader_.queues().size(); ++i) {
       y -= row_height / 8;
       auto min = mins[i];
@@ -164,14 +204,14 @@ public:
       y -= row_height / 8;
     }
 
+    return next_x;
+  }
+
+  void draw_plots(std::vector<std::uint32_t> const & mins, std::vector<std::uint32_t> const & maxes, double x, double y, double row_height, double graph_width) {
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    // Draw sparklines
-    y = height_ - row_height - top_margin;
-    x = next_x + column_margin;
-    auto graph_width = width_ - x - right_margin;
     std::vector<GLfloat> coords;
     std::size_t qidx = 0;
     for (auto const & queue : reader_.queues()) {
@@ -200,16 +240,17 @@ public:
       y -= row_height;
       ++qidx;
     }
+  }
 
+  void draw_markers(double x, double y, double graph_width) {
     glEnable(GL_BLEND);
     glEnableClientState(GL_COLOR_ARRAY);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    std::vector<GLfloat> coords;
     std::vector<GLfloat> colors;
 
     // first queue is frame time
-    coords.clear();
-    colors.clear();
     auto & queue = reader_.queues()[0];
     auto num_points = queue.size();
     std::uint32_t prev_val = 16667;
@@ -262,9 +303,6 @@ public:
     glColorPointer(4, GL_FLOAT, 0, colors.data());
     glDrawArrays(GL_LINES, 0, coords.size() / 2);
 
-    last_time_ = reader_.time();
-    need_redraw_ = false;
-    need_refresh_ = true;
   }
 
   void refresh() {
