@@ -137,6 +137,7 @@ public:
       main_loop_queues.push_back(&queue);
     });
     
+    /*
     for (std::size_t i = 0; i < max_main_loop_queue_size; ++i) {
       std::uint32_t sum_at_point = 0;
       for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
@@ -144,6 +145,7 @@ public:
       });
       max = std::max(max, sum_at_point);
     }
+    */
 
     max = std::max(max, std::uint32_t(16667));
     max = std::min(max, std::uint32_t(20000));
@@ -152,7 +154,7 @@ public:
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    double graph_height = 400;
+    double graph_height = 250; // 166.67 * 1.5
     double x = left_margin;
     double row_height = graph_height / num_main_loop_queues;
     double y = height_ - row_height - top_margin - row_margin + row_margin/2;
@@ -273,7 +275,7 @@ int main(int argc, char * argv[]) {
   }
 
   PerflogReader reader(argv[1]);
-  PerflogViewerMini app(reader, 752, 450);
+  PerflogViewerMini app(reader, 752, 225);
 
   while (!app.done()) {
     app.poll();
