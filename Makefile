@@ -20,6 +20,8 @@ CXXFLAGS += $(foreach package,$(installed_packages),$(call have_definition,$(pac
 CXXFLAGS += $(shell pkg-config --cflags $(installed_packages))
 LDFLAGS += $(shell pkg-config --libs $(installed_packages))
 
+all:
+
 # === Fenestra ===
 
 FENESTRA_OBJS = \
