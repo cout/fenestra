@@ -127,12 +127,14 @@ public:
     std::uint32_t min = 0;
     std::uint32_t max = 0;
 
-    // std::vector<PerflogReader::PerfQueue *> main_loop_queues;
+    std::vector<PerflogReader::PerfQueue const *> main_loop_queues;
+    std::size_t num_main_loop_queues = 0;
 
     std::size_t max_main_loop_queue_size = 0;
     for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
       max_main_loop_queue_size = std::max(max_main_loop_queue_size, queue.size());
-      // main_loop_queues.push_back(&queue);
+      ++num_main_loop_queues;
+      main_loop_queues.push_back(&queue);
     });
     
     for (std::size_t i = 0; i < max_main_loop_queue_size; ++i) {
@@ -150,10 +152,31 @@ public:
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    double row_height = 400;
-    double graph_width = width_ - left_margin - right_margin;
+    double graph_height = 400;
     double x = left_margin;
-    double y = height_ - row_height - top_margin;
+    double row_height = graph_height / num_main_loop_queues;
+    double y = height_ - row_height - top_margin - row_margin + row_margin/2;
+
+    auto next_x = x;
+    auto cidx = num_main_loop_queues - 2;
+    auto text_height = 25 * 0.8;
+    for (auto it = main_loop_queues.rbegin(); it != main_loop_queues.rend(); ++it) {
+      auto const & queue = **it;
+      if (is_drawn_main_loop(queue.name())) {
+        set_stacked_color(cidx);
+        font_.FaceSize(text_height);
+        std::string s(main_loop_label(queue.name()));
+        auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
+        y -= row_height;
+        next_x = std::max(pos.X(), next_x);
+        --cidx;
+      }
+    }
+
+    row_height = graph_height;
+    auto graph_width = width_ - (next_x + column_margin) - right_margin;
+    x = next_x + column_margin;
+    y = height_ - row_height - top_margin;
 
     std::vector<std::uint32_t> vals;
 
@@ -186,7 +209,6 @@ public:
       }
     });
 
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA);
     glBlendColor(1.0f, 1.0f, 1.0f, 0.4f);
@@ -194,7 +216,7 @@ public:
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0);
 
-    std::size_t cidx = main_loop_vals.size() - 1;
+    cidx = main_loop_vals.size() - 1;
     for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
       auto const & vals = *it;
       set_stacked_color(cidx);
@@ -217,21 +239,6 @@ public:
     for (auto & v : lmt_line) v = 16667;
     glColor4f(0.8, 0.2, 0.2, 0.5);
     draw_plot(x, y, lmt_line, min, max, row_height, graph_width, coords);
-
-    cidx = 0;
-    y = height_ - row_height - top_margin - row_margin;
-    row_height = 25;
-    for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
-      if (is_drawn_main_loop(queue.name())) {
-        set_stacked_color(cidx);
-        font_.FaceSize(row_height * 0.8);
-        std::string s(main_loop_label(queue.name()));
-        auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
-        // y -= row_height;
-        x = pos.X() + column_margin;
-        ++cidx;
-      }
-    });
 
     return true;
   }
