@@ -199,13 +199,19 @@ public:
       auto const & vals = *it;
       set_stacked_color(cidx);
       draw_plot_filled(x, y, vals, min, max, row_height, graph_width, coords);
-      set_stacked_color(cidx);
-      draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
       --cidx;
     }
 
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_BLEND);
+
+    cidx = main_loop_vals.size() - 1;
+    for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
+      auto const & vals = *it;
+      set_stacked_color(cidx);
+      draw_plot(x, y, vals, min, max, row_height, graph_width, coords);
+      --cidx;
+    }
 
     auto lmt_line = vals;
     for (auto & v : lmt_line) v = 16667;
