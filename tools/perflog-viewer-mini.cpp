@@ -143,7 +143,8 @@ public:
         left_margin,
         height_ - top_margin,
         graph_height,
-        main_loop_queues);
+        main_loop_names,
+        main_loop_vals);
 
     draw_main_loop_plot(
         next_x + column_margin,
@@ -157,28 +158,40 @@ public:
     return true;
   }
 
-  double draw_main_loop_labels(double x, double y, double graph_height, std::vector<PerflogReader::PerfQueue const *> const & main_loop_queues) {
-    auto row_height = graph_height / main_loop_queues.size();
+  double draw_main_loop_labels(double x, double y, double graph_height, std::vector<std::string> const & main_loop_names, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
+    /*
+    std::uint32_t max = 0;
+    std::uint32_t min = std::numeric_limits<std::uint32_t>::max();
+    std::uint32_t total = 0;
+    for (auto val : reader_.queues()[i]) {
+      min = std::min(val, min);
+      max = std::max(val, max);
+      total += val;
+    }
+    auto avg = total / 
+    */
+
+    auto row_height = graph_height / (main_loop_names.size() + 1); // TODO TODO TODO: Why do I have to add 1 here???
     auto next_x = x;
-    auto cidx = main_loop_queues.size() - 2;
+    auto cidx = main_loop_names.size() - 1;
     auto text_height = 25 * 0.8;
     y -= text_height * 2;
-    for (auto it = main_loop_queues.rbegin(); it != main_loop_queues.rend(); ++it) {
-      auto const & queue = **it;
-      if (is_drawn_main_loop(queue.name())) {
-        set_stacked_color(cidx);
-        font_.FaceSize(text_height);
-        // auto pos = font_.Render("█ ", -1, FTPoint(x, y, 0));
-        // auto pos = font_.Render("■ ", -1, FTPoint(x, y, 0));
-        // auto pos = font_.Render("▐▌ ", -1, FTPoint(x, y, 0));
-        auto pos = font_.Render("▐█ ", -1, FTPoint(x, y, 0));
-        std::string s(main_loop_label(queue.name()));
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        pos = font_.Render(s.c_str(), -1, pos);
-        y -= row_height;
-        next_x = std::max(pos.X(), next_x);
-        --cidx;
-      }
+    std::size_t idx = main_loop_vals.size() - 1;
+    for (auto it = main_loop_names.rbegin(); it != main_loop_names.rend(); ++it) {
+      auto const & name = *it;
+      set_stacked_color(cidx);
+      font_.FaceSize(text_height);
+      // auto pos = font_.Render("█ ", -1, FTPoint(x, y, 0));
+      // auto pos = font_.Render("■ ", -1, FTPoint(x, y, 0));
+      // auto pos = font_.Render("▐▌ ", -1, FTPoint(x, y, 0));
+      auto pos = font_.Render("▐█ ", -1, FTPoint(x, y, 0));
+      std::string s(main_loop_label(name));
+      glColor4f(1.0, 1.0, 1.0, 1.0);
+      pos = font_.Render(s.c_str(), -1, pos);
+      y -= row_height;
+      next_x = std::max(pos.X(), next_x);
+      --cidx;
+      --idx;
     }
 
     return next_x;
