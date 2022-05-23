@@ -1,3 +1,5 @@
+#pragma once
+
 #include "fenestra/Clock.hpp"
 
 #include <stdexcept>
