@@ -155,10 +155,16 @@ public:
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     double graph_height = 250; // 166.67 * 1.5
-    double x = left_margin;
-    double row_height = graph_height / num_main_loop_queues;
-    double y = height_ - row_height - top_margin - row_margin + row_margin/2;
+    // double x = left_margin;
+    // double y = height_ - row_height - top_margin - row_margin + row_margin/2;
 
+    auto next_x = draw_main_loop_labels(
+        left_margin,
+        height_ - top_margin,
+        graph_height,
+        main_loop_queues);
+
+    /*
     auto next_x = x;
     auto cidx = num_main_loop_queues - 2;
     auto text_height = 25 * 0.8;
@@ -174,11 +180,12 @@ public:
         --cidx;
       }
     }
+    */
 
-    row_height = graph_height;
+    auto row_height = graph_height;
     auto graph_width = width_ - (next_x + column_margin) - right_margin;
-    x = next_x + column_margin;
-    y = height_ - row_height - top_margin;
+    double x = next_x + column_margin;
+    double y = height_ - row_height - top_margin;
 
     std::vector<std::uint32_t> vals;
 
@@ -218,7 +225,7 @@ public:
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0);
 
-    cidx = main_loop_vals.size() - 1;
+    auto cidx = main_loop_vals.size() - 1;
     for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
       auto const & vals = *it;
       set_stacked_color(cidx);
@@ -243,6 +250,28 @@ public:
     draw_plot(x, y, lmt_line, min, max, row_height, graph_width, coords);
 
     return true;
+  }
+
+  double draw_main_loop_labels(double x, double y, double graph_height, std::vector<PerflogReader::PerfQueue const *> const & main_loop_queues) {
+    auto row_height = graph_height / main_loop_queues.size();
+    auto next_x = x;
+    auto cidx = main_loop_queues.size() - 2;
+    auto text_height = 25 * 0.8;
+    y -= text_height * 2;
+    for (auto it = main_loop_queues.rbegin(); it != main_loop_queues.rend(); ++it) {
+      auto const & queue = **it;
+      if (is_drawn_main_loop(queue.name())) {
+        set_stacked_color(cidx);
+        font_.FaceSize(text_height);
+        std::string s(main_loop_label(queue.name()));
+        auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
+        y -= row_height;
+        next_x = std::max(pos.X(), next_x);
+        --cidx;
+      }
+    }
+
+    return next_x;
   }
 
   template <typename Queue>
