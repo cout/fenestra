@@ -476,8 +476,7 @@ public:
     glVertexPointer(2, GL_FLOAT, 0, coords.data());
     glDrawArrays(GL_QUAD_STRIP, 0, coords.size() / 2);
 
-    glDisable(GL_ALPHA_TEST);
-    glDisable(GL_BLEND);
+    glBlendColor(1.0f, 1.0f, 1.0f, 0.5f);
 
     auto cidx = 0;
     for (auto const & queue : reader_.queues()) {
@@ -487,6 +486,9 @@ public:
         ++cidx;
       }
     }
+
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
   }
 
 };
