@@ -175,7 +175,7 @@ public:
         row_height,
         main_loop_vals);
 
-    draw_latency_maxes(
+    draw_latency_stats(
         avgs_x,
         height_ - top_margin - graph_height, // TODO: row margin?
         row_height);
@@ -452,7 +452,7 @@ public:
     return next_x;
   }
 
-  double draw_latency_maxes(double x, double y, double row_height) {
+  double draw_latency_stats(double x, double y, double row_height) {
     auto text_height = 25 * 0.8;
     y -= text_height;
 
@@ -463,12 +463,24 @@ public:
       auto const & queue = *it;
 
       if (is_latency(queue.name())) {
-        std::uint32_t max = 0;
-        for (auto val : queue) max = std::max(max, val);
-
         std::stringstream strm;
-        strm << std::fixed << std::setprecision(2);
-        strm << max / 1000.0;
+
+        if (queue.name() == "Input latency") {
+          std::uint32_t total = 0;
+          for (auto val : queue) total += val;
+          auto avg = total / queue.size();
+
+          strm << std::fixed << std::setprecision(2);
+          strm << avg / 1000.0;
+
+        } else {
+          std::uint32_t max = 0;
+          for (auto val : queue) max = std::max(max, val);
+
+          strm << std::fixed << std::setprecision(2);
+          strm << max / 1000.0;
+        }
+
         auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
         next_x = std::max(next_x, pos.X());
         y -= row_height;
