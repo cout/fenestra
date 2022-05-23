@@ -162,17 +162,23 @@ public:
         main_loop_names,
         main_loop_vals);
 
-    draw_latency_labels(
+    next_x = std::max(next_x, draw_latency_labels(
         left_margin,
         height_ - top_margin - graph_height, // TODO: row margin?
-        row_height); // TODO: should use a different row height for this graph (but if I do it might look inconsistent)
+        row_height)); // TODO: should use a different row height for this graph (but if I do it might look inconsistent)
+
+    auto avgs_x = next_x + column_margin / 2;
 
     next_x = draw_main_loop_averages(
-        next_x + column_margin,
+        avgs_x,
         height_ - top_margin,
         row_height,
         main_loop_vals);
 
+    draw_latency_maxes(
+        avgs_x,
+        height_ - top_margin - graph_height, // TODO: row margin?
+        row_height);
 
     auto graph_width = width_ - (next_x + column_margin) - right_margin;
 
@@ -441,6 +447,32 @@ public:
       y -= row_height;
       next_x = std::max(pos.X(), next_x);
       --cidx;
+    }
+
+    return next_x;
+  }
+
+  double draw_latency_maxes(double x, double y, double row_height) {
+    auto text_height = 25 * 0.8;
+    y -= text_height;
+
+    font_.FaceSize(text_height);
+
+    double next_x = 0;
+    for (auto it = reader_.queues().rbegin(); it != reader_.queues().rend(); ++it) {
+      auto const & queue = *it;
+
+      if (is_latency(queue.name())) {
+        std::uint32_t max = 0;
+        for (auto val : queue) max = std::max(max, val);
+
+        std::stringstream strm;
+        strm << std::fixed << std::setprecision(2);
+        strm << max / 1000.0;
+        auto pos = font_.Render(strm.str().c_str(), -1, FTPoint(x, y, 0));
+        next_x = std::max(next_x, pos.X());
+        y -= row_height;
+      }
     }
 
     return next_x;
