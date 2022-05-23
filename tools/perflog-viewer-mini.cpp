@@ -133,7 +133,7 @@ public:
       main_loop_queues.push_back(&queue);
     });
     
-    std::vector<std::vector<std::uint32_t>> main_loop_vals;
+    std::vector<std::vector<std::uint32_t>> main_loop_stacked_vals;
 
     std::vector<std::uint32_t> vals;
     for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
@@ -148,7 +148,7 @@ public:
       }
 
       if (is_drawn_main_loop(queue.name())) {
-        main_loop_vals.push_back(vals);
+        main_loop_stacked_vals.push_back(vals);
       }
     });
 
@@ -167,7 +167,7 @@ public:
         graph_height,
         0,
         16667,
-        main_loop_vals);
+        main_loop_stacked_vals);
 
     return true;
   }
@@ -199,7 +199,7 @@ public:
     return next_x;
   }
 
-  void draw_main_loop_plot(double x, double y, double graph_width, double graph_height, std::uint32_t min, std::uint32_t max, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
+  void draw_main_loop_plot(double x, double y, double graph_width, double graph_height, std::uint32_t min, std::uint32_t max, std::vector<std::vector<std::uint32_t>> const & main_loop_stacked_vals) {
     glEnableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -226,8 +226,8 @@ public:
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0);
 
-    auto cidx = main_loop_vals.size() - 1;
-    for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
+    auto cidx = main_loop_stacked_vals.size() - 1;
+    for (auto it = main_loop_stacked_vals.rbegin(); it != main_loop_stacked_vals.rend(); ++it) {
       auto const & vals = *it;
       set_stacked_color(cidx);
       draw_plot_filled(x, y, vals, min, max, graph_height, graph_width, coords);
@@ -237,8 +237,8 @@ public:
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_BLEND);
 
-    cidx = main_loop_vals.size() - 1;
-    for (auto it = main_loop_vals.rbegin(); it != main_loop_vals.rend(); ++it) {
+    cidx = main_loop_stacked_vals.size() - 1;
+    for (auto it = main_loop_stacked_vals.rbegin(); it != main_loop_stacked_vals.rend(); ++it) {
       auto const & vals = *it;
       set_stacked_color(cidx);
       draw_plot(x, y, vals, min, max, graph_height, graph_width, coords);
