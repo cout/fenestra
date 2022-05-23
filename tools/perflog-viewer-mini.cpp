@@ -167,8 +167,13 @@ public:
       if (is_drawn_main_loop(queue.name())) {
         set_stacked_color(cidx);
         font_.FaceSize(text_height);
+        // auto pos = font_.Render("█ ", -1, FTPoint(x, y, 0));
+        // auto pos = font_.Render("■ ", -1, FTPoint(x, y, 0));
+        // auto pos = font_.Render("▐▌ ", -1, FTPoint(x, y, 0));
+        auto pos = font_.Render("▐█ ", -1, FTPoint(x, y, 0));
         std::string s(main_loop_label(queue.name()));
-        auto pos = font_.Render(s.c_str(), -1, FTPoint(x, y, 0));
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        pos = font_.Render(s.c_str(), -1, pos);
         y -= row_height;
         next_x = std::max(pos.X(), next_x);
         --cidx;
