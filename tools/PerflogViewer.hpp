@@ -218,7 +218,7 @@ public:
       auto max = maxes[qidx];
 
       if (max > 0) {
-        draw_plot(x, y, queue, min, max, coords);
+        draw_plot(x, y, queue, min, max, row_height, graph_width, coords);
       }
 
       y -= row_height;
@@ -226,7 +226,7 @@ public:
     }
   }
 
-  void draw_plot(double x, double y, PerflogReader::PerfQueue const & queue, std::uint32_t min, std::uint32_t max, std::vector<GLfloat> & coords) {
+  void draw_plot(double x, double y, PerflogReader::PerfQueue const & queue, std::uint32_t min, std::uint32_t max, double row_height, double graph_width, std::vector<GLfloat> & coords) {
     std::size_t i = 0;
     auto num_points = queue.size();
     coords.resize(num_points * 2);
@@ -312,7 +312,7 @@ public:
       glfwSwapBuffers(win_);
       need_refresh_ = false;
     } else {
-      Clock::nanosleep(Milliseconds(16), CLOCK_REALTIME);
+      fenestra::Clock::nanosleep(fenestra::Milliseconds(16), CLOCK_REALTIME);
     }
   }
 
