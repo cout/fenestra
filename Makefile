@@ -43,7 +43,7 @@ icons/fenestra.png: icons/fenestra.svg
 PERFLOGVIEWER_OBJS = \
   tools/perflog-viewer.o
 
-OBJS += PERFLOGVIEWER_OBJS
+OBJS += $(PERFLOGVIEWER_OBJS)
 BIN += tools/perflog-viewer
 ICONS += icons/perflog-viewer.png
 
@@ -56,7 +56,7 @@ icons/perflog-viewer.png: icons/perflog-viewer.svg
 PERFLOG2CSV_OBJS = \
   tools/perflog2csv.o
 
-OBJS += PERFLOG2CSV_OBJS
+OBJS += $(PERFLOG2CSV_OBJS)
 
 BIN += tools/perflog2csv
 
@@ -69,7 +69,7 @@ ifeq ($(call is_installed,portaudiocpp),yes)
 LIST_PORTAUDIO_DEVICES_OBJS = \
   tools/list-portaudio-devices.cpp
 
-OBJS += LIST_PORTAUDIO_DEVICES_OBJS
+OBJS += $(LIST_PORTAUDIO_DEVICES_OBJS)
 BIN += tools/list-portaudio-devices
 
 tools/list-portaudio-devices: $(LIST_PORTAUDIO_DEVICES_OBJS)
