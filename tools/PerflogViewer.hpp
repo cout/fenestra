@@ -20,8 +20,10 @@
 
 class PerflogViewer {
 public:
-  PerflogViewer(PerflogReader & reader)
+  PerflogViewer(PerflogReader & reader, std::uint32_t width, std::uint32_t height)
     : reader_(reader)
+    , width_(width)
+    , height_(height)
     , title_("Perflog Viewer")
     , font_("/usr/share/fonts/truetype/msttcorefonts/Arial.ttf")
   {
@@ -54,7 +56,7 @@ public:
     glMatrixMode(GL_MODELVIEW);
   }
 
-  ~PerflogViewer() {
+  virtual ~PerflogViewer() {
     glfwTerminate();
   }
 
@@ -69,19 +71,27 @@ public:
     }
   }
 
-  void redraw() {
+  virtual void redraw() {
     if (!need_redraw_) {
       need_refresh_ = false;
       return;
     }
 
+    if (!render()) return;
+
+    last_time_ = reader_.time();
+    need_redraw_ = false;
+    need_refresh_ = true;
+  }
+
+  virtual bool render() {
     glClear(GL_COLOR_BUFFER_BIT);
     glColor4f(1.0, 1.0, 1.0, 1.0);
 
     auto num_queues = reader_.queues().size();
 
     if (num_queues == 0) {
-      return;
+      return false;
     }
 
     // TODO: This math is all wrong...
@@ -143,9 +153,7 @@ public:
         height_ - row_height - top_margin,
         graph_width);
 
-    last_time_ = reader_.time();
-    need_redraw_ = false;
-    need_refresh_ = true;
+    return true;
   }
 
   double draw_metric_names(double x, double y, double row_height) {
@@ -226,7 +234,8 @@ public:
     }
   }
 
-  void draw_plot(double x, double y, PerflogReader::PerfQueue const & queue, std::uint32_t min, std::uint32_t max, double row_height, double graph_width, std::vector<GLfloat> & coords) {
+  template <typename Queue>
+  void draw_plot(double x, double y, Queue const & queue, std::uint32_t min, std::uint32_t max, double row_height, double graph_width, std::vector<GLfloat> & coords) {
     std::size_t i = 0;
     auto num_points = queue.size();
     coords.resize(num_points * 2);
@@ -234,7 +243,7 @@ public:
       assert(i * 2 + 1 < coords.size());
       auto pct = float(val - min) / max;
       assert(pct >= 0.0);
-      assert(pct <= 1.0);
+      // assert(pct <= 1.0);
       coords[i*2] = x + float(i) / num_points * graph_width;
       coords[i*2 + 1] = pct * row_height * 0.8 + y + 0.1 * row_height;
       ++i;
@@ -347,18 +356,19 @@ private:
     need_redraw_ = true;
   }
 
-private:
+protected:
   static inline PerflogViewer * current_ = nullptr;
 
   PerflogReader & reader_;
+  std::uint32_t width_;
+  std::uint32_t height_;
+
   std::string title_;
-  FTGLPixmapFont font_;
+  // FTGLPixmapFont font_;
+  FTGLTextureFont font_;
   GLFWwindow * win_ = nullptr;
 
-  std::uint32_t width_ = 752;
-  std::uint32_t height_ = 900;
   std::uint64_t last_time_ = 0;
   bool need_redraw_ = false;
   bool need_refresh_ = false;
 };
-

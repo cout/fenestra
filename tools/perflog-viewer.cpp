@@ -10,7 +10,7 @@ int main(int argc, char * argv[]) {
   }
 
   PerflogReader reader(argv[1]);
-  PerflogViewer app(reader);
+  PerflogViewer app(reader, 752, 900);
 
   while (!app.done()) {
     app.poll();

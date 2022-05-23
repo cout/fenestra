@@ -51,6 +51,16 @@ tools/perflog-viewer: $(PERFLOGVIEWER_OBJS)
 
 icons/perflog-viewer.png: icons/perflog-viewer.svg
 
+# === Mini Perflog viewer ===
+
+PERFLOGVIEWER_MINI_OBJS = \
+  tools/perflog-viewer-mini.o
+
+OBJS += $(PERFLOGVIEWER_MINI_OBJS)
+BIN += tools/perflog-viewer-mini
+
+tools/perflog-viewer-mini: $(PERFLOGVIEWER_MINI_OBJS)
+
 # === Perflog2csv ===
 
 PERFLOG2CSV_OBJS = \
