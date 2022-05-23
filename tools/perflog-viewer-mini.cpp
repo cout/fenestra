@@ -133,9 +133,24 @@ public:
       main_loop_queues.push_back(&queue);
     });
     
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    std::vector<std::vector<std::uint32_t>> main_loop_vals;
+
+    std::vector<std::uint32_t> vals;
+    for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
+      if (vals.size() < queue.size()) {
+        vals.resize(queue.size());
+      }
+
+      std::size_t idx = 0;
+      for (auto val : queue) {
+        vals[idx] += val;
+        ++idx;
+      }
+
+      if (is_drawn_main_loop(queue.name())) {
+        main_loop_vals.push_back(vals);
+      }
+    });
 
     double graph_height = 250; // 166.67 * 1.5
 
@@ -151,7 +166,8 @@ public:
         width_ - (next_x + column_margin) - right_margin,
         graph_height,
         0,
-        16667);
+        16667,
+        main_loop_vals);
 
     return true;
   }
@@ -183,7 +199,11 @@ public:
     return next_x;
   }
 
-  void draw_main_loop_plot(double x, double y, double graph_width, double graph_height, std::uint32_t min, std::uint32_t max) {
+  void draw_main_loop_plot(double x, double y, double graph_width, double graph_height, std::uint32_t min, std::uint32_t max, std::vector<std::vector<std::uint32_t>> const & main_loop_vals) {
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
     y -= graph_height;
 
     std::vector<std::uint32_t> vals;
@@ -198,24 +218,6 @@ public:
     for (auto & v : top_line) v = max;
     glColor4f(0.5, 0.5, 0.5, 0.5);
     draw_plot(x, y, top_line, min, max, graph_height, graph_width, coords);
-
-    std::vector<std::vector<std::uint32_t>> main_loop_vals;
-
-    for_each_main_loop_queue(reader_.queues(), [&](auto const & queue) {
-      if (vals.size() < queue.size()) {
-        vals.resize(queue.size());
-      }
-
-      std::size_t idx = 0;
-      for (auto val : queue) {
-        vals[idx] += val;
-        ++idx;
-      }
-
-      if (is_drawn_main_loop(queue.name())) {
-        main_loop_vals.push_back(vals);
-      }
-    });
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA);
