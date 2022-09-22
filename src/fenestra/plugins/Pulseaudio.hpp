@@ -18,6 +18,7 @@ public:
     : device_(config.fetch<std::string>("device", ""))
     , audio_maximum_latency_(config.fetch<int>("audio_maximum_latency", 64))
     , audio_suggested_latency_(config.fetch<int>("audio_suggested_latency", 64))
+    , reconnect_(config.fetch<bool>("reconect", true))
     , instance_(instance)
   {
   }
@@ -48,6 +49,14 @@ public:
       throw std::runtime_error("pa_mainloop_get_api failed");
     }
 
+    connect_context();
+  }
+
+  void connect_context() {
+    if (context_) {
+      pa_context_unref(context_);
+    }
+
     std::string client_name = "fenestra";
     if (instance_ != "") {
       client_name += ":";
@@ -62,17 +71,32 @@ public:
     pa_context_set_state_callback(context_, context_state_callback, this);
 
     auto server = nullptr; // TODO
-    auto flags = PA_CONTEXT_NOFLAGS; // TODO
+    auto flags = PA_CONTEXT_NOFAIL;
     if (pa_context_connect(context_, server, flags, nullptr) < 0) {
       throw std::runtime_error("pa_context_connect failed");
     }
   }
 
   virtual void pre_frame_delay(State const & state) override {
-    int ret;
-    while (pa_mainloop_iterate(loop_, false, &ret) > 0) { }
-
     auto now = Clock::gettime(CLOCK_REALTIME);
+    if (next_reconnect_ != Timestamp() && now >= next_reconnect_) {
+      try {
+        // std::cout << "Reconnecting context..." << std::endl;
+        connect_context();
+        next_reconnect_ = Timestamp();
+      } catch(...) {
+        // std::cout << "Reconnect failed" << std::endl;
+        if (reconnect_) {
+          next_reconnect_ = now + reconnect_delay_;
+        }
+      }
+    }
+
+    int ret;
+    int retval;
+    while ((ret = pa_mainloop_iterate(loop_, false, &retval) > 0)) { }
+
+    now = Clock::gettime(CLOCK_REALTIME);
     if (stream_ && now - last_update_ > Seconds(1)) {
       // dump_timing_info();
       // dump_latency();
@@ -128,11 +152,17 @@ private:
   void context_state_callback(pa_context * c) {
     auto state = pa_context_get_state(c);
 
+    // std::cout << "Context state is now: " << c_str(state) << std::endl;
+
     if (state == PA_CONTEXT_READY) {
       std::string stream_name = "fenestra";
       if (instance_ != "") {
         stream_name += ":";
         stream_name += instance_;
+      }
+
+      if (stream_) {
+        pa_stream_unref(stream_);
       }
 
       pa_sample_spec ss;
@@ -161,6 +191,10 @@ private:
         strm << "pa_stream_connect_playback failed: " << pa_strerror(err);
         throw std::runtime_error(strm.str());
       }
+    } else if (state == PA_CONTEXT_FAILED) {
+      if (reconnect_) {
+        next_reconnect_ = Clock::gettime(CLOCK_REALTIME) + reconnect_delay_;
+      }
     }
   }
 
@@ -169,8 +203,33 @@ private:
     return self->stream_state_callback(p);
   }
 
+  static char const * c_str(pa_stream_state state) {
+    switch(state) {
+      case PA_STREAM_UNCONNECTED: return "unconnected";
+      case PA_STREAM_CREATING: return "creating";
+      case PA_STREAM_READY: return "ready";
+      case PA_STREAM_FAILED: return "failed";
+      case PA_STREAM_TERMINATED: return "terminated";
+      default: return "unknown";
+    }
+  }
+
+  static char const * c_str(pa_context_state state) {
+    switch(state) {
+      case PA_CONTEXT_UNCONNECTED: return "unconnected";
+      case PA_CONTEXT_CONNECTING: return "connecting";
+      case PA_CONTEXT_AUTHORIZING: return "authorizing";
+      case PA_CONTEXT_SETTING_NAME: return "setting name";
+      case PA_CONTEXT_READY: return "ready";
+      case PA_CONTEXT_FAILED: return "failed";
+      case PA_CONTEXT_TERMINATED: return "terminated";
+      default: return "unknown";
+    }
+  }
+
   void stream_state_callback(pa_stream * p) {
     auto state = pa_stream_get_state(p);
+    // std::cout << "Stream state is now " << c_str(state) << std::endl;
     ready_ = state == PA_STREAM_READY;
   }
 
@@ -236,6 +295,7 @@ private:
   std::string const & device_;
   int const & audio_maximum_latency_;
   int const & audio_suggested_latency_;
+  bool & reconnect_;
 
   std::string instance_;
 
@@ -246,12 +306,14 @@ private:
   pa_context * context_ = nullptr;
   pa_stream * stream_ = nullptr;
   bool ready_ = false;
+  Timestamp next_reconnect_ = Timestamp();
   Timestamp last_update_ = Timestamp();
   std::optional<Probe::Key> overruns_key_;
   std::optional<Probe::Key> underruns_key_;
   std::optional<Probe::Key> latency_key_;
   Probe::Value overruns_;
   Probe::Value underruns_;
+  static constexpr auto reconnect_delay_ = Seconds(5);
 };
 
 }
