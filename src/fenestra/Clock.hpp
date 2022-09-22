@@ -34,6 +34,10 @@ inline bool operator>(Timestamp lhs, Timestamp rhs) {
   return lhs.nanos_ > rhs.nanos_;
 }
 
+inline bool operator>=(Timestamp lhs, Timestamp rhs) {
+  return lhs.nanos_ >= rhs.nanos_;
+}
+
 inline Nanoseconds operator-(Timestamp lhs, Timestamp rhs) {
   return Nanoseconds(lhs.nanos_ - rhs.nanos_);
 }
