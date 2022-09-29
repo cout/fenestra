@@ -117,19 +117,30 @@ private:
       case '7':
       case '8':
       case '9':
-        auto digit = key - '0';
+        {
+          auto digit = key - '0';
 
-        if (now - last_digit_time_ > Seconds(1)) {
-          state_number_ = 0;
+          if (now - last_digit_time_ > Seconds(1)) {
+            state_number_ = 0;
+          }
+
+          state_number_ *= 10;
+          state_number_ += digit;
+
+          std::cout << "Selected state " << state_number_ << std::endl;
+
+          last_digit_time_ = now;
         }
-
-        state_number_ *= 10;
-        state_number_ += digit;
-
-        std::cout << "Selected state " << state_number_ << std::endl;
-
-        last_digit_time_ = now;
         break;
+
+      case '\010':
+        if (now - last_digit_time_ <= Seconds(1)) {
+          state_number_ /= 10;
+
+          std::cout << "Selected state " << state_number_ << std::endl;
+
+          last_digit_time_ = now;
+        }
     }
   }
 
