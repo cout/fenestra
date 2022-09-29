@@ -175,10 +175,10 @@ public:
 
   void poll_window_events() {
     window_.poll_events(state_);
+    auto key_events = std::move(state_.key_events);
     for (auto const & plugin : plugins_) {
-      plugin->handle_key_events(state_.key_events, state_);
+      plugin->handle_key_events(key_events, state_);
     }
-    state_.key_events.clear();
   }
 
   void frame_delay() {
