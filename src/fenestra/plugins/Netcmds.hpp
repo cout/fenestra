@@ -124,6 +124,8 @@ private:
     auto cmd = args[0];
     if (cmd == "READ_CORE_RAM" && args.size() >= 3) {
       handle_read_core_ram(args[1], args[2], reply_addr, reply_addr_len, state);
+    } else if (cmd == "WRITE_CORE_RAM" && args.size() >= 1) {
+      handle_write_core_ram(args[1], std::next(std::begin(args)), std::end(args));
     } else if (cmd == "GET_STATUS") {
       handle_get_status(reply_addr, reply_addr_len, state);
     } else if (cmd == "VERSION") {
@@ -166,6 +168,24 @@ private:
     r += std::snprintf(r, reply_.size() - (r - reply_.data()), "\n");
 
     send_reply(std::string_view(reply_.data(), r - reply_.data()), reply_addr);
+  }
+
+  template<typename It>
+  void handle_write_core_ram(std::string_view s_addr, It begin, It end) {
+    unsigned int addr = 0;
+    std::from_chars(s_addr.data(), s_addr.data() + s_addr.size(), addr, 16);
+
+    auto size = core_->get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
+    auto * data = static_cast<uint8_t *>(core_->get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
+
+    for (auto it = begin, i = 0u; it != end; ++it, ++i) {
+      unsigned int value = 0;
+      std::from_chars(it->data(), it->data() + it->size(), value, 10);
+
+      if (addr + i < size) {
+        data[addr + i] = value;
+      }
+    }
   }
 
   void handle_get_status(sockaddr_in reply_addr, socklen_t reply_addr_len, State const & state) {
