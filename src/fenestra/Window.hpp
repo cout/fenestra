@@ -77,16 +77,16 @@ private:
   }
 
   void key_callback(int key, int scancode, int action, int mods) {
-    KeyEvent event = { KeyAction::UNKNOWN, '\0' };
+    KeyEvent event = { KeyAction::UNKNOWN, key::NUL };
 
     if (key >= GLFW_KEY_SPACE && key <= GLFW_KEY_GRAVE_ACCENT) {
-      event.key = key;
+      event.key = Key(key);
     } else {
       switch(key) {
-        case GLFW_KEY_ESCAPE: event.key = '\033'; break;
-        case GLFW_KEY_ENTER: event.key = '\n'; break;
-        case GLFW_KEY_TAB: event.key = '\t'; break;
-        case GLFW_KEY_BACKSPACE: event.key = '\b'; break;
+        case GLFW_KEY_ESCAPE: event.key = key::ESC; break;
+        case GLFW_KEY_ENTER: event.key = key::ENTER; break;
+        case GLFW_KEY_TAB: event.key = key::TAB; break;
+        case GLFW_KEY_BACKSPACE: event.key = key::BACKSPACE; break;
         default: break;
       }
     }

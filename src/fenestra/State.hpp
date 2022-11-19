@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace fenestra {
 
 struct InputState {
@@ -8,9 +10,21 @@ struct InputState {
 
 enum class KeyAction { UNKNOWN, PRESS, RELEASE, REPEAT };
 
+using Key = char32_t;
+
+namespace key {
+
+constexpr Key NUL = '\0';
+constexpr Key ESC = '\033';
+constexpr Key ENTER = '\n';
+constexpr Key TAB = '\t';
+constexpr Key BACKSPACE = '\b';
+
+}
+
 struct KeyEvent {
   KeyAction action;
-  int key;
+  Key key;
   // TODO: modifiers
 };
 

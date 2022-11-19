@@ -35,7 +35,7 @@ public:
   void unloading_game(Core const & core);
 
 private:
-  void handle_key_pressed(int key, State & state) {
+  void handle_key_pressed(Key key, State & state) {
     // TODO: Create a timer queue, instead of manually doing timing like
     // this?  That will be necessary if I want to show status text in
     // the main window.
@@ -47,7 +47,7 @@ private:
     auto now = Clock::gettime(CLOCK_REALTIME);
 
     switch(key) {
-      case '\033':
+      case key::ESC:
         if (close_requested_ && now - close_requested_time_ < Seconds(1)) {
           state.done = true;
           close_requested_ = false;
@@ -133,7 +133,7 @@ private:
         }
         break;
 
-      case '\010':
+      case key::BACKSPACE:
         if (now - last_digit_time_ <= Seconds(1)) {
           state_number_ /= 10;
 
