@@ -19,6 +19,10 @@ constexpr Key ESC = '\033';
 constexpr Key ENTER = '\n';
 constexpr Key TAB = '\t';
 constexpr Key BACKSPACE = '\b';
+constexpr Key LEFT = U'\u2190';
+constexpr Key UP = U'\u2191';
+constexpr Key RIGHT = U'\u2192';
+constexpr Key DOWN = U'\u2193';
 
 }
 

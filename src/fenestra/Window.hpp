@@ -87,6 +87,10 @@ private:
         case GLFW_KEY_ENTER: event.key = key::ENTER; break;
         case GLFW_KEY_TAB: event.key = key::TAB; break;
         case GLFW_KEY_BACKSPACE: event.key = key::BACKSPACE; break;
+        case GLFW_KEY_LEFT: event.key = key::LEFT; break;
+        case GLFW_KEY_UP: event.key = key::UP; break;
+        case GLFW_KEY_RIGHT: event.key = key::RIGHT; break;
+        case GLFW_KEY_DOWN: event.key = key::DOWN; break;
         default: break;
       }
     }
