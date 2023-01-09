@@ -35,6 +35,13 @@ public:
   void unloading_game(Core const & core);
 
 private:
+  virtual void window_sync(State & state) {
+    if (pause_next_frame_) {
+      state.paused = true;
+      pause_next_frame_ = false;
+    }
+  }
+
   void handle_key_pressed(Key key, State & state) {
     // TODO: Create a timer queue, instead of manually doing timing like
     // this?  That will be necessary if I want to show status text in
@@ -73,6 +80,11 @@ private:
         state.paused = !state.paused;
         std::cout << (state.paused ? "Paused." : "GLHF!") << std::endl;
         if (state.paused) state.fast_forward = false;
+        break;
+
+      case '.':
+        state.paused = false;
+        pause_next_frame_ = true;
         break;
 
       case ' ':
@@ -169,6 +181,8 @@ private:
   unsigned int state_number_ = 0;
 
   CoreState last_state_;
+
+  bool pause_next_frame_ = false;
 };
 
 }
