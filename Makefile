@@ -1,11 +1,11 @@
 # === Config ===
 
-REQUIRED_PACKAGES = jsoncpp ftgl libzstd
+REQUIRED_PACKAGES = jsoncpp ftgl libzstd epoxy
 OPTIONAL_PACKAGES = alsa portaudiocpp gstreamermm-1.0 libpulse
 PACKAGES = $(REQUIRED_PACKAGES) $(OPTIONAL_PACKAGES)
 
 CXXFLAGS += -Wall -ggdb -MMD -MP -std=c++17 -Og -pthread -I src
-LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lSOIL -lepoxy -lpthread
+LDFLAGS += -ldl -lGL -lGLU -lGLX -lglfw -lSOIL -lpthread
 
 package_exists = $(shell pkg-config --short-errors --exists $(1) && echo $(1))
 have_definition = $(shell echo "-DHAVE_$(1)" | tr a-z A-Z | sed -e 's/-[0-9.]\+$$//')
