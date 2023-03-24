@@ -94,7 +94,7 @@ $(BIN):
 	$(CXX) $^ -o $@ $(CPPFLAGS) $(LDFLAGS)
 
 $(ICONS):
-	inkscape $^ --export-png $@
+	inkscape $^ -o $@
 
 $(OBJS): Makefile
 
