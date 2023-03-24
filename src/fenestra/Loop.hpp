@@ -7,6 +7,7 @@
 
 #include <utility>
 #include <map>
+#include <optional>
 
 namespace fenestra {
 
