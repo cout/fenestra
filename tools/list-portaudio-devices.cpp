@@ -1,11 +1,11 @@
-#include "../plugins/Portaudio.hpp"
-#include "../Config.hpp"
+#include "../src/fenestra/plugins/Portaudio.hpp"
+#include "../src/fenestra/Config.hpp"
 
 int main() {
   using namespace fenestra;
 
   Config cfg;
-  Portaudio portaudio(cfg);
+  Portaudio portaudio(cfg.subtree("portaudio"), "portaudio");
 
   auto devices = portaudio.list_devices();
 

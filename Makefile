@@ -77,7 +77,7 @@ tools/perflog2csv: $(PERFLOG2CSV_OBJS)
 ifeq ($(call is_installed,portaudiocpp),yes)
 
 LIST_PORTAUDIO_DEVICES_OBJS = \
-  tools/list-portaudio-devices.cpp
+  tools/list-portaudio-devices.o
 
 OBJS += $(LIST_PORTAUDIO_DEVICES_OBJS)
 BIN += tools/list-portaudio-devices
