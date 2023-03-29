@@ -42,7 +42,10 @@ public:
   auto begin() { return data(); }
   auto end() { return data() + size(); }
 
-  virtual void game_loaded(Core const & core, std::string const & filename) override;
+  virtual void game_loaded(Core const & core, std::string const & filename) override {
+    open_or_create(core, filename);
+    load();
+  }
 
   virtual void unloading_game(Core const & core) override {
     sync(saveram_->data(), saveram_->size());
@@ -53,6 +56,8 @@ public:
   }
 
 private:
+  void open_or_create(Core const & core, std::string const & filename);
+
   void open(std::string const & filename, std::size_t size) {
     if (size == 0) {
       return;
@@ -77,13 +82,22 @@ private:
     last_sync_bytes_.reserve(size);
     if (!std::equal(data, data + size, last_sync_bytes_.begin())) {
       sync(data, size);
-      std::copy(data, data + size, last_sync_bytes_.begin());
     }
   }
 
   void sync(std::uint8_t const * data, std::size_t size) {
     std::cout << "Sync SRAM" << std::endl;
     std::copy(data, data + std::min(size, this->size()), this->data());
+
+    last_sync_bytes_.reserve(size);
+    std::copy(data, data + size, last_sync_bytes_.begin());
+  }
+
+  void load() {
+    std::copy(begin(), end(), saveram_->begin());
+
+    last_sync_bytes_.reserve(size_);
+    std::copy(begin(), end(), last_sync_bytes_.begin());
   }
 
 private:

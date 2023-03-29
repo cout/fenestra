@@ -3,7 +3,7 @@
 #include <filesystem>
 
 void
-fenestra::Savefile::game_loaded(Core const & core, std::string const & filename) {
+fenestra::Savefile::open_or_create(Core const & core, std::string const & filename) {
   std::filesystem::create_directories(save_directory_);
 
   saveram_ = std::make_unique<Saveram>(core);
@@ -15,7 +15,5 @@ fenestra::Savefile::game_loaded(Core const & core, std::string const & filename)
 
   this->open(save_filename.native(), saveram_->size());
 
-  std::copy(begin(), end(), saveram_->begin());
-
-  std::cout << "Loaded savefile " << save_filename.native() << std::endl;
+  std::cout << "Using savefile " << save_filename.native() << std::endl;
 }
