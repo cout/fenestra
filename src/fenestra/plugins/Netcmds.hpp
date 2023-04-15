@@ -144,6 +144,8 @@ private:
 
     auto size = core_->get_memory_size(RETRO_MEMORY_SYSTEM_RAM);
     auto const * data = static_cast<uint8_t *>(core_->get_memory_data(RETRO_MEMORY_SYSTEM_RAM));
+    auto sram_size = core_->get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    auto const * sram_data = static_cast<uint8_t *>(core_->get_memory_data(RETRO_MEMORY_SAVE_RAM));
 
     auto const max_bytes = 1024;
 
@@ -158,6 +160,13 @@ private:
     if (addr < size) {
       for (auto i = 0u; i < bytes; ++i) {
         r += std::snprintf(r, reply_.size() - (r - reply_.data()), " %.2X", data[addr + i]);
+      }
+    } else if (addr < size + sram_size) {
+      // Hack: return sram for addresses beyond system ram (this
+      // probably only works for SNES)
+      addr -= size;
+      for (auto i = 0u; i < bytes; ++i) {
+        r += std::snprintf(r, reply_.size() - (r - reply_.data()), " %.2X", sram_data[addr + i]);
       }
     } else {
       // TODO: This might be a request for a ROM read, but we don't
