@@ -147,13 +147,13 @@ private:
     auto sram_size = core_->get_memory_size(RETRO_MEMORY_SAVE_RAM);
     auto const * sram_data = static_cast<uint8_t *>(core_->get_memory_data(RETRO_MEMORY_SAVE_RAM));
 
-    auto const max_bytes = 1024;
+    auto const max_bytes = 2000;
 
     if (bytes > max_bytes) {
       bytes = max_bytes;
     }
 
-    reply_.resize(40 + 1024 * 3);
+    reply_.resize(40 + bytes * 3);
     char * r = reply_.data();
     r += std::snprintf(reply_.data(), reply_.size(), "READ_CORE_RAM %x", addr);
 
