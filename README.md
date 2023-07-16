@@ -13,11 +13,35 @@ which can be visualized in real-time from an out-of-process log viewer.
 Requirements
 ------------
 
+Required:
 * GNU make
+* pkg-config
 * GLFW
+* FTGL
 * libepoxy
+* jsoncpp (for loading config)
+* libzstd (for compressing save states)
+* libsoil (for loading icons)
+* inkscape (for building icons from svg)
+
+Optional:
+* alsa
 * portaudiocpp
-* jsoncpp
+* pulseaudio
+* gstreamermm
+
+To install requirements on ubuntu:
+
+```
+sudo apt install libjsoncpp-dev pkg-config libftgl-dev libzstd-dev \
+                 libepoxy-dev libglfw3-dev libsoil-dev inkscape
+```
+
+To install optional dependencies:
+
+```
+sudo apt install libpulse-dev
+```
 
 Building
 --------
